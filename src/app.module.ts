@@ -15,7 +15,7 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.development.cloud',
+      envFilePath: '.env.cloud',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
