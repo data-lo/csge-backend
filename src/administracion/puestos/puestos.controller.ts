@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { PuestosService } from './puestos.service';
 import { CreatePuestoDto } from './dto/create-puesto.dto';
 import { UpdatePuestoDto } from './dto/update-puesto.dto';
 
-@Controller('puestos')
+@Controller('administracion/puestos')
 export class PuestosController {
   constructor(private readonly puestosService: PuestosService) {}
 
@@ -13,8 +13,9 @@ export class PuestosController {
   }
 
   @Get()
-  findAll() {
-    return this.puestosService.findAll();
+  findAll(
+    @Query('pagina') pagina:string){
+    return this.puestosService.findAll(+pagina);
   }
 
   @Get(':id')

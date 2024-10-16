@@ -3,7 +3,7 @@ import { TextosService } from './textos.service';
 import { CreateTextoDto } from './dto/create-texto.dto';
 import { UpdateTextoDto } from './dto/update-texto.dto';
 
-@Controller('textos')
+@Controller('configuracion/textos')
 export class TextosController {
   constructor(private readonly textosService: TextosService) {}
 

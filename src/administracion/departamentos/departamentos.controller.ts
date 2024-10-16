@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { DepartamentosService } from './departamentos.service';
 import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 
-@Controller('departamentos')
+@Controller('administracion/departamentos')
 export class DepartamentosController {
   constructor(private readonly departamentosService: DepartamentosService) {}
 
@@ -13,8 +13,10 @@ export class DepartamentosController {
   }
 
   @Get()
-  findAll() {
-    return this.departamentosService.findAll();
+  findAll(
+    @Query('pagina') pagina:string)
+  {
+    return this.departamentosService.findAll(+pagina);
   }
 
   @Get(':id')
