@@ -3,7 +3,7 @@ import { IvaService } from './iva.service';
 import { CreateIvaDto } from './dto/create-iva.dto';
 import { UpdateIvaDto } from './dto/update-iva.dto';
 
-@Controller('iva')
+@Controller('configuracion/iva')
 export class IvaController {
   constructor(private readonly ivaService: IvaService) {}
 

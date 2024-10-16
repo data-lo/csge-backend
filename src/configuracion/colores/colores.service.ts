@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateColoreDto } from './dto/create-colore.dto';
-import { UpdateColoreDto } from './dto/update-colore.dto';
+import { CreateColorDto } from './dto/create-color.dto';
+import { UpdateColorDto } from './dto/update-color.dto';
 
 @Injectable()
 export class ColoresService {
-  create(createColoreDto: CreateColoreDto) {
+  create(createColoreDto: CreateColorDto) {
     return 'This action adds a new colore';
   }
 
@@ -16,7 +16,7 @@ export class ColoresService {
     return `This action returns a #${id} colore`;
   }
 
-  update(id: number, updateColoreDto: UpdateColoreDto) {
+  update(id: number, updateColoreDto: UpdateColorDto) {
     return `This action updates a #${id} colore`;
   }
 

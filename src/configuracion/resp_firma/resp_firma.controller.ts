@@ -3,7 +3,7 @@ import { RespFirmaService } from './resp_firma.service';
 import { CreateRespFirmaDto } from './dto/create-resp_firma.dto';
 import { UpdateRespFirmaDto } from './dto/update-resp_firma.dto';
 
-@Controller('resp-firma')
+@Controller('configuracion/responsable-firma')
 export class RespFirmaController {
   constructor(private readonly respFirmaService: RespFirmaService) {}
 
