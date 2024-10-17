@@ -2,7 +2,7 @@ import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
 
 @Entity('puestos')
 export class Puesto {
-    @PrimaryColumn()
+    @PrimaryColumn("uuid")
     @Generated("uuid")
     id:string
 
