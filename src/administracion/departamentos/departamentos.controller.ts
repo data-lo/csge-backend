@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { DepartamentosService } from './departamentos.service';
 import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
@@ -20,17 +20,17 @@ export class DepartamentosController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.departamentosService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.departamentosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDepartamentoDto: UpdateDepartamentoDto) {
-    return this.departamentosService.update(+id, updateDepartamentoDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateDepartamentoDto: UpdateDepartamentoDto) {
+    return this.departamentosService.update(id, updateDepartamentoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.departamentosService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.departamentosService.remove(id);
   }
 }
