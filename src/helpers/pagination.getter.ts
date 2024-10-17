@@ -1,4 +1,4 @@
-export class PagintionSetter{
+export class PaginationSetter{
     castPaginationLimit( ){
         const paginationLimit = Number(process.env.PAGINATION_LIMIT);
         return paginationLimit;

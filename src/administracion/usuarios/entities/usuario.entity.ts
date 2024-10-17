@@ -1,6 +1,8 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
+import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
+import { Puesto } from "src/administracion/puestos/entities/puesto.entity";
 
 @Entity('usuarios')
 export class Usuario {
@@ -30,12 +32,22 @@ export class Usuario {
     })
     segundoApellido:string;
 
-    @Column()
-    puestoId:string;
+    @Column({type:"uuid"})
+    puestoId:string
 
-    @Column()
-    departamentoId:string;
+    @ManyToOne(()=>Puesto,{eager:true})
+    @JoinColumn({name:'puestoId'})
+    puesto:Puesto;
 
+    
+    @Column({type:"uuid"})
+    departamentoId:string
+    
+    
+    @ManyToOne(()=>Departamento,{eager:true})
+    @JoinColumn({name:'departamentoId'})
+    departamento:Departamento;
+    
     @Column({
         length:50,
         unique:true
@@ -43,7 +55,7 @@ export class Usuario {
     correo:string;
 
     @Column({
-        length:50
+        length:255
     })
     password:string;
 
@@ -65,6 +77,4 @@ export class Usuario {
         array:true
     })
     permisos:ValidPermises[];
-
-
 }

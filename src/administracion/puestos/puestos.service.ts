@@ -4,7 +4,7 @@ import { UpdatePuestoDto } from './dto/update-puesto.dto';
 import { Puesto } from './entities/puesto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PagintionSetter } from 'src/helpers/pagination.getter';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class PuestosService {
   
   
   async findAll(pagina:number) {
-    const paginationSetter = new PagintionSetter()
+    const paginationSetter = new PaginationSetter()
     try{
       return await this.puestoRepository.find({
         skip:paginationSetter.getSkipElements(pagina),

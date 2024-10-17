@@ -4,7 +4,7 @@ import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Departamento } from './entities/departamento.entity';
 import { Repository } from 'typeorm';
-import { PagintionSetter } from 'src/helpers/pagination.getter';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 
@@ -32,7 +32,7 @@ export class DepartamentosService{
 
   async findAll(pagina:number) {
     try{
-      const paginationSetter = new PagintionSetter()
+      const paginationSetter = new PaginationSetter()
       return await this.departamentoRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
         take:paginationSetter.castPaginationLimit()
