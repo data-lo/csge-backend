@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePuestoDto } from './dto/create-puesto.dto';
 import { UpdatePuestoDto } from './dto/update-puesto.dto';
 import { Puesto } from './entities/puesto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PagintionSetter } from 'src/helpers/pagination.getter';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
 export class PuestosService {
@@ -21,44 +22,59 @@ export class PuestosService {
       await this.puestoRepository.save(puesto);
       return puesto;
     }catch(error){
-      this.handleExceptions(error);
+      handleExeptions(error);
     }    
   }
   
   
   async findAll(pagina:number) {
-
     const paginationSetter = new PagintionSetter()
     try{
       return await this.puestoRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
         take:paginationSetter.castPaginationLimit(),
       });
-    
     }catch(error){
-      console.log(error);
-      this.handleExceptions(error);
+      handleExeptions(error);
     }
   }
 
   
-  findOne(id: number) {
-    return `This action returns a #${id} puesto`;
+  async findOne(id:string) {
+    try{
+      const puesto = await this.puestoRepository.findOneBy({
+        id:id
+      });
+      if(!puesto){
+        throw new NotFoundException('Puesto no encontrado');
+      };
+      return puesto;
+    }catch(error){
+      handleExeptions(error);
+    };
   }
 
   
-  update(id: number, updatePuestoDto: UpdatePuestoDto) {
-    return `This action updates a #${id} puesto`;
+  async update(id: string, updatePuestoDto: UpdatePuestoDto) {
+    try{
+      const updateResult = await this.puestoRepository.update(id,updatePuestoDto);
+      if(updateResult.affected === 0){
+        throw new NotFoundException('Puesto no encontrado');
+      }
+      return this.findOne(id);
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   
-  remove(id: number) {
-    return `This action removes a #${id} puesto`;
+  async remove(id: string) {
+    try{
+      await this.puestoRepository.delete({id:id});
+      return {deleted:true,message:'Puesto eliminado'}
+    }catch(error){
+      handleExeptions(error);
+    }
   }
   
-  
-  private handleExceptions(error:any){
-    throw new BadRequestException(error.detail);
-  }
-
 }
