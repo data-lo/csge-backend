@@ -11,6 +11,7 @@ import { TextosModule } from './configuracion/textos/textos.module';
 import { RespFirmaModule } from './configuracion/resp_firma/resp_firma.module';
 import { ColoresModule } from './configuracion/colores/colores.module';
 import { ConfigModule } from '@nestjs/config';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -31,7 +32,9 @@ import { ConfigModule } from '@nestjs/config';
     IvaModule, 
     TextosModule, 
     RespFirmaModule, 
-    ColoresModule],
+    ColoresModule,
+    SeedModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
