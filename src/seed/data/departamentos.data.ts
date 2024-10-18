@@ -1,7 +1,7 @@
-export const puestos = [
-    "DIRECCIÓN ADMINISTRATIVA",
-    "DIRECCIÓN DE IMAGEN GUBERNAMENTAL",
-    "DEPARTAMENTO JURIDICO",
-    "DIRECCIÓN GENERAL",
-    "COORDINACIÓN DE COMUNICACIÓN"
-]
+export const departamentosData = [
+    {nombre:"DIRECCIÓN ADMINISTRATIVA"},
+    {nombre:"DIRECCIÓN DE IMAGEN GUBERNAMENTAL"},
+    {nombre:"DEPARTAMENTO JURIDICO"},
+    {nombre:"DIRECCIÓN GENERAL"},
+    {nombre:"COORDINACIÓN DE COMUNICACIÓN"}
+];

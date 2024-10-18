@@ -10,6 +10,7 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -41,9 +42,13 @@ export class UsuariosService {
       return await this.usuarioRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
         take:paginationSetter.castPaginationLimit(),
-        relations:{
-          departamento:true,
-          puesto:true
+        select:{
+          id:true,
+          estatus:true,
+          nombres:true,
+          primerApellido:true,
+          segundoApellido:true,
+          correo:true,
         }
       })
     }catch(error){
@@ -51,9 +56,9 @@ export class UsuariosService {
     }
   }
 
-  async findOne(id:string) {
+  async findOne(userId:string) {
     try{
-      const usuario = await this.usuarioRepository.findOneBy({id:id});
+      const usuario = await this.usuarioRepository.findOneBy({id:userId});
       if(!usuario){
         throw new NotFoundException('Usuario no encontrado');
       };
@@ -61,19 +66,18 @@ export class UsuariosService {
       delete usuario.puestoId;
       delete usuario.departamentoId;
       return usuario;
-
     }catch(error){
       handleExeptions(error);
     };
   }
 
-  async update(id:string, updateUsuarioDto: UpdateUsuarioDto) {
+  async update(userId:string, updateUsuarioDto: UpdateUsuarioDto) {
     try{
-      const updateResult = await this.usuarioRepository.update(id,updateUsuarioDto);
+      const updateResult = await this.usuarioRepository.update(userId,updateUsuarioDto);
       if(updateResult.affected === 0){
         throw new NotFoundException('Usuario no encontrado');
       }
-      return this.findOne(id);
+      return this.findOne(userId);
     }catch(error){
       handleExeptions(error);
     }
@@ -149,11 +153,59 @@ export class UsuariosService {
     }
   }
 
-  async remover_permisos(){
+  async removerPermisos(actualizarPermisosDto:ActualizarPermisosDto){
+    try{
+      const {id,permisos} = actualizarPermisosDto;
+      const usuarioDb = await this.findOne(id);
+      
+      if(usuarioDb.estatus === false){
+        return {message:"Usuario desactivado. Activar usuario para hacer cambios"}
+      }
+      
+      const permisosActualizados = usuarioDb.permisos.filter(
+        (permiso) => !permisos.includes(permiso),
+      );
+      
+      await this.usuarioRepository.update(id, { permisos: permisosActualizados });
+      return { message: "Permisos removidos exitosamente", permisos_activos: permisosActualizados }
     
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  async agregar_permisos(){
-
+  async agregarPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
+      const { id, permisos } = actualizarPermisosDto;
+      const usuarioDb = await this.findOne(id);
+  
+      if (!usuarioDb) {
+        return { message: "Usuario no encontrado" };
+      }
+  
+      if (usuarioDb.estatus === false) {
+        return { message: "Usuario desactivado. Activar usuario para hacer cambios" };
+      }
+  
+      // Combinar los permisos existentes con los nuevos sin duplicados
+      const permisosActualizadosSet = new Set([...usuarioDb.permisos, ...permisos]);
+      const permisosActualizados = Array.from(permisosActualizadosSet);
+  
+      await this.usuarioRepository.update(id, { permisos: permisosActualizados });
+      return { message: "Permisos agregados exitosamente", permisos: permisosActualizados };
   }
+  
+  async obtenerEstatus(userId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id: userId },
+        relations: [],
+        select: ['id', 'estatus'],
+      });
+  
+      return { usuario: usuario.id, estatus: usuario.estatus};
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+  
 }
