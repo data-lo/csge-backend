@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { TextosService } from './textos.service';
 import { CreateTextoDto } from './dto/create-texto.dto';
 import { UpdateTextoDto } from './dto/update-texto.dto';
@@ -12,23 +12,33 @@ export class TextosController {
     return this.textosService.create(createTextoDto);
   }
 
+  @Get('encabezado')
+  findEncabezado() {
+    return this.textosService.obtenerEncabezado();
+  }
+
+  @Get('pie-de-pagina')
+  findPieDePagina() {
+    return this.textosService.obtenerPieDePagina();
+  }
+
   @Get()
   findAll() {
     return this.textosService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.textosService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.textosService.findOne(id);
   }
-
+  
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTextoDto: UpdateTextoDto) {
-    return this.textosService.update(+id, updateTextoDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateTextoDto: UpdateTextoDto) {
+    return this.textosService.update(id, updateTextoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.textosService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.textosService.eliminarTexto(id);
   }
 }

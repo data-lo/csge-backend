@@ -95,48 +95,61 @@ export class UsuariosService {
   }
 
   async updatePassword(updatePasswordDto:UpdatePasswordDto){
+    try{
       const {userId, newPassword} = updatePasswordDto;
       const updatedPassword = bcrypt.hashSync(newPassword,10)
       await this.usuarioRepository.update(userId,{
         password:updatedPassword});
       return {"message":"contraseña actualizada"}
+    }catch(error){
+      handleExeptions(error);
+    }
+      
   }
 
   async login(loginUserDto:LoginUserDto){
-    const {password,correo} = loginUserDto;
-    const dbUser = (await this.usuarioRepository.findOneBy({correo:correo}));
-    
-    if(!dbUser){
-      throw new UnauthorizedException('Usuario no encontrado')
+    try{
+      const {password,correo} = loginUserDto;
+      const dbUser = (await this.usuarioRepository.findOneBy({correo:correo}));
+      
+      if(!dbUser){
+        throw new UnauthorizedException('Usuario no encontrado')
+      }
+      
+      if(await this.verificarPrimerInicioDeSesion(password,dbUser.password)){
+        return {'defaultPassword':true};
+      }
+  
+      if(!bcrypt.compareSync(password,dbUser.password)){
+        throw new UnauthorizedException('Contraseña no valida')
+      }
+      
+      if(dbUser.estatus === false){
+        throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
+      }
+  
+      delete dbUser.password;
+      return {message:'Inicio de sesion exitoso :)'}
+    }catch(error){
+      handleExeptions(error);
     }
-    
-    if(await this.verificarPrimerInicioDeSesion(password,dbUser.password)){
-      return {'defaultPassword':true};
-    }
-
-    if(!bcrypt.compareSync(password,dbUser.password)){
-      throw new UnauthorizedException('Contraseña no valida')
-    }
-    
-    if(dbUser.estatus === false){
-      throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
-    }
-
-    delete dbUser.password;
-    return {message:'Inicio de sesion exitoso :)'}
-
   }
 
   async verificarPrimerInicioDeSesion(password:string,dbPassword:string){
-    if(password === defaultPassowrd){
-      if(bcrypt.compareSync(defaultPassowrd,dbPassword)){
-        return true;
+    try{
+      if(password === defaultPassowrd){
+        if(bcrypt.compareSync(defaultPassowrd,dbPassword)){
+          return true;
+        }else{
+          return false;
+        }
       }else{
         return false;
-      }
-    }else{
-      return false;
-    };
+      };
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 
   async reestablecer(userId:string){
@@ -175,6 +188,7 @@ export class UsuariosService {
   }
 
   async agregarPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
+    try{
       const { id, permisos } = actualizarPermisosDto;
       const usuarioDb = await this.findOne(id);
   
@@ -192,6 +206,9 @@ export class UsuariosService {
   
       await this.usuarioRepository.update(id, { permisos: permisosActualizados });
       return { message: "Permisos agregados exitosamente", permisos: permisosActualizados };
+    }catch(error){
+      handleExeptions(error);
+    }
   }
   
   async obtenerEstatus(userId: string) {
@@ -207,5 +224,4 @@ export class UsuariosService {
       handleExeptions(error);
     }
   }
-  
 }

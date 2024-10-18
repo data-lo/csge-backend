@@ -9,6 +9,7 @@ import { CreatePuestoDto } from 'src/administracion/puestos/dto/create-puesto.dt
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
 import { usuariosData } from './data/usuarios.data';
 import { CreateUsuarioDto } from '../administracion/usuarios/dto/create-usuario.dto';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
 export class SeedService {
@@ -20,7 +21,12 @@ export class SeedService {
   ){}
   
   async seed(){
-    this.insertarUsuarios();
+    try{
+      this.insertarUsuarios();  
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 
   async insertarPuestos(){

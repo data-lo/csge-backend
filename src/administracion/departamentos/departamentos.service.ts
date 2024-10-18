@@ -18,13 +18,11 @@ export class DepartamentosService{
 
   async create(createDepartamentoDto: CreateDepartamentoDto) {
     try{
-    
       const departamento = this.departamentoRepository.create(
         createDepartamentoDto
       );
       await this.departamentoRepository.save(departamento);
       return departamento;
-    
     }catch(error){
       handleExeptions(error);
     }

@@ -37,7 +37,9 @@ import { AuthModule } from './auth/auth.module';
     IvaModule, 
     TextosModule, 
     RespFirmaModule, 
-    ColoresModule, SeedModule, AuthModule],
+    ColoresModule, 
+    SeedModule, 
+    AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
