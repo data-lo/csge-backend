@@ -6,7 +6,7 @@ import { Departamento } from './entities/departamento.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Departamento])],
-  exports:[TypeOrmModule],
+  exports:[TypeOrmModule,DepartamentosService],
   controllers: [DepartamentosController],
   providers: [DepartamentosService],
 })

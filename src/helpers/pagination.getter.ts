@@ -1,6 +1,6 @@
-export class PagintionSetter{
+export class PaginationSetter{
     castPaginationLimit( ){
-        const paginationLimit = Number(process.env.PAGINATION_LIMIT);
+        const paginationLimit = 15;
         return paginationLimit;
     }
     getSkipElements(page){
