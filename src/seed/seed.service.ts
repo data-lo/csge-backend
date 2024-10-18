@@ -9,6 +9,8 @@ import { CreatePuestoDto } from 'src/administracion/puestos/dto/create-puesto.dt
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
 import { usuariosData } from './data/usuarios.data';
 import { CreateUsuarioDto } from '../administracion/usuarios/dto/create-usuario.dto';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
 export class SeedService {
@@ -20,28 +22,46 @@ export class SeedService {
   ){}
   
   async seed(){
-    this.insertarDepartamentos()
-    this.insertarPuestos()
+    try{
+      this.insertarDepartamentos()
+      this.insertarPuestos()
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   async insertarPuestos(){
-   await puestosData.forEach(puesto => {
-    const puestoDto = plainToClass(CreatePuestoDto,puesto);
-    this.puestosService.create(puestoDto)
-   });
+    try{
+      await puestosData.forEach(puesto => {
+        const puestoDto = plainToClass(CreatePuestoDto,puesto);
+        this.puestosService.create(puestoDto)
+       });
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   async insertarDepartamentos(){
-    await departamentosData.forEach(departamento => {
-      const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
-      this.departamentosService.create(departamentoDto)
-    });
+    try{
+      await departamentosData.forEach(departamento => {
+        const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
+        this.departamentosService.create(departamentoDto)
+      });
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 
   async insertarUsuarios(){
-    await usuariosData.forEach(usuario => {
-      const usuarioDto = plainToClass(CreateUsuarioDto,usuario);
-      this.usuariosService.create(usuarioDto)
-    });
+    try{
+      await usuariosData.forEach(usuario => {
+        const usuarioDto = plainToClass(CreateUsuarioDto,usuario);
+        this.usuariosService.create(usuarioDto)
+      });
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 }

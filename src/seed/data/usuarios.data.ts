@@ -11,15 +11,15 @@ export const usuariosData = [
         permisos:["FIRMA","HISTORICO"]
     },
     {
-        nombres:"MONICA",
-        primerApellido:"SAENZ",
-        segundoApellido:"VOTA",
-        puestoId:"1d4a5078-86b3-4d33-a1bf-d4c216e35fbb",
-        departamentoId:"c3063951-d176-4b3b-8b8b-453a39ab968c",
-        correo:"BMSAENZ@CHIHUAHUA.GOB.MX",
-        numeroDeEmpleado:"1286",
-        rol:"SUPERADMIN",
-        permisos:["FIRMA","HISTORICO"]
+        "nombres":"MONICA",
+        "primerApellido":"SAENZ",
+        "segundoApellido":"VOTA",
+        "puestoId":"1d4a5078-86b3-4d33-a1bf-d4c216e35fbb",
+        "departamentoId":"c3063951-d176-4b3b-8b8b-453a39ab968c",
+        "correo":"BMSAENZ@CHIHUAHUA.GOB.MX",
+        "numeroDeEmpleado":"1286",
+        "rol":"SUPERADMIN",
+        "permisos":["FIRMA","HISTORICO"]
     },
     {
         nombres:"SORACHI",
