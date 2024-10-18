@@ -34,7 +34,6 @@ export class Usuario {
 
     @Column({type:"uuid"})
     puestoId:string
-
     @ManyToOne(()=>Puesto,{eager:true})
     @JoinColumn({name:'puestoId'})
     puesto:Puesto;
@@ -42,8 +41,6 @@ export class Usuario {
     
     @Column({type:"uuid"})
     departamentoId:string
-    
-    
     @ManyToOne(()=>Departamento,{eager:true})
     @JoinColumn({name:'departamentoId'})
     departamento:Departamento;

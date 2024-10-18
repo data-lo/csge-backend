@@ -30,7 +30,8 @@ import { AuthModule } from './auth/auth.module';
       synchronize:true,
       autoLoadEntities:true
       }),
-    UsuariosModule, 
+    
+    UsuariosModule,
     PuestosModule, 
     DepartamentosModule, 
     IvaModule, 

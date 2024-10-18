@@ -1,12 +1,16 @@
-import { IsString, IsStrongPassword } from "class-validator";
+import { IsString, IsUUID, Matches, MinLength } from "class-validator";
 
 export class UpdatePasswordDto {
+    
     @IsString()
-    @IsStrongPassword({
-        minLength:8,
-        minLowercase:1,
-        minUppercase:1,
-        minNumbers:1
-    })
-    password:string;
+    @MinLength(8)
+    @Matches(
+        /(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+        message: 'The password must have a Uppercase, lowercase letter and a number'
+     })
+    newPassword:string;
+
+    @IsUUID()
+    @IsString()
+    userId:string;
 }

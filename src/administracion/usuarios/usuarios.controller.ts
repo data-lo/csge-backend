@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
@@ -10,6 +12,18 @@ export class UsuariosController {
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
+  }
+
+  //Login
+  @Post('login')
+  login(@Body() login: LoginUserDto) {
+    return this.usuariosService.login(login);
+  }
+
+  //actualizar contraseña
+  @Post('update-password')
+  updatePassword(@Body() updatePassword:UpdatePasswordDto) {
+    return this.usuariosService.updatePassword(updatePassword);
   }
 
   @Get()
@@ -23,6 +37,12 @@ export class UsuariosController {
     return this.usuariosService.findOne(id);
   }
 
+  //reestablecer contraseña
+  @Get('/reestablecer/:id')
+  reestablecer(@Param('id',ParseUUIDPipe) id: string) {
+    return this.usuariosService.reestablecer(id);
+  }
+
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(id, updateUsuarioDto);
@@ -30,6 +50,6 @@ export class UsuariosController {
 
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
-    return this.usuariosService.remove(id);
+    return this.usuariosService.deactivate(id);
   }
 }
