@@ -20,7 +20,8 @@ export class SeedService {
   ){}
   
   async seed(){
-    this.insertarUsuarios();
+    this.insertarDepartamentos()
+    this.insertarPuestos()
   }
 
   async insertarPuestos(){
