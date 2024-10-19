@@ -34,23 +34,18 @@ export class ImagenController {
   @UseInterceptors( FileInterceptor('imagen',{
     fileFilter:fileFilter,
     storage: diskStorage({
-      destination:'./static/uploads',
+      destination:'./static/uploads/imagen',
       filename:fileNamer
     }),
   }))
   async uploadProductImage(
     @UploadedFile() file:Express.Multer.File,
   ){
-    try{
       if(!file){
         throw new BadRequestException('Formatos de Imágen Aceptadas: jpg, png, jpeg');
       }
       await this.imagenService.eliminarImagenExistente();
       const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${file.filename}`
-      return{secureUrl};
-    }catch(error){
-      handleExeptions(error);
-    }
-    
+      return{secureUrl};  
   }
 }
