@@ -13,6 +13,7 @@ import { ColoresModule } from './configuracion/colores/colores.module';
 import { ConfigModule } from '@nestjs/config';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
+import { ImagenModule } from './configuracion/imagen/imagen.module';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { AuthModule } from './auth/auth.module';
     RespFirmaModule, 
     ColoresModule, 
     SeedModule, 
-    AuthModule],
+    AuthModule, ImagenModule],
   controllers: [AppController],
   providers: [AppService],
 })
