@@ -1,0 +1,5 @@
+export enum TipoDeDocumento {
+    ORDEN_DE_SERVICIO = 'ORDEN_DE_SERVICIO',
+    CAMPAÑA = 'CAMPAÑA',
+    APROBACION_DE_FACTURA = 'APROBACION_DE_FACTURA'
+}

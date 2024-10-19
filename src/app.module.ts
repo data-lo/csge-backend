@@ -40,7 +40,8 @@ import { ImagenModule } from './configuracion/imagen/imagen.module';
     RespFirmaModule, 
     ColoresModule, 
     SeedModule, 
-    AuthModule, ImagenModule],
+    AuthModule, 
+    ImagenModule],
   controllers: [AppController],
   providers: [AppService],
 })
