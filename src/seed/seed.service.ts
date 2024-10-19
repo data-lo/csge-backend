@@ -9,7 +9,6 @@ import { CreatePuestoDto } from 'src/administracion/puestos/dto/create-puesto.dt
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
 import { usuariosData } from './data/usuarios.data';
 import { CreateUsuarioDto } from '../administracion/usuarios/dto/create-usuario.dto';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()

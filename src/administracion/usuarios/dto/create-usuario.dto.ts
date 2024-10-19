@@ -1,6 +1,7 @@
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
-import { IsArray, IsBoolean, IsEmail, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsEnum,
+         IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
 
 export class CreateUsuarioDto {
     

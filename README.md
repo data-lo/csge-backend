@@ -73,3 +73,8 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 Nest is [MIT licensed](LICENSE).
 
 ## A donde conectarse
+
+ENDPOINT EN CLOUD
+  https://csgedev-6ls3e4yv.b4a.run
+
+REVISAR LAS RUTAS EN WORKSPACE DE POSTMAN

@@ -1,9 +1,10 @@
-import { Column, Generated, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
 
+@Entity('paleta_colores')
 export class Color {
-    @PrimaryColumn()
+    @PrimaryColumn("uuid")
     @Generated("uuid")
-    id:string
+    id:string;
 
     @Column({
         length:8,

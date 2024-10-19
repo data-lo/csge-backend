@@ -1,8 +1,9 @@
-import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn } from "typeorm";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
 import { Puesto } from "src/administracion/puestos/entities/puesto.entity";
+import { ResponsableFirma } from "src/configuracion/resp_firma/entities/resp_firma.entity";
 
 @Entity('usuarios')
 export class Usuario {
@@ -74,4 +75,8 @@ export class Usuario {
         array:true
     })
     permisos:ValidPermises[];
+
+    @ManyToMany(() => ResponsableFirma, responsableFirma => responsableFirma.responsables)
+    firmasResponsables:ResponsableFirma;
+    
 }

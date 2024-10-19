@@ -1,26 +1,95 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIvaDto } from './dto/create-iva.dto';
 import { UpdateIvaDto } from './dto/update-iva.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Iva } from './entities/iva.entity';
+import { Repository } from 'typeorm';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { Territorio } from './interfaces/territorios';
 
 @Injectable()
 export class IvaService {
-  create(createIvaDto: CreateIvaDto) {
-    return 'This action adds a new iva';
+
+  constructor(
+    @InjectRepository(Iva)
+    private ivaRepositroy:Repository<Iva>
+  ){}
+  
+  
+  async create(createIvaDto: CreateIvaDto) {
+    try{
+      const iva = this.ivaRepositroy.create(createIvaDto);
+      await this.ivaRepositroy.save(iva);
+      return {
+        "id":iva.id,
+        "porcentaje":(iva.porcentaje*100),
+        "territorio":iva.territorio
+      };
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all iva`;
+  async findAll() {
+    try{
+      let ivas = await this.ivaRepositroy.find();
+      ivas.forEach(iva => {
+        iva.porcentaje = (iva.porcentaje*100)
+      });
+      return ivas;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} iva`;
+  async findOne(id: string) {
+    try{
+      const iva = await this.ivaRepositroy.findOneBy({id:id});
+      return {
+        "id":iva.id,
+        "porcentaje":(iva.porcentaje*100),
+        "territorio":iva.territorio
+      };
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateIvaDto: UpdateIvaDto) {
-    return `This action updates a #${id} iva`;
+  async update(id: string, updateIvaDto: UpdateIvaDto) {
+    try{
+      const ivaActualizado = await this.ivaRepositroy.update(id,updateIvaDto);
+      if(ivaActualizado.affected === 0){
+        throw new NotFoundException('No se encontro IVA');
+      }
+      return this.findOne(id);
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} iva`;
+  async obtenerIvaNacional(){
+    try{
+      let iva = await this.ivaRepositroy.findOneBy({territorio:Territorio.NACIONAL})
+      return {
+        "id":iva.id,
+        "porcentaje":(iva.porcentaje*100),
+        "territorio":iva.territorio
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async obtenerIvaFrontera(){
+    try{
+      let iva = await this.ivaRepositroy.findOneBy({territorio:Territorio.FRONTERA})
+      return {
+        "id":iva.id,
+        "porcentaje":(iva.porcentaje*100),
+        "territorio":iva.territorio
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 }

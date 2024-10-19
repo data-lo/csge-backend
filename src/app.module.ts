@@ -12,6 +12,8 @@ import { RespFirmaModule } from './configuracion/resp_firma/resp_firma.module';
 import { ColoresModule } from './configuracion/colores/colores.module';
 import { ConfigModule } from '@nestjs/config';
 import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
+import { ImagenModule } from './configuracion/imagen/imagen.module';
 
 @Module({
   imports: [
@@ -32,9 +34,10 @@ import { SeedModule } from './seed/seed.module';
     IvaModule, 
     TextosModule, 
     RespFirmaModule, 
-    ColoresModule,
-    SeedModule
-  ],
+    ColoresModule, 
+    SeedModule, 
+    AuthModule, 
+    ImagenModule],
   controllers: [AppController],
   providers: [AppService],
 })

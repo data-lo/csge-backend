@@ -5,4 +5,4 @@ export enum ValidRoles {
     AGENTE = 'AGENTE',
     PLANEACION = 'PLANEACION',
     REPORTES = 'REPORTES',
-}
+};

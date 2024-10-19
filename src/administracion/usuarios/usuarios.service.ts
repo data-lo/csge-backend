@@ -103,7 +103,8 @@ export class UsuariosService {
       return {"message":"contraseña actualizada"}
     }catch(error){
       handleExeptions(error);
-    }   
+    }
+      
   }
 
   async login(loginUserDto:LoginUserDto){
@@ -114,19 +115,19 @@ export class UsuariosService {
       if(!dbUser){
         throw new UnauthorizedException('Usuario no encontrado')
       }
-
+      
       if(await this.verificarPrimerInicioDeSesion(password,dbUser.password)){
         return {'defaultPassword':true};
       }
-
+  
       if(!bcrypt.compareSync(password,dbUser.password)){
         throw new UnauthorizedException('Contraseña no valida')
       }
-
+      
       if(dbUser.estatus === false){
         throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
       }
-
+  
       delete dbUser.password;
       return {message:'Inicio de sesion exitoso :)'}
     }catch(error){
@@ -208,7 +209,6 @@ export class UsuariosService {
     }catch(error){
       handleExeptions(error);
     }
-
   }
   
   async obtenerEstatus(userId: string) {
@@ -224,5 +224,4 @@ export class UsuariosService {
       handleExeptions(error);
     }
   }
-  
 }

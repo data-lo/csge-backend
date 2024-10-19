@@ -1,26 +1,63 @@
 import { Injectable } from '@nestjs/common';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Color } from './entities/color.entity';
+import { Repository } from 'typeorm';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
 export class ColoresService {
-  create(createColoreDto: CreateColorDto) {
-    return 'This action adds a new colore';
+  constructor(
+   @InjectRepository(Color)
+   private colorRepository:Repository<Color>
+  ){}
+
+  async create(createColorDto: CreateColorDto) {
+      const color = this.colorRepository.create(createColorDto);
+      await this.colorRepository.save(color);
+      return color;
   }
 
-  findAll() {
-    return `This action returns all colores`;
+  async findAll() {
+    try{
+      return await this.colorRepository.find({where:{
+        primario:false
+      }})
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} colore`;
+  async findColorPrimario(){
+    try{
+      return await this.colorRepository.findOneBy({
+        primario:true
+      })
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateColoreDto: UpdateColorDto) {
-    return `This action updates a #${id} colore`;
+  async update(id: string, updateColorDto: UpdateColorDto) {
+    try{
+      await this.desactivarColorPrimario();
+      await this.colorRepository.update(id,updateColorDto);
+      const nuevoColorPrimario = await this.findColorPrimario();
+      return {message:`Color primario actualizado a ${nuevoColorPrimario}`};
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} colore`;
+  async desactivarColorPrimario(){
+    try{
+      let colorPrimario = await this.findColorPrimario();
+      colorPrimario.primario = false;
+      await this.colorRepository.update(colorPrimario.id,colorPrimario)
+      return;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 }
