@@ -48,7 +48,7 @@ export class ColoresService {
       await this.desactivarColorPrimario();
       await this.colorRepository.update(id,updateColorDto);
       const nuevoColorPrimario = await this.findColorPrimario();
-      return {message:`Color primario actualizado a ${nuevoColorPrimario}`};
+      return {message:`Color primario actualizado`};
     }catch(error){
       handleExeptions(error);
     }
