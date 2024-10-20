@@ -29,11 +29,15 @@ export class ColoresService {
     }
   }
 
-  async findColorPrimario(){
+  async findColorPrimario(){ 
     try{
-      return await this.colorRepository.findOneBy({
+      const colorPrimario = await this.colorRepository.findOneBy({
         primario:true
       })
+      if(!colorPrimario){
+        return false;
+      }
+      return colorPrimario;
     }catch(error){
       handleExeptions(error);
     }
@@ -53,9 +57,13 @@ export class ColoresService {
   async desactivarColorPrimario(){
     try{
       let colorPrimario = await this.findColorPrimario();
-      colorPrimario.primario = false;
-      await this.colorRepository.update(colorPrimario.id,colorPrimario)
-      return;
+      if(colorPrimario){
+        colorPrimario.primario = false;
+        await this.colorRepository.update(colorPrimario.id,colorPrimario)
+        return;
+      }else{
+        return;
+      }
     }catch(error){
       handleExeptions(error);
     }
