@@ -22,31 +22,45 @@ export class SeedService {
   
   async seed(){
     try{
-      this.insertarUsuarios();  
+      this.insertarDepartamentos()
+      this.insertarPuestos()
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarPuestos(){
+    try{
+      await puestosData.forEach(puesto => {
+        const puestoDto = plainToClass(CreatePuestoDto,puesto);
+        this.puestosService.create(puestoDto)
+       });
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarDepartamentos(){
+    try{
+      await departamentosData.forEach(departamento => {
+        const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
+        this.departamentosService.create(departamentoDto)
+      });
     }catch(error){
       handleExeptions(error);
     }
     
   }
 
-  async insertarPuestos(){
-   await puestosData.forEach(puesto => {
-    const puestoDto = plainToClass(CreatePuestoDto,puesto);
-    this.puestosService.create(puestoDto)
-   });
-  }
-
-  async insertarDepartamentos(){
-    await departamentosData.forEach(departamento => {
-      const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
-      this.departamentosService.create(departamentoDto)
-    });
-  }
-
   async insertarUsuarios(){
-    await usuariosData.forEach(usuario => {
-      const usuarioDto = plainToClass(CreateUsuarioDto,usuario);
-      this.usuariosService.create(usuarioDto)
-    });
+    try{
+      await usuariosData.forEach(usuario => {
+        const usuarioDto = plainToClass(CreateUsuarioDto,usuario);
+        this.usuariosService.create(usuarioDto)
+      });
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 }

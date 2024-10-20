@@ -117,7 +117,10 @@ export class UsuariosService {
       }
       
       if(await this.verificarPrimerInicioDeSesion(password,dbUser.password)){
-        return {'defaultPassword':true};
+        return {
+          'defaultPassword':true,
+          'userId':dbUser.id
+        };
       }
   
       if(!bcrypt.compareSync(password,dbUser.password)){

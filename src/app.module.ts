@@ -18,21 +18,17 @@ import { ImagenModule } from './configuracion/imagen/imagen.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.development.local',
+      envFilePath: '.env.cloud',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
-      host:process.env.DB_HOST,
-      port:Number(process.env.DB_PORT),
-      username:process.env.DB_USERNAME,
-      password:process.env.DB_PASSWORD,
-      database:process.env.DB_NAME,
+      url:process.env.DATABASE_URL,
+      ssl:true,
       synchronize:true,
       autoLoadEntities:true
       }),
-    
-    UsuariosModule,
+    UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 
     IvaModule, 
