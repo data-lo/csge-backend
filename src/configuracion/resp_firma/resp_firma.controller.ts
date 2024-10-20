@@ -3,6 +3,7 @@ import { RespFirmaService } from './resp_firma.service';
 import { CreateRespFirmaDto } from './dto/create-resp_firma.dto';
 import { UpdateRespFirmaDto } from './dto/update-resp_firma.dto';
 import { AgregarResponsableDto } from './dto/agregar-resposnable.dto';
+import { EliminarResponsableDto } from './dto/eliminar-responsable.dto';
 
 @Controller('configuracion/responsable-firma')
 export class RespFirmaController {
@@ -16,6 +17,11 @@ export class RespFirmaController {
   @Post('agregar-responsable')
   agregarResponsable(@Body() agregarResponsableDto:AgregarResponsableDto) {
     return this.respFirmaService.agregarResponsable(agregarResponsableDto);
+  }
+
+  @Post('eliminar-responsable')
+  eliminarResponsable(@Body() eliminarResponsableDto:EliminarResponsableDto) {
+    return this.respFirmaService.eliminarResponsable(eliminarResponsableDto);
   }
 
   @Get()
