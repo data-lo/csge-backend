@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { TipoDeDocumento } from "../interfaces/tipo-de-documento";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
