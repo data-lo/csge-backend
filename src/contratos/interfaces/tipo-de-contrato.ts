@@ -1,0 +1,5 @@
+export enum TipoDeContrato{
+    ABIERTO='ABIERTO',
+    CERRADO = 'CERRADO',
+    UNICA_EXHIBICION = 'UNICA_EXHIBICION',
+}

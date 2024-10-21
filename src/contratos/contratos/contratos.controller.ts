@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 
-@Controller('contratos')
+@Controller('contratos/contratos')
 export class ContratosController {
   constructor(private readonly contratosService: ContratosService) {}
 
@@ -13,22 +13,22 @@ export class ContratosController {
   }
 
   @Get()
-  findAll() {
-    return this.contratosService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.contratosService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.contratosService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateContratoDto: UpdateContratoDto) {
-    return this.contratosService.update(+id, updateContratoDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    return this.contratosService.update(id, updateContratoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.contratosService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosService.remove(id);
   }
 }

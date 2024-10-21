@@ -1,0 +1,6 @@
+export enum EstatusDeContrato{
+    PENDIENTE='PENDIENTE',
+    LIBERADO = 'LIBERADO',
+    INACTIVO='INACTIVO',
+    CANCELADO='CANCELADO'
+}

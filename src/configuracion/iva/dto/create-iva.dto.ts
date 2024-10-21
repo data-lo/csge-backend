@@ -1,4 +1,4 @@
-import { IsDecimal, IsEnum, IsNumber, Max, Min } from "class-validator";
+import { IsEnum, IsNumber, Max, Min } from "class-validator";
 import { Territorio } from "../interfaces/territorios";
 import { Transform, Type } from "class-transformer";
 
