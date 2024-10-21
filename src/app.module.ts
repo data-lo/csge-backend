@@ -14,7 +14,14 @@ import { ConfigModule } from '@nestjs/config';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { ImagenModule } from './configuracion/imagen/imagen.module';
-import { env } from 'process';
+import { ContratosModule } from './contratos/contratos/contratos.module';
+import { ContratosModificatoriosModule } from './contratos/contratos_modificatorios/contratos_modificatorios.module';
+import { CaracteristicasModule } from './catalogos/caracteristicas/caracteristicas.module';
+import { DimensionesModule } from './catalogos/dimensiones/dimensiones.module';
+import { FormatosModule } from './catalogos/formatos/formatos.module';
+import { ImpresionesModule } from './catalogos/impresiones/impresiones.module';
+import { LongitudesModule } from './catalogos/longitudes/longitudes.module';
+import { TiemposModule } from './catalogos/tiempos/tiempos.module';
 
 @Module({
   imports: [
@@ -41,7 +48,16 @@ import { env } from 'process';
     ColoresModule, 
     SeedModule, 
     AuthModule, 
-    ImagenModule],
+    ImagenModule,
+    ContratosModule,
+    ContratosModificatoriosModule,
+    CaracteristicasModule,
+    DimensionesModule,
+    FormatosModule,
+    ImpresionesModule,
+    LongitudesModule,
+    TiemposModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
