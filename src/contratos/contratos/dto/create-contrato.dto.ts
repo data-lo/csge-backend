@@ -5,7 +5,7 @@ import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsU
 import { Transform } from "class-transformer";
 
 export class CreateContratoDto {
-        
+            
     @IsOptional()
     @IsUUID()
     proveedorId:string;
@@ -14,6 +14,7 @@ export class CreateContratoDto {
     numeroDeContrato:string;
     
     @IsEnum(EstatusDeContrato)
+    @IsOptional()
     estatusDeContrato:EstatusDeContrato;
 
     @IsEnum(TipoDeContrato)
@@ -46,16 +47,21 @@ export class CreateContratoDto {
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    monto_ejecido:number;
+    montoEjecido:number;
 
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    monto_pagado:number;
+    montoPagado:number;
+
+    @IsOptional()
+    @IsNumber({maxDecimalPlaces:2})
+    @Min(0.01)
+    montoDisponible:number;
 
     @IsOptional()
     @IsBoolean({})
-    iva_frontera:boolean;
+    ivaFrontera:boolean;
 
     @IsDate()
     @Transform(({value}) => {

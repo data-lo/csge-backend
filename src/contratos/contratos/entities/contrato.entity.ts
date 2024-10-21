@@ -27,7 +27,8 @@ export class Contrato {
     @Column({
         name:'estatus_de_contrato',
         type:'enum',
-        enum:EstatusDeContrato
+        enum:EstatusDeContrato,
+        default:EstatusDeContrato.PENDIENTE
     })
     estatusDeContrato:EstatusDeContrato;
 

@@ -17,6 +17,11 @@ export class ContratosController {
     return this.contratosService.findAll(+pagina);
   }
 
+  @Get('obtener-estatus/:id')
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosService.obtenerEstatus(id);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosService.findOne(id);
@@ -25,6 +30,16 @@ export class ContratosController {
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
     return this.contratosService.update(id, updateContratoDto);
+  }
+
+  @Patch('modificar-estatus/:id')
+  modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    return this.contratosService.modificarEstatus(id, updateContratoDto);
+  }
+
+  @Patch('desactivar-cancelar/:id')
+  desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    return this.contratosService.desactivarCancelarContrato(id, updateContratoDto);
   }
 
   @Delete(':id')
