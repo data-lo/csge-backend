@@ -49,6 +49,7 @@ export class UsuariosService {
           primerApellido:true,
           segundoApellido:true,
           correo:true,
+          permisos:true
         }
       })
     }catch(error){

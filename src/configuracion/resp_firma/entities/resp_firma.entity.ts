@@ -20,6 +20,7 @@ export class ResponsableFirma {
         enum:TipoDeServicio,
         array:true,
         nullable:true,
+        unique:true
     })
     tipoDeServicio:TipoDeServicio[];
 
