@@ -42,7 +42,9 @@ export class ContratosModificatoriosService {
 
   async findOne(id: string) {
     try{
-      const contratoModificatorio = await this.contratoModificatorioRepository.findOneBy(id);
+      const contratoModificatorio = await this.contratoModificatorioRepository.findOneBy(
+        {id:id}
+      );
       if(!contratoModificatorio){
         throw new BadRequestException('El contrato modificatorio no existe');
       }
@@ -66,7 +68,7 @@ export class ContratosModificatoriosService {
 
   async remove(id: string) {
     try{
-
+      
     }catch(error){
       handleExeptions(error);
     }
