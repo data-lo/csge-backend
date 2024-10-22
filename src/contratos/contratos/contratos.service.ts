@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
@@ -60,7 +60,7 @@ export class ContratosService {
     try{
       const contrato = await this.contratoRepository.findOneBy({id:id});
       if(!contrato){
-        throw new BadRequestException('El contrato no existe');
+        throw new NotFoundException('El contrato no se encuentra');
       }
       return contrato;
     }catch(error){
@@ -97,6 +97,7 @@ export class ContratosService {
         throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
       }else{
         await this.contratoRepository.update(id,updateContratoDto);
+        return {message:'Contrato actualizado'}
       }
     }catch(error){
       handleExeptions(error);

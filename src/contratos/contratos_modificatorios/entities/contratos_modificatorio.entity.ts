@@ -1,1 +1,1 @@
-export class ContratosModificatorio {}
+export class ContratoModificatorio {}

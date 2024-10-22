@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIvaDto } from './dto/create-iva.dto';
 import { UpdateIvaDto } from './dto/update-iva.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -45,11 +45,14 @@ export class IvaService {
   async findOne(id: string) {
     try{
       const iva = await this.ivaRepositroy.findOneBy({id:id});
-      return {
-        "id":iva.id,
-        "porcentaje":(iva.porcentaje*100),
-        "territorio":iva.territorio
-      };
+      if(iva){
+        return {
+          "id":iva.id,
+          "porcentaje":(iva.porcentaje*100),
+          "territorio":iva.territorio
+        };
+      }
+      throw new NotFoundException('El Iva no existe');
     }catch(error){
       handleExeptions(error);
     }
@@ -57,11 +60,14 @@ export class IvaService {
 
   async update(id: string, updateIvaDto: UpdateIvaDto) {
     try{
-      const ivaActualizado = await this.ivaRepositroy.update(id,updateIvaDto);
-      if(ivaActualizado.affected === 0){
-        throw new NotFoundException('No se encontro IVA');
+      const iva = this.findOne(id);
+      if(iva){
+        const ivaActualizado = await this.ivaRepositroy.update(id,updateIvaDto);
+        if(ivaActualizado.affected === 0){
+          throw new NotFoundException('No se encontro IVA');
+        }
+        return this.findOne(id);
       }
-      return this.findOne(id);
     }catch(error){
       handleExeptions(error);
     }

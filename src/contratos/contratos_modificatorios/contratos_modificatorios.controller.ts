@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ContratosModificatoriosService } from './contratos_modificatorios.service';
 import { CreateContratoModificatorioDto } from './dto/create-contratos_modificatorio.dto';
 import { UpdateContratoModificatorioDto } from './dto/update-contratos_modificatorio.dto';
@@ -13,22 +13,24 @@ export class ContratosModificatoriosController {
   }
 
   @Get()
-  findAll() {
-    return this.contratosModificatoriosService.findAll();
+  findAll(
+    @Query('pagina') pagina:number
+  ) {
+    return this.contratosModificatoriosService.findAll(pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.contratosModificatoriosService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosModificatoriosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateContratosModificatorioDto: UpdateContratoModificatorioDto) {
-    return this.contratosModificatoriosService.update(+id, updateContratosModificatorioDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratosModificatorioDto: UpdateContratoModificatorioDto) {
+    return this.contratosModificatoriosService.update(id, updateContratosModificatorioDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.contratosModificatoriosService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosModificatoriosService.remove(id);
   }
 }

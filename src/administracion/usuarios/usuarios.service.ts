@@ -74,11 +74,14 @@ export class UsuariosService {
 
   async update(userId:string, updateUsuarioDto: UpdateUsuarioDto) {
     try{
-      const updateResult = await this.usuarioRepository.update(userId,updateUsuarioDto);
-      if(updateResult.affected === 0){
-        throw new NotFoundException('Usuario no encontrado');
+      const usuarioDb = await this.findOne(userId);
+      if(usuarioDb){
+        const updateResult = await this.usuarioRepository.update(userId,updateUsuarioDto);
+        if(updateResult.affected === 0){
+          throw new NotFoundException('Usuario no encontrado');
+        }
+        return this.findOne(userId);
       }
-      return this.findOne(userId);
     }catch(error){
       handleExeptions(error);
     }
@@ -87,9 +90,12 @@ export class UsuariosService {
   async deactivate(id:string) {
     try{
       const deactivate = false;
-      await this.usuarioRepository.update(id,
-        {estatus:deactivate});
-      return {message:'usuario desactivado'}
+      const usuarioDb = await this.findOne(id);
+      if(usuarioDb){
+        await this.usuarioRepository.update(id,
+          {estatus:deactivate});
+        return {message:'usuario desactivado'}
+      }
     }catch(error){
       handleExeptions(error);
     }
@@ -99,9 +105,12 @@ export class UsuariosService {
     try{
       const {userId, newPassword} = updatePasswordDto;
       const updatedPassword = bcrypt.hashSync(newPassword,10)
-      await this.usuarioRepository.update(userId,{
-        password:updatedPassword});
-      return {"message":"contraseña actualizada"}
+      const usuarioDb = await this.findOne(userId);
+      if(usuarioDb){
+        await this.usuarioRepository.update(userId,{
+          password:updatedPassword});
+        return {"message":"contraseña actualizada"}
+      }
     }catch(error){
       handleExeptions(error);
     }
