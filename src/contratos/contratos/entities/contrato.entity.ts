@@ -1,7 +1,8 @@
+import { ContratoModificatorio } from "src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity";
 import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
 import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, OneToMany, PrimaryColumn } from "typeorm";
 
 @Entity({name:'contratos'})
 export class Contrato {
@@ -136,14 +137,10 @@ export class Contrato {
     })
     fechaFinal:Date;
 
-    @Column({
-        name:'contratos_modificatorios_id',
-        type:'uuid',
-        nullable:true,
-        default:null,
-        array:true
-    })
-    contratoModificatorioId:string[];
+    @OneToMany(() => ContratoModificatorio, 
+        (contratoModificatorio => contratoModificatorio.contrato)
+    )
+    contratosModificatorios: ContratoModificatorio[]
 
     @Column({
         name:'ordenes_de_servicio_id',

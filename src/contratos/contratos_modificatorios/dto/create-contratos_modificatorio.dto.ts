@@ -18,17 +18,17 @@ export class CreateContratoModificatorioDto {
 
     @IsOptional()
     @IsBoolean()
-    iva_frontera:boolean;
+    ivaFrontera:boolean;
 
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    monto_ejecido:number;
+    montoEjecido:number;
 
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    monto_pagado:number;
+    montoPagado:number;
 
     @IsDate()
     @Transform(({value}) => {
@@ -37,7 +37,6 @@ export class CreateContratoModificatorioDto {
     })
     fechaInicial:string;
 
-    
     @IsDate()
     @Transform(({value}) => {
         const [day, month, year] = value.split('-');

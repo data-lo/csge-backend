@@ -7,13 +7,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
+import { ContratosModificatoriosService } from '../contratos_modificatorios/contratos_modificatorios.service';
+import { AgregarContratoModificatorioDto } from './dto/agregar-contrato-modificatorio.dto';
+import { ContratoModificatorio } from '../contratos_modificatorios/entities/contratos_modificatorio.entity';
+import { EliminarContratoModificatorioDto } from './dto/eliminar-contrato-modificatorio.dto';
+
 
 @Injectable()
 export class ContratosService {
 
   constructor(
     @InjectRepository(Contrato)
-    private contratoRepository:Repository<Contrato>
+    private contratoRepository:Repository<Contrato>,
+    @InjectRepository(ContratoModificatorio)
+    private ContratoModificatorioRepository:Repository<ContratoModificatorio>,
+    private contratoModificatorioService:ContratosModificatoriosService
   ){}
 
   async create(createContratoDto: CreateContratoDto) {
@@ -58,7 +66,12 @@ export class ContratosService {
 
   async findOne(id:string) {
     try{
-      const contrato = await this.contratoRepository.findOneBy({id:id});
+      const contrato = await this.contratoRepository.findOne({
+        where:{id:id},
+        relations:{
+          contratosModificatorios:true
+        }
+      });
       if(!contrato){
         throw new NotFoundException('El contrato no se encuentra');
       }
@@ -136,9 +149,42 @@ export class ContratosService {
     }
   }
 
-  async actualizarMontos(){}
+  async agregarContratoModificatorio(agregarContratoModifictorioDto:AgregarContratoModificatorioDto){
+    try{
+      const {contratoId, contratoModificatorioId} = agregarContratoModifictorioDto;
+      const contrato = await this.findOne(contratoId);
+      const contratoModificatorio = await this.contratoModificatorioService
+                                              .findOne(contratoModificatorioId);      
+      contratoModificatorio.contrato = contrato;
+      await this.ContratoModificatorioRepository.save(contratoModificatorio);
+      return {message:"Contrato modificatorio agregado"};
+  }catch(error){
+      handleExeptions(error);
+    }
+  }
 
-  async agregarContratoModificatorio(){}
+  async eliminarContratoModificatorio(eliminarContratoModificatorio:EliminarContratoModificatorioDto) {
+    try {
+      
+      const {contratoId, contratoModificatorioId} = eliminarContratoModificatorio;
+      const contrato = await this.findOne(contratoId);  
+      if (!contrato.contratosModificatorios.find(modificatorio => modificatorio.id === contratoModificatorioId)) {
+        throw new NotFoundException('El contrato modificatorio no está asociado al contrato');
+      }
+  
+      contrato.contratosModificatorios = contrato.contratosModificatorios.filter(
+        mod => mod.id !== contratoModificatorioId
+      );
+      await this.contratoRepository.save(contrato);
+      await this.contratoModificatorioService.remove(contratoModificatorioId)
+      return { message: "Contrato modificatorio eliminado correctamente" };
+    
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+  
+  async actualizarMontos(){}
   
   async agregarProveedor(){}
 

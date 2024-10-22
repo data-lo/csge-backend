@@ -1,5 +1,6 @@
 import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Contrato } from '../../contratos/entities/contrato.entity';
 @Entity()
 export class ContratoModificatorio {
     
@@ -10,6 +11,7 @@ export class ContratoModificatorio {
     @Column({
         name:'estatus_de_contrato',
         type:'enum',
+        default:EstatusDeContrato.PENDIENTE,
         enum:EstatusDeContrato
     })
     estatusDeContrato:EstatusDeContrato;
@@ -37,7 +39,7 @@ export class ContratoModificatorio {
         type:'boolean',
         default:false
     })
-    iva_frontera:boolean;
+    ivaFrontera:boolean;
 
     @Column({
         name:'monto_ejercido',
@@ -46,7 +48,7 @@ export class ContratoModificatorio {
         scale:2,
         nullable:false
     })
-    monto_ejecido:number;
+    montoEjecido:number;
 
     @Column({
         name:'monto_pagado',
@@ -55,7 +57,16 @@ export class ContratoModificatorio {
         scale:2,
         nullable:false
     })
-    monto_pagado:number;
+    montoPagado:number;
+
+    @Column({
+        name:'monto_disponible',
+        type:'decimal',
+        default:0.00,
+        scale:2,
+        nullable:false
+    })
+    montoDisponible:number;
 
     @Column({
         name:'fecha_inicial',
@@ -87,4 +98,9 @@ export class ContratoModificatorio {
         array:true
     })
     ordenesDeServicioId:string[];
+
+    @ManyToOne(()=> Contrato, 
+        (contrato)=> contrato.contratosModificatorios)
+    @JoinColumn({name:'contrato_id'})
+    contrato: Contrato
 }
