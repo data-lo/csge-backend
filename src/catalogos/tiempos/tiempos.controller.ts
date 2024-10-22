@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { TiemposService } from './tiempos.service';
 import { CreateTiempoDto } from './dto/create-tiempo.dto';
 import { UpdateTiempoDto } from './dto/update-tiempo.dto';
 
-@Controller('tiempos')
+@Controller('catalogos/tiempos')
 export class TiemposController {
   constructor(private readonly tiemposService: TiemposService) {}
 
@@ -13,22 +13,22 @@ export class TiemposController {
   }
 
   @Get()
-  findAll() {
-    return this.tiemposService.findAll();
+  findAll(@Query('pagina') pagina:number) {
+    return this.tiemposService.findAll(pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tiemposService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.tiemposService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTiempoDto: UpdateTiempoDto) {
-    return this.tiemposService.update(+id, updateTiempoDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateTiempoDto: UpdateTiempoDto) {
+    return this.tiemposService.update(id, updateTiempoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tiemposService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.tiemposService.remove(id);
   }
 }

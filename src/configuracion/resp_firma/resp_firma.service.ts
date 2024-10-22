@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRespFirmaDto } from './dto/create-resp_firma.dto';
 import { UpdateRespFirmaDto } from './dto/update-resp_firma.dto';
 import { Repository } from 'typeorm';
@@ -112,7 +112,7 @@ export class RespFirmaService {
         }
       });
       if(!responsables){
-        throw new BadRequestException('No se encontró el documento de responsables');
+        throw new NotFoundException('No se encontró el documento de responsables');
       }
       return responsables;
     }catch(error){
@@ -128,7 +128,7 @@ export class RespFirmaService {
       const responsableFirma = await this.findOne(id);
       
       if(!responsableFirma){
-        throw new Error(`No se enucuentra id del documento a actualizar`);
+        throw new NotFoundException(`No se enucuentra id del documento a actualizar`);
       }
       
       const usuarios = await this.obtenerUsuarios(responsables);

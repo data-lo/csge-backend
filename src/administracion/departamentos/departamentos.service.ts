@@ -42,9 +42,7 @@ export class DepartamentosService{
 
   async findOne(id:string){
     try{
-      const departameto = await this.departamentoRepository.findOneBy({
-        id:id
-      });
+      const departameto = await this.departamentoRepository.findOneBy({id:id});
       if(!departameto){
         throw new NotFoundException('Departamento no encontrado');
       };
@@ -56,11 +54,14 @@ export class DepartamentosService{
 
   async update(id: string, updateDepartamentoDto: UpdateDepartamentoDto) {
     try{
-      const updateResult = await this.departamentoRepository.update(id,updateDepartamentoDto);
-      if(updateResult.affected === 0){
-        throw new NotFoundException('Departamento no encontrado');
+      const departamento = await this.findOne(id);
+      if(departamento){
+        const updateResult = await this.departamentoRepository.update(id,updateDepartamentoDto);
+        if(updateResult.affected === 0){
+          throw new NotFoundException('Departamento no encontrado');
+        }
+        return this.findOne(id);
       }
-      return this.findOne(id);
     }catch(error){
       handleExeptions(error);
     }
@@ -68,8 +69,11 @@ export class DepartamentosService{
 
   async remove(id: string) {
     try{
-      await this.departamentoRepository.delete({id:id});
-      return {deleted:true,message:'departamento eliminado'}
+      const departamento = await this.findOne(id);
+      if(departamento){
+        await this.departamentoRepository.delete({id:id});
+        return {deleted:true,message:'departamento eliminado'}
+      }
     }catch(error){
       handleExeptions(error);
     }

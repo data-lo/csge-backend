@@ -1,26 +1,77 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTiempoDto } from './dto/create-tiempo.dto';
 import { UpdateTiempoDto } from './dto/update-tiempo.dto';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Tiempo } from './entities/tiempo.entity';
+import { Repository } from 'typeorm';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class TiemposService {
-  create(createTiempoDto: CreateTiempoDto) {
-    return 'This action adds a new tiempo';
+  constructor(
+    @InjectRepository(Tiempo)
+    private tiempoRepository:Repository<Tiempo>
+  ){}
+  
+  async create(createTiempoDto: CreateTiempoDto) {
+    try{
+      const tiempo = this.tiempoRepository.create(createTiempoDto);
+      await this.tiempoRepository.save(tiempo);
+      return tiempo;
+    }catch(error:any){
+      handleExeptions(error)
+    }
   }
 
-  findAll() {
-    return `This action returns all tiempos`;
+  async findAll(pagina:number) {
+    try{
+      const paginationSetter = new PaginationSetter()
+      const tiempos = await this.tiempoRepository.find({
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina)
+      });
+      return tiempos;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tiempo`;
+  async findOne(id: string) {
+    try{
+      const tiempo = await this.tiempoRepository.findOne({
+        where:{id:id}
+      })
+      if(!tiempo){
+        throw new NotFoundException('No se encuentra la unidad de tiempo');
+      }
+      return tiempo;
+    }catch(error:any){
+      handleExeptions(error)
+    }
   }
 
-  update(id: number, updateTiempoDto: UpdateTiempoDto) {
-    return `This action updates a #${id} tiempo`;
+  async update(id: string, updateTiempoDto: UpdateTiempoDto) {
+    try{
+      const tiempoDb = await this.findOne(id);
+      if(tiempoDb){
+        await this.tiempoRepository.update(id,updateTiempoDto);
+        return await this.findOne(id);
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tiempo`;
+  async remove(id: string) {
+    try{
+      const longitudDb = await this.findOne(id);
+      if(longitudDb){
+        await this.tiempoRepository.delete(id);
+        return {message:'Unidad de tiempo Eliminada Correctamente'}
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 }

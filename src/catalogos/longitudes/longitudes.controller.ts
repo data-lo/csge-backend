@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { LongitudesService } from './longitudes.service';
-import { CreateLongitudeDto } from './dto/create-longitude.dto';
-import { UpdateLongitudeDto } from './dto/update-longitude.dto';
+import { CreateLongitudDto } from './dto/create-longitud.dto';
+import { UpdateLongitudDto } from './dto/update-longitud.dto';
 
-@Controller('longitudes')
+@Controller('catalogos/longitudes')
 export class LongitudesController {
   constructor(private readonly longitudesService: LongitudesService) {}
 
   @Post()
-  create(@Body() createLongitudeDto: CreateLongitudeDto) {
+  create(@Body() createLongitudeDto: CreateLongitudDto) {
     return this.longitudesService.create(createLongitudeDto);
   }
 
   @Get()
-  findAll() {
-    return this.longitudesService.findAll();
+  findAll(@Query('pagina') pagina:number) {
+    return this.longitudesService.findAll(pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.longitudesService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.longitudesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLongitudeDto: UpdateLongitudeDto) {
-    return this.longitudesService.update(+id, updateLongitudeDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateLongitudeDto: UpdateLongitudDto) {
+    return this.longitudesService.update(id, updateLongitudeDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.longitudesService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.longitudesService.remove(id);
   }
 }

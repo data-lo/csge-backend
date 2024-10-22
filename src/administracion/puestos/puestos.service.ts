@@ -42,9 +42,7 @@ export class PuestosService {
   
   async findOne(id:string) {
     try{
-      const puesto = await this.puestoRepository.findOneBy({
-        id:id
-      });
+      const puesto = await this.puestoRepository.findOneBy({id:id});
       if(!puesto){
         throw new NotFoundException('Puesto no encontrado');
       };
@@ -57,11 +55,14 @@ export class PuestosService {
   
   async update(id: string, updatePuestoDto: UpdatePuestoDto) {
     try{
-      const updateResult = await this.puestoRepository.update(id,updatePuestoDto);
-      if(updateResult.affected === 0){
-        throw new NotFoundException('Puesto no encontrado');
+      const puesto = await this.findOne(id);
+      if(puesto){
+        const updateResult = await this.puestoRepository.update(id,updatePuestoDto);
+        if(updateResult.affected === 0){
+          throw new NotFoundException('Puesto no encontrado');
+        }
+        return this.findOne(id);
       }
-      return this.findOne(id);
     }catch(error){
       handleExeptions(error);
     }
@@ -70,8 +71,11 @@ export class PuestosService {
   
   async remove(id: string) {
     try{
-      await this.puestoRepository.delete({id:id});
-      return {deleted:true,message:'Puesto eliminado'}
+      const puesto = await this.findOne(id);
+      if(puesto){
+        await this.puestoRepository.delete({id:id});
+        return {deleted:true,message:'Puesto eliminado'}
+      }
     }catch(error){
       handleExeptions(error);
     }
