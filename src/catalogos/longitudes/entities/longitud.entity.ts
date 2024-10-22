@@ -1,6 +1,6 @@
 import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
 
-@Entity()
+@Entity('longitudes')
 export class Longitud {
 
     @PrimaryColumn('uuid')
