@@ -1,26 +1,78 @@
-import { Injectable } from '@nestjs/common';
-import { CreateLongitudeDto } from './dto/create-longitude.dto';
-import { UpdateLongitudeDto } from './dto/update-longitude.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateLongitudDto } from './dto/create-longitud.dto';
+import { UpdateLongitudDto } from './dto/update-longitud.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Longitud } from './entities/longitud.entity';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class LongitudesService {
-  create(createLongitudeDto: CreateLongitudeDto) {
-    return 'This action adds a new longitude';
+
+  constructor(
+    @InjectRepository(Longitud)
+    private longitudRepository:Repository<Longitud>
+  ){}
+
+  async create(createLongitudeDto: CreateLongitudDto) {
+    try{
+      const longitud = this.longitudRepository.create(createLongitudeDto)
+      await this.longitudRepository.save(longitud);
+      return longitud;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all longitudes`;
+  async findAll(pagina:number) {
+    try{
+      const paginationSetter = new PaginationSetter()
+      const longitudes = await this.longitudRepository.find({
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina)
+      });
+      return longitudes;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} longitude`;
+  async findOne(id: string) {
+    try{
+      const longitud = await this.longitudRepository.findOne({
+        where:{id:id}
+      })
+      if(!longitud){
+        throw new NotFoundException('No se encuentra la longitud')
+      }
+      return longitud;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateLongitudeDto: UpdateLongitudeDto) {
-    return `This action updates a #${id} longitude`;
+  async update(id: string, updateLongitudeDto: UpdateLongitudDto) {
+    try{
+      const longitudDb = await this.findOne(id);
+      if(longitudDb){
+        await this.longitudRepository.update(id,updateLongitudeDto);
+        return await this.findOne(id);
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} longitude`;
+  async remove(id: string) {
+    try{
+      const longitudDb = await this.findOne(id);
+      if(longitudDb){
+        await this.longitudRepository.delete(id);
+        return {message:'Longitud Eliminada Correctamente'}
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 }
