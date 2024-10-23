@@ -72,7 +72,7 @@ export class ContratosModificatoriosService {
         throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
       }else{
         await this.contratoModificatorioRepository.update(id,updateContratoModificatorioDto);
-        return {message:'Contrato actualizado'};
+        return await this.findOne(id);
       }
     }catch(error){
       handleExeptions(error);
