@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, ParseIntPipe } from '@nestjs/common';
 import { FormatosService } from './formatos.service';
 import { CreateFormatoDto } from './dto/create-formato.dto';
 import { UpdateFormatoDto } from './dto/update-formato.dto';
@@ -13,22 +13,22 @@ export class FormatosController {
   }
 
   @Get()
-  findAll() {
-    return this.formatosService.findAll();
+  findAll(@Query('pagina') pagina: string) {
+    return this.formatosService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.formatosService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.formatosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFormatoDto: UpdateFormatoDto) {
-    return this.formatosService.update(+id, updateFormatoDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFormatoDto: UpdateFormatoDto) {
+    return this.formatosService.update(id, updateFormatoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.formatosService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.formatosService.remove(id);
   }
 }

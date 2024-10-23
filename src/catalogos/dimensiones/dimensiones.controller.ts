@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { DimensionesService } from './dimensiones.service';
-import { CreateDimensioneDto } from './dto/create-dimensione.dto';
-import { UpdateDimensioneDto } from './dto/update-dimensione.dto';
+import { CreateDimensionDto } from './dto/create-dimension.dto';
+import { UpdateDimensionDto } from './dto/update-dimension.dto';
 
 @Controller('dimensiones')
 export class DimensionesController {
   constructor(private readonly dimensionesService: DimensionesService) {}
 
   @Post()
-  create(@Body() createDimensioneDto: CreateDimensioneDto) {
-    return this.dimensionesService.create(createDimensioneDto);
+  create(@Body() createDimensionDto: CreateDimensionDto) {
+    return this.dimensionesService.create(createDimensionDto);
   }
 
   @Get()
-  findAll() {
-    return this.dimensionesService.findAll();
+  findAll(@Query('pagina') pagina:string ) {
+    return this.dimensionesService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dimensionesService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.dimensionesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDimensioneDto: UpdateDimensioneDto) {
-    return this.dimensionesService.update(+id, updateDimensioneDto);
+  update(@Param('id',ParseUUIDPipe) id:string, @Body() updateDimensionDto: UpdateDimensionDto) {
+    return this.dimensionesService.update(id, updateDimensionDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dimensionesService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.dimensionesService.remove(id);
   }
 }
