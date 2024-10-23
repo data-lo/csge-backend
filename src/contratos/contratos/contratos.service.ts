@@ -110,7 +110,7 @@ export class ContratosService {
         throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
       }else{
         await this.contratoRepository.update(id,updateContratoDto);
-        return {message:'Contrato actualizado'}
+        return await this.findOne(id);
       }
     }catch(error){
       handleExeptions(error);
