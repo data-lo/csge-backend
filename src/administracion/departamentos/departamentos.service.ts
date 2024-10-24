@@ -4,8 +4,8 @@ import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Departamento } from './entities/departamento.entity';
 import { Repository } from 'typeorm';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from '../../helpers/pagination.getter'
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 
 
 @Injectable()
@@ -60,7 +60,7 @@ export class DepartamentosService{
         if(updateResult.affected === 0){
           throw new NotFoundException('Departamento no encontrado');
         }
-        return this.findOne(id);
+        return await this.findOne(id);
       }
     }catch(error){
       handleExeptions(error);
@@ -72,7 +72,7 @@ export class DepartamentosService{
       const departamento = await this.findOne(id);
       if(departamento){
         await this.departamentoRepository.delete({id:id});
-        return {deleted:true,message:'departamento eliminado'}
+        return {message:'departamento eliminado'}
       }
     }catch(error){
       handleExeptions(error);
