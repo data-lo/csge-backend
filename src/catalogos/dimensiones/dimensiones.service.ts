@@ -6,6 +6,7 @@ import { Dimension } from './entities/dimension.entity';
 import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { LongitudesService } from '../longitudes/longitudes.service';
 
 
 @Injectable()
@@ -13,12 +14,19 @@ export class DimensionesService {
 
   constructor(
     @InjectRepository(Dimension)
-    private dimensionRepository:Repository<Dimension>
+    private dimensionRepository:Repository<Dimension>,
+    private longitudService:LongitudesService
   ){}
 
   async create(createDimensionDto: CreateDimensionDto) {
     try{
-      const dimension = this.dimensionRepository.create(createDimensionDto);
+      const {longitudId, ... rest} = createDimensionDto;
+      const longitud = await this.longitudService.findOne(longitudId);
+
+      const dimension = this.dimensionRepository.create({
+        longitudId:longitud,
+        ...rest
+      });
       await this.dimensionRepository.save(dimension);
       return dimension;
     }catch(error){
@@ -30,8 +38,8 @@ export class DimensionesService {
     try{
       const paginationSetter = new PaginationSetter()
       const dimensiones = await this.dimensionRepository.find({
-        take:paginationSetter.getSkipElements(pagina),
-        skip:paginationSetter.castPaginationLimit()
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina),
       })
       return dimensiones;
     }catch(error){
@@ -42,7 +50,8 @@ export class DimensionesService {
   async findOne(id:string) {
     try{
       const dimension = this.dimensionRepository.findOne({
-        where:{id:id}
+        where:{id:id},
+        relations:{longitudId:true}
       });
       if(!dimension) throw new NotFoundException('Dimension no encontrada');
       return dimension;
@@ -53,11 +62,18 @@ export class DimensionesService {
 
   async update(id:string, updateDimensionDto: UpdateDimensionDto) {
     try{
+      
+      const {longitudId, ...rest} = updateDimensionDto;
+
       const dimensionDb = await this.findOne(id);
-      if(dimensionDb){
-        await this.dimensionRepository.update(id,updateDimensionDto);
-        return await this.findOne(id);
-      }
+      const longitudDb = await this.longitudService.findOne(longitudId);
+      
+      if(!dimensionDb) throw new NotFoundException('Dimension no encontrada');
+      await this.dimensionRepository.update(id,{
+        longitudId:longitudDb,
+        ...rest
+      });
+      return await this.findOne(id);
     }catch(error){
       handleExeptions(error);
     }
@@ -66,10 +82,9 @@ export class DimensionesService {
   async remove(id:string) {
     try{
       const dimensionDb = await this.findOne(id);
-      if(dimensionDb){
-        await this.dimensionRepository.delete(id);
-        return {message:'Dimension eliminada existosamente'};
-      }
+      if(!dimensionDb) throw new NotFoundException('Dimension no encontrada');
+      await this.dimensionRepository.delete(id);
+      return {message:'Dimension eliminada existosamente'};
     }catch(error){
       handleExeptions(error);
     }
