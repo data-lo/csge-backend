@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { UsuariosModule } from './administracion/usuarios/usuarios.module';
 import { PuestosModule } from './administracion/puestos/puestos.module';
 import { DepartamentosModule } from './administracion/departamentos/departamentos.module';
@@ -32,6 +29,11 @@ import { MunicipioModule } from './proveedores/municipio/municipio.module';
 import { ServicioModule } from './proveedores/servicio/servicio.module';
 import { EstacionModule } from './proveedores/estacion/estacion.module';
 import { RenovacionModule } from './proveedores/renovacion/renovacion.module';
+import { FirmaModule } from './firma/firma/firma.module';
+import { OrdenModule } from './ordenes/orden/orden.module';
+import { FacturaModule } from './ordenes/factura/factura.module';
+import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio_contratado.module';
+import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
 
 @Module({
   imports: [
@@ -75,9 +77,12 @@ import { RenovacionModule } from './proveedores/renovacion/renovacion.module';
     MunicipioModule,
     ServicioModule,
     EstacionModule,
-    RenovacionModule
+    RenovacionModule,
+    FirmaModule,
+    OrdenModule,
+    FacturaModule,
+    ServicioContratadoModule,
+    CarteleraGobiernoModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
