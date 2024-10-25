@@ -6,6 +6,7 @@ import { Longitud } from './entities/longitud.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Longitud])],
+  exports:[LongitudesService],
   controllers: [LongitudesController],
   providers: [LongitudesService],
 })
