@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe} from '@nestjs/common';
 import { FormatosService } from './formatos.service';
 import { CreateFormatoDto } from './dto/create-formato.dto';
 import { UpdateFormatoDto } from './dto/update-formato.dto';
 
-@Controller('formatos')
+@Controller('catalogos/formatos')
 export class FormatosController {
   constructor(private readonly formatosService: FormatosService) {}
 
