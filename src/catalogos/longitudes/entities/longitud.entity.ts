@@ -12,4 +12,10 @@ export class Longitud {
         unique:true
     })
     unidad:string;
+
+    @Column({
+        name:'simbolo',
+        unique:true
+    })
+    simbolo:string;
 }

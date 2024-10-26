@@ -4,7 +4,7 @@ import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class ColoresService {

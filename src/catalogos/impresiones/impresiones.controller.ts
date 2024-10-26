@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ImpresionesService } from './impresiones.service';
-import { CreateImpresioneDto } from './dto/create-impresione.dto';
-import { UpdateImpresioneDto } from './dto/update-impresione.dto';
+import { CreateImpresionDto } from './dto/create-impresion.dto';
+import { UpdateImpresionDto } from './dto/update-impresion.dto';
 
-@Controller('impresiones')
+@Controller('catalogos/impresiones')
 export class ImpresionesController {
   constructor(private readonly impresionesService: ImpresionesService) {}
 
   @Post()
-  create(@Body() createImpresioneDto: CreateImpresioneDto) {
+  create(@Body() createImpresioneDto: CreateImpresionDto) {
     return this.impresionesService.create(createImpresioneDto);
   }
 
   @Get()
-  findAll() {
-    return this.impresionesService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.impresionesService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.impresionesService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id:string) {
+    return this.impresionesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateImpresioneDto: UpdateImpresioneDto) {
-    return this.impresionesService.update(+id, updateImpresioneDto);
+  update(@Param('id', ParseUUIDPipe) id:string, @Body() updateImpresioneDto: UpdateImpresionDto) {
+    return this.impresionesService.update(id, updateImpresioneDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.impresionesService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id:string) {
+    return this.impresionesService.remove(id);
   }
 }

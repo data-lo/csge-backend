@@ -4,8 +4,8 @@ import { UpdateContratoModificatorioDto } from './dto/update-contratos_modificat
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContratoModificatorio } from './entities/contratos_modificatorio.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { PaginationSetter } from '../../helpers/pagination.getter';
 import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
 
 @Injectable()

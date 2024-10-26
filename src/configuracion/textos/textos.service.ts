@@ -3,7 +3,7 @@ import { CreateTextoDto } from './dto/create-texto.dto';
 import { UpdateTextoDto } from './dto/update-texto.dto';
 import { Repository } from 'typeorm';
 import { Texto } from './entities/texto.entity';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CamposDeTexto } from './interfaces/textos.campos';
 

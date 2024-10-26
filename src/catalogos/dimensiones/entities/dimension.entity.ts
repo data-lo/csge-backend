@@ -1,4 +1,5 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Longitud } from "src/catalogos/longitudes/entities/longitud.entity";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity('dimensiones')
 export class Dimension {
@@ -25,11 +26,9 @@ export class Dimension {
     })
     ancho:number;
 
-    @Column({
-        name:'longitud_id',
-        type:'uuid',
-        nullable:true,
-        default:null
-    })
-    longitudId:string;
+
+
+    @ManyToOne(()=> Longitud, (longitud)=> longitud.id)
+    @JoinColumn({name:'longitudId'})
+    longitudId:Longitud;
 }
