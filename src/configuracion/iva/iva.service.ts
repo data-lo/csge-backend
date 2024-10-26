@@ -4,7 +4,7 @@ import { UpdateIvaDto } from './dto/update-iva.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Iva } from './entities/iva.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { Territorio } from './interfaces/territorios';
 
 @Injectable()
