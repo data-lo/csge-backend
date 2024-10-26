@@ -40,6 +40,9 @@ export class DimensionesService {
       const dimensiones = await this.dimensionRepository.find({
         take:paginationSetter.castPaginationLimit(),
         skip:paginationSetter.getSkipElements(pagina),
+        relations:{
+          longitudId:true
+        }
       })
       return dimensiones;
     }catch(error){

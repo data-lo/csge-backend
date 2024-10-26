@@ -25,10 +25,8 @@ export class Dimension {
         nullable:false
     })
     ancho:number;
-
-
-
+    
     @ManyToOne(()=> Longitud, (longitud)=> longitud.id)
-    @JoinColumn({name:'longitudId'})
+    @JoinColumn({name:'longitud_id'})
     longitudId:Longitud;
 }
