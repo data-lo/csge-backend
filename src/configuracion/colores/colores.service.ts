@@ -4,7 +4,7 @@ import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class ColoresService {
@@ -47,7 +47,7 @@ export class ColoresService {
     try{
       await this.desactivarColorPrimario();
       await this.colorRepository.update(id,updateColorDto);
-      return {message:`Color primario actualizado`};
+      return await this.findColorPrimario();
     }catch(error){
       handleExeptions(error);
     }

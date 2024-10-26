@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTiempoDto } from './dto/create-tiempo.dto';
 import { UpdateTiempoDto } from './dto/update-tiempo.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tiempo } from './entities/tiempo.entity';
 import { Repository } from 'typeorm';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { PaginationSetter } from '../../helpers/pagination.getter';
 
 @Injectable()
 export class TiemposService {

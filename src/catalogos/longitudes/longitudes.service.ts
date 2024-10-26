@@ -4,8 +4,8 @@ import { UpdateLongitudDto } from './dto/update-longitud.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Longitud } from './entities/longitud.entity';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { PaginationSetter } from '../../helpers/pagination.getter';
 
 @Injectable()
 export class LongitudesService {

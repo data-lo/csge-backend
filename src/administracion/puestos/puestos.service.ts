@@ -4,8 +4,8 @@ import { UpdatePuestoDto } from './dto/update-puesto.dto';
 import { Puesto } from './entities/puesto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from '../../helpers/pagination.getter';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class PuestosService {
