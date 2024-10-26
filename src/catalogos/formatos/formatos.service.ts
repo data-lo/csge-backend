@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFormatoDto } from './dto/create-formato.dto';
 import { UpdateFormatoDto } from './dto/update-formato.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Formato } from './entities/formato.entity';
 import { Repository } from 'typeorm';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { PaginationSetter } from '../../helpers/pagination.getter';
 
 @Injectable()
 export class FormatosService {

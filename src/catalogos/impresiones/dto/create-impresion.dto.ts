@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsUUID } from "class-validator";
 
-export class CreateImpresioneDto {
+export class CreateImpresionDto {
     
     @IsString()
     medidaDeImpresion:string;

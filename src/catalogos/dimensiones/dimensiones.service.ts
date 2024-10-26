@@ -4,8 +4,8 @@ import { UpdateDimensionDto } from './dto/update-dimension.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Dimension } from './entities/dimension.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { PaginationSetter } from '../../helpers/pagination.getter';
 import { LongitudesService } from '../longitudes/longitudes.service';
 
 
@@ -69,6 +69,7 @@ export class DimensionesService {
       const longitudDb = await this.longitudService.findOne(longitudId);
       
       if(!dimensionDb) throw new NotFoundException('Dimension no encontrada');
+      
       await this.dimensionRepository.update(id,{
         longitudId:longitudDb,
         ...rest

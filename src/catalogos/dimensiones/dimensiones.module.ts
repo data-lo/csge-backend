@@ -8,6 +8,7 @@ import { LongitudesModule } from '../longitudes/longitudes.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Dimension]),
   LongitudesModule],
+  exports:[DimensionesService],
   controllers: [DimensionesController],
   providers: [DimensionesService],
 })
