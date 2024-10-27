@@ -1,4 +1,4 @@
-export const IvaData = [
+export const ivaData = [
     {
         territorio:"FRONTERA",
         porcentaje:8,

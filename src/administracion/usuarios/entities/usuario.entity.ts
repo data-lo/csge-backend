@@ -35,8 +35,12 @@ export class Usuario {
     })
     segundoApellido:string;
 
-    @Column({type:"uuid"})
+    @Column({
+        type:"uuid",
+        name:"puesto_id"
+    })
     puestoId:string
+
     @ManyToOne(()=>Puesto,{eager:true})
     @JoinColumn({name:'puesto_id'})
     puesto:Puesto;

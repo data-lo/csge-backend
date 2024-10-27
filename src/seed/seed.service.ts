@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { DepartamentosService } from 'src/administracion/departamentos/departamentos.service';
 import { PuestosService } from 'src/administracion/puestos/puestos.service';
 import { UsuariosService } from 'src/administracion/usuarios/usuarios.service';
-import { departamentosData} from './data/departamentos.data';
-import { puestosData } from './data/puestos.data';
+import { departamentosData} from './data/administracion/departamentos.data';
+import { puestosData } from './data/administracion/puestos.data';
 import { plainToClass } from 'class-transformer';
 import { CreatePuestoDto } from 'src/administracion/puestos/dto/create-puesto.dto';
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
-import { usuariosData } from './data/usuarios.data';
+import { usuariosData } from './data/administracion/usuarios.data';
 import { CreateUsuarioDto } from '../administracion/usuarios/dto/create-usuario.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
@@ -22,8 +22,10 @@ export class SeedService {
   
   async seed(){
     try{
-      this.insertarDepartamentos()
-      this.insertarPuestos()
+      await this.insertarDepartamentos()
+      await this.insertarPuestos()
+      await this.insertarUsuarios()
+      return {message:'Datos Insertados Correctamente'};
     }catch(error){
       handleExeptions(error);
     }
@@ -31,9 +33,9 @@ export class SeedService {
 
   async insertarPuestos(){
     try{
-      await puestosData.forEach(puesto => {
+       await puestosData.forEach(async puesto => {
         const puestoDto = plainToClass(CreatePuestoDto,puesto);
-        this.puestosService.create(puestoDto)
+        await this.puestosService.create(puestoDto)
        });
     }catch(error){
       handleExeptions(error);
@@ -42,25 +44,41 @@ export class SeedService {
 
   async insertarDepartamentos(){
     try{
-      await departamentosData.forEach(departamento => {
+        await departamentosData.forEach(async departamento => {
         const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
-        this.departamentosService.create(departamentoDto)
+        await this.departamentosService.create(departamentoDto)
       });
     }catch(error){
       handleExeptions(error);
     }
-    
   }
 
-  async insertarUsuarios(){
-    try{
-      await usuariosData.forEach(usuario => {
-        const usuarioDto = plainToClass(CreateUsuarioDto,usuario);
-        this.usuariosService.create(usuarioDto)
-      });
-    }catch(error){
+
+  async insertarUsuarios() {
+    try {
+      for (const usuario of usuariosData) {
+        const { departamentoId, puestoId, ...rest } = usuario;
+        console.log(departamentoId);
+        console.log(puestoId);
+  
+        const departamento = await this.departamentosService.findByTerm(departamentoId);
+        const puesto = await this.puestosService.findByTerm(puestoId);
+  
+        console.log(departamento.id);
+        console.log(puesto.id);
+  
+        const usuarioDto = plainToClass(CreateUsuarioDto, {
+          departamentoId: departamento.id,
+          puestoId: puesto.id,
+          ...rest  
+        });
+  
+        await this.usuariosService.create(usuarioDto);
+      }
+    } catch (error) {
+      
       handleExeptions(error);
     }
-    
   }
+  
 }

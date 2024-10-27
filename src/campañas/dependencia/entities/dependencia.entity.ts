@@ -1,6 +1,6 @@
 import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
 
-@Entity('Dependencia')
+@Entity('dependencia')
 export class Dependencia {
     
     @Generated('uuid')
