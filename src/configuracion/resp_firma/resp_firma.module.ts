@@ -10,7 +10,7 @@ import { UsuariosModule } from 'src/administracion/usuarios/usuarios.module';
     TypeOrmModule.forFeature([ResponsableFirma]),
     UsuariosModule
   ],
-  exports:[TypeOrmModule],
+  exports:[TypeOrmModule,RespFirmaService],
   controllers: [RespFirmaController],
   providers: [RespFirmaService],
 })

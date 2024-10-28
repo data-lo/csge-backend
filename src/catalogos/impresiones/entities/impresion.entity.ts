@@ -18,6 +18,6 @@ export class Impresion {
     @ManyToOne(()=> Dimension, (dimension)=> dimension.id,{
         nullable:true,
     })
-    @JoinColumn({name:'dimension_Id'})
+    @JoinColumn({name:'dimension_id'})
     dimensionId:Dimension;
 }

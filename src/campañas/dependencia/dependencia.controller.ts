@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { DependenciaService } from './dependencia.service';
 import { CreateDependenciaDto } from './dto/create-dependencia.dto';
 import { UpdateDependenciaDto } from './dto/update-dependencia.dto';
@@ -13,22 +13,22 @@ export class DependenciaController {
   }
 
   @Get()
-  findAll() {
-    return this.dependenciaService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.dependenciaService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dependenciaService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.dependenciaService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDependenciaDto: UpdateDependenciaDto) {
-    return this.dependenciaService.update(+id, updateDependenciaDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateDependenciaDto: UpdateDependenciaDto) {
+    return this.dependenciaService.update(id, updateDependenciaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dependenciaService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.dependenciaService.remove(id);
   }
 }

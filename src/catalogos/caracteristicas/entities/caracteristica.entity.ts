@@ -1,4 +1,8 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Dimension } from "src/catalogos/dimensiones/entities/dimension.entity";
+import { Formato } from "src/catalogos/formatos/entities/formato.entity";
+import { Impresion } from "src/catalogos/impresiones/entities/impresion.entity";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { TipoUnidad } from "../interfaces/tipo-unidad.interface";
 
 @Entity('caracteristicas')
 export class Caracteristica {
@@ -7,37 +11,39 @@ export class Caracteristica {
     @Generated('uuid')
     id:string;
 
-    @Column({
-        name:'unidad',
-        type:'uuid',
-        nullable:true,
-        default:null
-    })
-    unidad:string;
 
     @Column({
-        name:'dimension',
+        name:'unidad_id',
         type:'uuid',
-        nullable:true,
-        default:null
+        nullable:true
     })
-    dimensiones:string;
+    unidadId:string;
 
     @Column({
-        name:'impresion',
-        type:'uuid',
-        nullable:true,
-        default:null
+        name:'tipo_unidad',
+        type:'enum',
+        enum:TipoUnidad,
+        nullable:true
     })
-    impresion:string;
+    tipoUnidad:TipoUnidad
 
-    @Column({
-        name:'formato',
-        type:'uuid',
-        nullable:true,
-        default:null
+    @ManyToOne(() => Dimension, (dimension)=>dimension.id,{
+        nullable:true
     })
-    formato:string;
+    @JoinColumn({name:'dimension_id'})
+    dimensionId:Dimension;
+
+    @ManyToOne(() => Impresion, (impresion)=> impresion.id,{
+        nullable:true
+    })
+    @JoinColumn({name:'impresion_id'})
+    impresionId:Impresion;
+
+    @ManyToOne(() => Formato, (formato)=> formato.id,{
+        nullable:true
+    })
+    @JoinColumn({name:'formato_id'})
+    formatoId:Formato;
 
     @Column({
         name:'paginas_prensa',
@@ -61,7 +67,7 @@ export class Caracteristica {
     webPublicacion:string;
 
     @Column({
-        name:'programa',
+        name:'nombre_programa',
         nullable:true,
         default:null
     })

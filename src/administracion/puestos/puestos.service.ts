@@ -52,7 +52,18 @@ export class PuestosService {
     };
   }
 
-  
+  async findByTerm(term:string) {
+    try{
+      const puesto = await this.puestoRepository.findOneBy({nombre:term});
+      if(!puesto){
+        throw new NotFoundException('Puesto no encontrado');
+      };
+      return puesto;
+    }catch(error){
+      handleExeptions(error);
+    };
+  }
+
   async update(id: string, updatePuestoDto: UpdatePuestoDto) {
     try{
       const puesto = await this.findOne(id);

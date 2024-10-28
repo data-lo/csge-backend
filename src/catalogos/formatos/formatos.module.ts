@@ -6,6 +6,7 @@ import { Formato } from './entities/formato.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Formato])],
+  exports:[FormatosService],
   controllers: [FormatosController],
   providers: [FormatosService],
 })

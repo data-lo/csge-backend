@@ -1,22 +1,31 @@
-import { IsOptional, IsString, IsUUID } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { TipoUnidad } from "../interfaces/tipo-unidad.interface";
 
 export class CreateCaracteristicaDto {
     
     @IsUUID()
+    @IsString()
     @IsOptional()    
-    unidad:string;
+    unidadId:string;
+
+    @IsEnum(TipoUnidad)
+    @IsOptional()
+    tipoUnidad:TipoUnidad
     
     @IsUUID()
+    @IsString()
     @IsOptional() 
-    dimensiones:string;
+    dimensionesId:string;
     
     @IsUUID()
+    @IsString()
     @IsOptional()
-    impresion:string;
+    impresionId:string;
     
     @IsUUID()
+    @IsString()
     @IsOptional()
-    formato:string;
+    formatoId:string;
     
     @IsString()
     @IsOptional()

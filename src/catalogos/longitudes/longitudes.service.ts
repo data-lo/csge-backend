@@ -47,7 +47,19 @@ export class LongitudesService {
         throw new NotFoundException('No se encuentra la longitud')
       }
       return longitud;
-    }catch(error){
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+  async findOneByUnidad(term:string){
+    try{
+      const longitud = await this.longitudRepository.findOne({
+        where:{unidad:term}
+      });
+      if(!longitud) throw new NotFoundException('La Longitud no se encuentra');
+      return longitud;
+    }catch(error:any){
       handleExeptions(error);
     }
   }
