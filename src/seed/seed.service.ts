@@ -57,18 +57,15 @@ export class SeedService {
 
   ){}
   
-  async seed(){
+  async seedDb(){
     try{
       await this.seedAdministracion();
       await this.seedCatalogos();
       await this.seedConfiguracion();
-      
-      return {message:'Datos Insertados Correctamente'};
     }catch(error){
       handleExeptions(error);
     }
   }
-
 
   async seedAdministracion(){
     try{
