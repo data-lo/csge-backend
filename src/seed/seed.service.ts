@@ -26,6 +26,7 @@ import { tiemposData } from './data/catalogos/tiempo.data';
 import { CreateTiempoDto } from 'src/catalogos/tiempos/dto/create-tiempo.dto';
 import { dimensionesData } from './data/catalogos/dimensiones.data';
 import { CreateDimensionDto } from 'src/catalogos/dimensiones/dto/create-dimension.dto';
+import { coloresData } from './data/configuracion/colores.data';
 
 @Injectable()
 export class SeedService {
@@ -40,7 +41,10 @@ export class SeedService {
     private readonly formatosService:FormatosService,
     private readonly longitudService:LongitudesService,
     private readonly medidaDeImpresionService:ImpresionesService,
-    private readonly tiemposService:TiemposService,  
+    private readonly tiemposService:TiemposService,
+
+    private readonly colore
+
   ){}
   
   async seed(){
@@ -192,6 +196,42 @@ export class SeedService {
         await this.tiemposService.create(tiempoDto);
       }
       return;
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+
+  async seedConfiguracion(){
+    await this.insertarColores();
+    await this.insertarCamposDeTexto();
+    await this.insertarIva();
+  };
+
+  async insertarColores(){
+    try{
+      for(const color of coloresData){
+        
+      }
+      
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarCamposDeTexto(){
+    try{
+      
+      
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarIva(){
+    try{
+      
+      
     }catch(error:any){
       handleExeptions(error);
     }
