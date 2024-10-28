@@ -27,6 +27,14 @@ import { CreateTiempoDto } from 'src/catalogos/tiempos/dto/create-tiempo.dto';
 import { dimensionesData } from './data/catalogos/dimensiones.data';
 import { CreateDimensionDto } from 'src/catalogos/dimensiones/dto/create-dimension.dto';
 import { coloresData } from './data/configuracion/colores.data';
+import { ColoresService } from 'src/configuracion/colores/colores.service';
+import { TextosService } from 'src/configuracion/textos/textos.service';
+import { IvaService } from '../configuracion/iva/iva.service';
+import { CreateColorDto } from 'src/configuracion/colores/dto/create-color.dto';
+import { camposTextoData } from './data/configuracion/campos-texto.data';
+import { CreateTextoDto } from 'src/configuracion/textos/dto/create-texto.dto';
+import { ivaData } from './data/configuracion/iva.data';
+import { CreateIvaDto } from 'src/configuracion/iva/dto/create-iva.dto';
 
 @Injectable()
 export class SeedService {
@@ -43,22 +51,36 @@ export class SeedService {
     private readonly medidaDeImpresionService:ImpresionesService,
     private readonly tiemposService:TiemposService,
 
-    private readonly colore
+    private readonly coloresService:ColoresService,
+    private readonly textosService:TextosService,
+    private readonly ivaService:IvaService
 
   ){}
   
   async seed(){
     try{
-      //await this.insertarDepartamentos();
-      //await this.insertarPuestos();
-      //await this.insertarUsuarios();
+      await this.seedAdministracion();
       await this.seedCatalogos();
+      await this.seedConfiguracion();
       
       return {message:'Datos Insertados Correctamente'};
     }catch(error){
       handleExeptions(error);
     }
   }
+
+
+  async seedAdministracion(){
+    try{
+      await this.insertarDepartamentos();
+      await this.insertarPuestos();
+      await this.insertarUsuarios();
+      return;
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
 
   async insertarPuestos(){
     try{
@@ -109,10 +131,10 @@ export class SeedService {
   async seedCatalogos(){
     try{
     
-      //await this.insertarTiempo();
-      //await this.insertarLongitud();
-      //await this.insertarMedidaDeImpresion();
-      //await this.insertarFormato();
+      await this.insertarTiempo();
+      await this.insertarLongitud();
+      await this.insertarMedidaDeImpresion();
+      await this.insertarFormato();
       await this.insertarDimensiones();
       //await this.insertarCaracterisitcas();
     
@@ -211,9 +233,10 @@ export class SeedService {
   async insertarColores(){
     try{
       for(const color of coloresData){
-        
+        const colorDto = plainToClass(CreateColorDto,color);
+        await this.coloresService.create(colorDto);
       }
-      
+      return;
     }catch(error:any){
       handleExeptions(error);
     }
@@ -221,8 +244,11 @@ export class SeedService {
 
   async insertarCamposDeTexto(){
     try{
-      
-      
+      for(const texto of camposTextoData){
+        const textoDto = plainToClass(CreateTextoDto,texto);
+        await this.textosService.create(textoDto);
+      }
+      return;
     }catch(error:any){
       handleExeptions(error);
     }
@@ -230,8 +256,11 @@ export class SeedService {
 
   async insertarIva(){
     try{
-      
-      
+      for(const iva of ivaData){
+        const ivaDto = plainToClass(CreateIvaDto,iva)
+        await this.ivaService.create(ivaDto);
+      }
+      return;
     }catch(error:any){
       handleExeptions(error);
     }
