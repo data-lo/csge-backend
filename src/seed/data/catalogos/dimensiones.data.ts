@@ -1,61 +1,66 @@
 export const dimensionesData = [
     {
         ancho:42.00,
-        largo:59.40,
-        unidad:'CENTIMETROS'
-    },
-    {
-        ancho:29.70,
-        largo:42,
-        unidad:'CENTIMETROS'
-    },
-    {
-        ancho:21.00,
-        largo:29.70,
-        unidad:'CENTIMETROS'
+        alto:59.40,
+        unidad:'CENTIMETRO'
     },
     {
         ancho:42.00,
-        largo:59.40,
-        unidad:'CENTIMETROS'
+        alto:59.40,
+        unidad:'METRO'
     },
     {
         ancho:29.70,
-        alto:42.00,
-        unidad:'CENTIMETROS'
+        alto:42,
+        unidad:'DECIMETRO'
     },
     {
         ancho:21.00,
         alto:29.70,
-        unidad:'CENTIMETROS'
+        unidad:'CENTIMETRO'
+    },
+    {
+        ancho:42.00,
+        alto:59.40,
+        unidad:'PULGADA'
+    },
+    {
+        ancho:29.70,
+        alto:42.00,
+        unidad:'PIE'
+    },
+    {
+        ancho:21.00,
+        alto:29.70,
+        unidad:'YARDA'
     },
     {
         ancho:14.80,
         alto:21.00,
-        unidad:'CENTIMETROS'
+        unidad:'CENTIMETRO'
     },
     {
-        largo:42.00,
+        alto:42.00,
         ancho:59.40,
-        unidad:'CENTIMETROS'
+        unidad:'CENTIMETRO'
     },
     {
-        largo:300,
+        alto:300,
         ancho:250,
         unidad:'PIXEL'   
     },
     {
-        largo:300,
+        alto:300,
         ancho:100,
         unidad:'PIXEL'   
     },
     {
-        largo:468,
+        alto:468,
         ancho:60,
         unidad:'PIXEL'   
     },
     {
-        largo:120,
+        alto:120,
         ancho:240,
         unidad:'PIXEL'   
     }

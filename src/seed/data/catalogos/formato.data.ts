@@ -17,14 +17,14 @@ export const formatoData = [
     },
     {
         nombre:"A",
-        tipo:"AUDIOVIDUAL"
+        tipo:"AUDIOVISUAL"
     },
     {
         nombre:"AA",
-        tipo:"AUDIOVIDUAL"
+        tipo:"AUDIOVISUAL"
     },
     {
         nombre:"AAA",
-        tipo:"AUDIOVIDUAL"
+        tipo:"AUDIOVISUAL"
     },
 ]

@@ -29,6 +29,7 @@ import { TiemposModule } from '../tiempos/tiempos.module';
   LongitudesModule,
   TiemposModule
 ],
+  exports:[CaracteristicasService],
   controllers: [CaracteristicasController],
   providers: [CaracteristicasService],
 })
