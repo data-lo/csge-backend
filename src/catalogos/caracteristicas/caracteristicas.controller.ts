@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { CaracteristicasService } from './caracteristicas.service';
 import { CreateCaracteristicaDto } from './dto/create-caracteristica.dto';
 import { UpdateCaracteristicaDto } from './dto/update-caracteristica.dto';
 
-@Controller('caracteristicas')
+@Controller('catalogos/caracteristicas')
 export class CaracteristicasController {
   constructor(private readonly caracteristicasService: CaracteristicasService) {}
 
@@ -13,22 +13,22 @@ export class CaracteristicasController {
   }
 
   @Get()
-  findAll() {
-    return this.caracteristicasService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.caracteristicasService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.caracteristicasService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.caracteristicasService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCaracteristicaDto: UpdateCaracteristicaDto) {
-    return this.caracteristicasService.update(+id, updateCaracteristicaDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCaracteristicaDto: UpdateCaracteristicaDto) {
+    return this.caracteristicasService.update(id, updateCaracteristicaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.caracteristicasService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.caracteristicasService.remove(id);
   }
 }

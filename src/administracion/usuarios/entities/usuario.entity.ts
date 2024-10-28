@@ -23,28 +23,37 @@ export class Usuario {
     nombres:string;
 
     @Column({
+        name:'primer_apellido',
         length:50
     })
     primerApellido:string;
 
     @Column({
+        name:'segundo_apellido',
         length:50,
         nullable:true
     })
     segundoApellido:string;
 
-    @Column({type:"uuid"})
+    @Column({
+        type:"uuid",
+        name:"puesto_id"
+    })
     puestoId:string
+
     @ManyToOne(()=>Puesto,{eager:true})
-    @JoinColumn({name:'puestoId'})
+    @JoinColumn({name:'puesto_id'})
     puesto:Puesto;
 
     
-    @Column({type:"uuid"})
+    @Column({
+        name:'departamento_id',
+        type:"uuid"
+    })
     departamentoId:string
     
     @ManyToOne(()=>Departamento,{eager:true})
-    @JoinColumn({name:'departamentoId'})
+    @JoinColumn({name:'departamento_id'})
     departamento:Departamento;
     
     @Column({
@@ -59,6 +68,7 @@ export class Usuario {
     password:string;
 
     @Column({
+        name:'numero_de_empleado',
         unique:true
     })
     numeroDeEmpleado:string;

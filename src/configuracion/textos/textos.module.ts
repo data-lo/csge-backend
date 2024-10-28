@@ -6,7 +6,7 @@ import { Texto } from './entities/texto.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Texto])],
-  exports:[TypeOrmModule],
+  exports:[TypeOrmModule,TextosService],
   controllers: [TextosController],
   providers: [TextosService],
 })

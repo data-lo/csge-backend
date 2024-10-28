@@ -6,6 +6,7 @@ import { Tiempo } from './entities/tiempo.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Tiempo])],
+  exports:[TiemposService],
   controllers: [TiemposController],
   providers: [TiemposService],
 })

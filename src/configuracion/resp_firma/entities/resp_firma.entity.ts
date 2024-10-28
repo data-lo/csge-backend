@@ -10,12 +10,14 @@ export class ResponsableFirma {
     id:string;
 
     @Column({
+        name:'tipo_de_documento',
         type:"enum",
         enum:TipoDeDocumento,
     })
     tipoDeDocumento:TipoDeDocumento;
 
     @Column({
+        name:'tipo_de_servicio',
         type:"enum",
         enum:TipoDeServicio,
         array:true,
@@ -30,11 +32,11 @@ export class ResponsableFirma {
     @JoinTable({
         name:'usuario_responsable',
         joinColumn:{
-            name:'responsableId',
+            name:'responsable_id',
             referencedColumnName:'id',
         },
         inverseJoinColumn:{
-            name:'usuarioId',
+            name:'usuario_id',
             referencedColumnName:'id'
         },
     })

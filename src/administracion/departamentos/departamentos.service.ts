@@ -8,6 +8,7 @@ import { PaginationSetter } from '../../helpers/pagination.getter'
 import { handleExeptions } from '../../helpers/handleExceptions.function';
 
 
+
 @Injectable()
 export class DepartamentosService{
   
@@ -50,6 +51,15 @@ export class DepartamentosService{
     }catch(error){
       handleExeptions(error);
     };
+  }
+
+  async findByTerm(term:string){
+    try{
+      const departamento = await this.departamentoRepository.findOneBy({nombre:term});
+      return departamento;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   async update(id: string, updateDepartamentoDto: UpdateDepartamentoDto) {

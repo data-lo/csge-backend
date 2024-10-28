@@ -9,6 +9,7 @@ import { DimensionesModule } from '../dimensiones/dimensiones.module';
   imports:[
     TypeOrmModule.forFeature([Impresion]),
     DimensionesModule],
+  exports:[ImpresionesService],
   controllers: [ImpresionesController],
   providers: [ImpresionesService],
 })

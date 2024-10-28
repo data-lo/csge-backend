@@ -8,5 +8,6 @@ import { Iva } from './entities/iva.entity';
   imports:[TypeOrmModule.forFeature([Iva])],
   controllers: [IvaController],
   providers: [IvaService],
+  exports:[IvaService]
 })
 export class IvaModule {}
