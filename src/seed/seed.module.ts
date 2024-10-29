@@ -13,6 +13,8 @@ import { TiemposModule } from 'src/catalogos/tiempos/tiempos.module';
 import { ColoresModule } from 'src/configuracion/colores/colores.module';
 import { IvaModule } from 'src/configuracion/iva/iva.module';
 import { TextosModule } from 'src/configuracion/textos/textos.module';
+import { MunicipioModule } from 'src/proveedores/municipio/municipio.module';
+import { ContactoModule } from 'src/proveedores/contacto/contacto.module';
 
 @Module({
   controllers: [SeedController],
@@ -29,7 +31,9 @@ import { TextosModule } from 'src/configuracion/textos/textos.module';
     TiemposModule,
     ColoresModule,
     IvaModule,
-    TextosModule
+    TextosModule,
+    MunicipioModule,
+    ContactoModule
   ]
 })
 export class SeedModule {}

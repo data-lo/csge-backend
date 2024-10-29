@@ -35,6 +35,12 @@ import { camposTextoData } from './data/configuracion/campos-texto.data';
 import { CreateTextoDto } from 'src/configuracion/textos/dto/create-texto.dto';
 import { ivaData } from './data/configuracion/iva.data';
 import { CreateIvaDto } from 'src/configuracion/iva/dto/create-iva.dto';
+import { municipiosData } from './data/proveedores/municipios.data';
+import { CreateMunicipioDto } from '../proveedores/municipio/dto/create-municipio.dto';
+import { MunicipioService } from 'src/proveedores/municipio/municipio.service';
+import { ContactoService } from 'src/proveedores/contacto/contacto.service';
+import { contactosData } from './data/proveedores/contactos.data';
+import { CreateContactoDto } from 'src/proveedores/contacto/dto/create-contacto.dto';
 
 @Injectable()
 export class SeedService {
@@ -53,7 +59,10 @@ export class SeedService {
 
     private readonly coloresService:ColoresService,
     private readonly textosService:TextosService,
-    private readonly ivaService:IvaService
+    private readonly ivaService:IvaService,
+
+    private readonly municipioService:MunicipioService,
+    private readonly contactosService:ContactoService
 
   ){}
   
@@ -258,6 +267,52 @@ export class SeedService {
       for(const iva of ivaData){
         const ivaDto = plainToClass(CreateIvaDto,iva)
         await this.ivaService.create(ivaDto);
+      }
+      return;
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+
+  async seedProveedores(){
+    await this.insertarMunicipios();
+    await this.insertarContactos();
+    return {message:"Datos de Municipios y Contactos insertados correctamente"};
+  }
+
+  async insertarMunicipios(){
+    try{
+      for(const municipio of municipiosData){
+        const municipioDto = plainToClass(
+          CreateMunicipioDto,{
+            nombre:municipio.nombre.toUpperCase(),
+            frontera:municipio.frontera,
+            codigoInegi:municipio.codigoInegi
+          }
+        );
+        await this.municipioService.create(municipioDto);
+      }
+      return;
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarContactos(){
+    try{
+      for(const contacto of contactosData){
+        const {nombre,correoElectronico, observaciones,telefono} = contacto;
+        if(observaciones){
+          observaciones.toUpperCase()
+        }
+        const contactoDto = plainToClass(CreateContactoDto,{
+          nombre:nombre.toUpperCase(),
+          telefono:telefono,
+          correoElectronico:correoElectronico.toUpperCase(),
+          observaciones:observaciones
+        });
+        await this.contactosService.create(contactoDto);
       }
       return;
     }catch(error:any){
