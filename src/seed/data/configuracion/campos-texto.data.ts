@@ -1,10 +1,12 @@
+import { CamposDeTexto } from "src/configuracion/textos/interfaces/textos.campos";
+
 export const camposTextoData = [
   {
     texto:'JUNTOS TODOS',
-    campo:'PIE_DE_PAGINA'
+    campo:CamposDeTexto.ENCABEZADO
   },
   {
-    texto:'JUNTOS SI PODEMOS',
-    campo:'ENCABEZADO'
+    texto:'SI PODEMOS',
+    campo:CamposDeTexto.PIE_DE_PAGINA
   },  
 ];
