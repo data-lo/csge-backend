@@ -1,26 +1,76 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContactoDto } from './dto/create-contacto.dto';
 import { UpdateContactoDto } from './dto/update-contacto.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Contacto } from './entities/contacto.entity';
+import { Repository } from 'typeorm';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class ContactoService {
-  create(createContactoDto: CreateContactoDto) {
-    return 'This action adds a new contacto';
+
+  constructor(
+    @InjectRepository(Contacto)
+    private contactoRepository:Repository<Contacto>
+  ){}
+
+  async create(createContactoDto: CreateContactoDto) {
+    try{
+      const contacto = this.contactoRepository.create(createContactoDto);
+      await this.contactoRepository.save(contacto);
+      return contacto;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all contacto`;
+  async findAll(pagina:number) {
+    try{
+      const paginationSetter = new PaginationSetter()
+      const contactos = await this.contactoRepository.find({
+        skip:paginationSetter.getSkipElements(pagina),
+        take:paginationSetter.castPaginationLimit()
+      });
+      return contactos;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} contacto`;
+  async findOne(id: string) {
+    try{
+      const contacto = await this.contactoRepository.findOne({
+        where:{id:id}
+      });
+      if(!contacto) throw new NotFoundException('No se encuentra el contacto');
+      return contacto;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateContactoDto: UpdateContactoDto) {
-    return `This action updates a #${id} contacto`;
+  async update(id: string, updateContactoDto: UpdateContactoDto) {
+    try{
+      const contacto = await this.findOne(id);
+      if(contacto){
+        await this.contactoRepository.update(id,updateContactoDto);
+        return await this.findOne(id);
+      }
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} contacto`;
+  async remove(id: string) {
+    try{
+      const contacto = await this.findOne(id);
+      if(contacto){
+        await this.contactoRepository.delete(id);
+        return {message:'Contacto eliminado correctamente'};
+      }
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 }
