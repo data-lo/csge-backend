@@ -1,10 +1,12 @@
+import { Territorio } from "src/configuracion/iva/interfaces/territorios";
+
 export const ivaData = [
     {
-        territorio:"FRONTERA",
+        territorio:Territorio.FRONTERA,
         porcentaje:8,
     },
     {
-        territorio:"NACIONAL",
+        territorio:Territorio.NACIONAL,
         porcentaje:16,
     }
 ]

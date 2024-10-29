@@ -62,6 +62,7 @@ export class SeedService {
       await this.seedAdministracion();
       await this.seedCatalogos();
       await this.seedConfiguracion();
+      return {message:'Datos insertados en la DB'}
     }catch(error){
       handleExeptions(error);
     }
@@ -72,7 +73,7 @@ export class SeedService {
       await this.insertarDepartamentos();
       await this.insertarPuestos();
       await this.insertarUsuarios();
-      return;
+      return {message:'Datos de Usuarios, Departamentos y Puestos insertados correctamente'};
     }catch(error:any){
       handleExeptions(error);
     }
@@ -134,7 +135,7 @@ export class SeedService {
       await this.insertarFormato();
       await this.insertarDimensiones();
       //await this.insertarCaracterisitcas();
-    
+      return {message:'Datos de catalgos insertados correctamente'};
     }catch(error:any){
       handleExeptions(error);
     }
@@ -155,9 +156,6 @@ export class SeedService {
         
         const unidadDb = await this.longitudService.findOneByUnidad(unidad);
         const unidadId = unidadDb.id;
-
-        
-
         const dimensionDto = plainToClass(CreateDimensionDto,{
           unidad:unidadId,
           ...rest
@@ -225,6 +223,7 @@ export class SeedService {
     await this.insertarColores();
     await this.insertarCamposDeTexto();
     await this.insertarIva();
+    return{message:'Datos de Colores, Campos de texto e Iva Insertados Correctamente'}
   };
 
   async insertarColores(){

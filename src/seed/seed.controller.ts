@@ -20,7 +20,7 @@ export class SeedController {
     return this.seedService.seedCatalogos();
   }
 
-  @Get('administracion')
+  @Get('configuracion')
   seedConfiguracion(){
     return this.seedService.seedConfiguracion();
   }

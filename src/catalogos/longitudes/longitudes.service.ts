@@ -54,9 +54,7 @@ export class LongitudesService {
 
   async findOneByUnidad(term:string){
     try{
-      const longitud = await this.longitudRepository.findOne({
-        where:{unidad:term}
-      });
+      const longitud = await this.longitudRepository.findOneBy({unidad:term});
       if(!longitud) throw new NotFoundException('La Longitud no se encuentra');
       return longitud;
     }catch(error:any){

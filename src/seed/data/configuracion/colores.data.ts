@@ -23,16 +23,4 @@ export const coloresData = [
         color:"#f1c40f",
         primario:false
     },
-    {
-        color:"#d35400",
-        primario:false
-    },
-    {
-        color:"#d35400",
-        primario:false
-    },
-    {
-        color:"#273746",
-        primario:false
-    }
 ];

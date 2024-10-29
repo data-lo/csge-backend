@@ -27,9 +27,6 @@ export const medidaDeImpresionData = [
         medidaDeImpresion:"MEDIA PLANA"
     },
     {
-        medidaDeImpresion:"PLANA"
-    },
-    {
         medidaDeImpresion:"DOBLE PLANA"
     },
     {

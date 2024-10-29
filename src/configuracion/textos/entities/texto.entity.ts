@@ -8,7 +8,7 @@ export class Texto {
     id:string;
 
     @Column({
-        nullable:false
+        nullable:true
     })
     texto:string;
 
