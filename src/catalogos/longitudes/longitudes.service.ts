@@ -40,8 +40,8 @@ export class LongitudesService {
 
   async findOne(id: string) {
     try{
-      const longitud = await this.longitudRepository.findOne({
-        where:{id:id}
+      const longitud = await this.longitudRepository.findOneBy({
+        id:id
       })
       if(!longitud){
         throw new NotFoundException('No se encuentra la longitud')

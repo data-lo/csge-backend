@@ -151,12 +151,15 @@ export class SeedService {
   
   async insertarDimensiones(){
     try{
+      let unidadDb;
+      let unidadId:string;
       for(const dimension of dimensionesData){
         const {unidad, ...rest} = dimension;
         
-        const unidadDb = await this.longitudService.findOneByUnidad(unidad);
-        const unidadId = unidadDb.id;
-        const dimensionDto = plainToClass(CreateDimensionDto,{
+        unidadDb = await this.longitudService.findOneByUnidad(unidad);
+        unidadId = unidadDb.id;
+        console.log(unidadId);
+        let dimensionDto = plainToClass(CreateDimensionDto,{
           unidad:unidadId,
           ...rest
         });
