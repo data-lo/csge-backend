@@ -26,6 +26,10 @@ export class CreateCaracteristicaDto {
     @IsString()
     @IsOptional()
     formatoId:string;
+
+    @IsString()
+    @IsOptional()
+    pieza:string;
     
     @IsString()
     @IsOptional()

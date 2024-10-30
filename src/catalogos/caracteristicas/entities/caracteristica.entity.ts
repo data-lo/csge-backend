@@ -46,6 +46,13 @@ export class Caracteristica {
     formatoId:Formato;
 
     @Column({
+        name:'pieza',
+        nullable:true,
+        default:null
+    })
+    pieza:string;
+    
+    @Column({
         name:'paginas_prensa',
         nullable:true,
         default:null
