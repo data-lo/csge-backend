@@ -17,7 +17,7 @@ export class Renovacion {
         nullable:false,
         default:{}
     })
-    caracteristicasDelServicio:any;
+    caracteristicasDelServicio:Object;
 
     @Column({
         name:'tarifa_unitaria',

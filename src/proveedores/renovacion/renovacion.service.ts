@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
 import { UpdateRenovacionDto } from './dto/update-renovacion.dto';
 import { DesactivarRenovacionDto } from './dto/desactivar-renovacion.dto';
@@ -15,20 +15,20 @@ export class RenovacionService {
   constructor(
     @InjectRepository(Renovacion)
     private readonly renovacionRepository:Repository<Renovacion>,
-    
     @Inject(IvaGetter)
     private readonly ivaGetter:IvaGetter
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {
-    try{
+    try{  
+      
       const {tarifaUnitaria, ivaFrontera} = createRenovacionDto;
       if(createRenovacionDto.ivaIncluido){
         const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
         createRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
         createRenovacionDto.iva = ivaDesglosado.iva
       }
-      console.log(createRenovacionDto.caracteristicasDelServicio);
+      
       const renovacion = this.renovacionRepository.create(createRenovacionDto);
       await this.renovacionRepository.save(renovacion);
       return renovacion;
@@ -62,25 +62,44 @@ export class RenovacionService {
   }
 
   async update(id: string, updateRenovacionDto: UpdateRenovacionDto) {
-    try{
-      const {tarifaUnitaria, ivaFrontera} = updateRenovacionDto;
-      const renovacionDb = await this.findOne(id);
-      if(renovacionDb){
+    try {
+        const { 
+          tarifaUnitaria,
+          ivaIncluido,
+          ivaFrontera,
+          iva,
+          fechaDeCreacion,
+          estatus,
+          caracteristicasDelServicio, 
+          ...rest} = updateRenovacionDto;
+
+        const renovacion = await this.findOne(id);
         
-        if(updateRenovacionDto.ivaIncluido){
-          const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
-          updateRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
-          updateRenovacionDto.iva = ivaDesglosado.iva
+        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || fechaDeCreacion){
+          throw new BadRequestException('Campos relacionados a estatus, tarifas o iva no pueden ser actualizados, crear nueva renovación');
         }
         
-        const renovacion = this.renovacionRepository.update(id,updateRenovacionDto);
-        return renovacion;
-      
-      }
-    }catch(error:any){
-      handleExeptions(error)
+        if(renovacion.estatus === false && estatus === true){
+          throw new BadRequestException('Las renovaciones no pueden ser reactivadas, crear nueva renovación');
+        }
+
+        if(renovacion){
+          let caracteristicasDelServicioDb = renovacion.caracteristicasDelServicio;    
+          if(caracteristicasDelServicio){
+            caracteristicasDelServicioDb = new Object(caracteristicasDelServicio)
+          }
+          await this.renovacionRepository.update(id,{
+            caracteristicasDelServicio:caracteristicasDelServicioDb,
+            estatus:estatus,
+            ...rest
+          }); 
+          return await this.findOne(id);
+        }
+    } catch (error: any) {
+        handleExeptions(error);
     }
-  }
+}
+
 
   async remove(id: string) {
     try{
@@ -98,7 +117,7 @@ export class RenovacionService {
     try{
       const renovacionDb = await this.findOne(id);
       if(renovacionDb){
-        return renovacionDb.estatus;
+        return {renovacionId:`${id}`,estatus:renovacionDb.estatus};
       }
     }catch(error:any){
       handleExeptions(error)
@@ -110,11 +129,13 @@ export class RenovacionService {
       const {renovacionId} = desactivarRenovacionDto;
       const renovacionDb = await this.findOne(renovacionId);
       if(renovacionDb){
-        await this.renovacionRepository.update(renovacionId,{estatus:false})
+        await this.renovacionRepository.update(renovacionId,{estatus:false});
+        const renovacion = await this.findOne(renovacionId);
+        return {message:'Renovacion desactivada exitosamente',estaus:renovacion.estatus};
       }
+
     }catch(error:any){
       handleExeptions(error)
     }
   }
-
 }

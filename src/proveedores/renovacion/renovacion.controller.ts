@@ -10,7 +10,6 @@ export class RenovacionController {
 
   @Post()
   create(@Body() createRenovacionDto: CreateRenovacionDto) {
-    console.log('RAW',JSON.stringify(createRenovacionDto,null,2));
     return this.renovacionService.create(createRenovacionDto);
   }
 
