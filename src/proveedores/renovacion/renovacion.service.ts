@@ -63,7 +63,20 @@ export class RenovacionService {
 
   async update(id: string, updateRenovacionDto: UpdateRenovacionDto) {
     try{
-
+      const {tarifaUnitaria, ivaFrontera} = updateRenovacionDto;
+      const renovacionDb = await this.findOne(id);
+      if(renovacionDb){
+        
+        if(updateRenovacionDto.ivaIncluido){
+          const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
+          updateRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
+          updateRenovacionDto.iva = ivaDesglosado.iva
+        }
+        
+        const renovacion = this.renovacionRepository.update(id,updateRenovacionDto);
+        return renovacion;
+      
+      }
     }catch(error:any){
       handleExeptions(error)
     }
@@ -71,7 +84,11 @@ export class RenovacionService {
 
   async remove(id: string) {
     try{
-
+      const renovacionDb = await this.findOne(id);
+      if(renovacionDb){
+        await this.renovacionRepository.delete(id);
+        return {message:'Renovacion eliminada existosamente'};
+      }
     }catch(error:any){
       handleExeptions(error)
     }
@@ -79,7 +96,10 @@ export class RenovacionService {
 
   async obtenerEstatus(id:string){
     try{
-
+      const renovacionDb = await this.findOne(id);
+      if(renovacionDb){
+        return renovacionDb.estatus;
+      }
     }catch(error:any){
       handleExeptions(error)
     }
@@ -87,7 +107,11 @@ export class RenovacionService {
 
   async desactivarRenovacion(desactivarRenovacionDto:DesactivarRenovacionDto){
     try{
-
+      const {renovacionId} = desactivarRenovacionDto;
+      const renovacionDb = await this.findOne(renovacionId);
+      if(renovacionDb){
+        await this.renovacionRepository.update(renovacionId,{estatus:false})
+      }
     }catch(error:any){
       handleExeptions(error)
     }

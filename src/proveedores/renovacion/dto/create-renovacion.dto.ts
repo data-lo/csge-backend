@@ -6,7 +6,7 @@ export class CreateRenovacionDto {
     @IsString()
     descripcionDelServicio:string;
 
-    caracteristicasDelServicio:string;
+    caracteristicasDelServicio:any;
 
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
