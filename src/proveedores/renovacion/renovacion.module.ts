@@ -8,8 +8,10 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
 @Module({
   controllers: [RenovacionController],
   providers: [RenovacionService],
-  imports: [TypeOrmModule.forFeature([Renovacion]),
-  IvaModule
-]
+  imports: [
+    TypeOrmModule.forFeature([Renovacion]),
+    IvaModule,
+  ],
+  exports:[RenovacionService]
 })
 export class RenovacionModule {}
