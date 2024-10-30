@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIvaDto } from './dto/create-iva.dto';
 import { UpdateIvaDto } from './dto/update-iva.dto';
 import { InjectRepository } from '@nestjs/typeorm';
