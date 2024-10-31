@@ -8,6 +8,7 @@ import { Renovacion } from './entities/renovacion.entity';
 import { Repository } from 'typeorm';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
+import { Servicio } from '../servicio/entities/servicio.entity';
 
 @Injectable()
 export class RenovacionService {
@@ -15,24 +16,38 @@ export class RenovacionService {
   constructor(
     @InjectRepository(Renovacion)
     private readonly renovacionRepository:Repository<Renovacion>,
+
     @Inject(IvaGetter)
-    private readonly ivaGetter:IvaGetter
+    private readonly ivaGetter:IvaGetter,
+    
+    @InjectRepository(Servicio)
+    private readonly servicioRepository:Repository<Servicio>
+    
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {
     try{  
       
-      const {tarifaUnitaria, ivaFrontera} = createRenovacionDto;
-      if(createRenovacionDto.ivaIncluido){
-        const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
-        createRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
-        createRenovacionDto.iva = ivaDesglosado.iva
-      }
-      
-      const renovacion = this.renovacionRepository.create(createRenovacionDto);
-      await this.renovacionRepository.save(renovacion);
-      return renovacion;
+      const {tarifaUnitaria, ivaFrontera, servicioId, ...rest} = createRenovacionDto;
 
+      if(servicioId){
+        const servicioDb = await this.servicioRepository.findOneBy({id:servicioId});
+        
+        if(createRenovacionDto.ivaIncluido){
+          const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
+          createRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
+          createRenovacionDto.iva = ivaDesglosado.iva
+        }
+        
+        const renovacion = this.renovacionRepository.create({
+          servicio:servicioDb,
+          ...rest
+        });
+        await this.renovacionRepository.save(renovacion);
+        return renovacion;
+      
+      }
+      throw new NotFoundException('El servicio no se encuentra');
     }catch(error:any){
       handleExeptions(error)
     }

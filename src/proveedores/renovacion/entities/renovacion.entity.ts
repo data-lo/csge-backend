@@ -69,6 +69,6 @@ export class Renovacion {
     })
     estatus:boolean;
 
-    @ManyToOne(()=>Servicio,(servicio) => servicio.renovaciones)
+    @ManyToOne(()=> Servicio,(servicio) => servicio.renovaciones)
     servicio:Servicio;
 }

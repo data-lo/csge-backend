@@ -1,5 +1,5 @@
 import { Transform, Type} from "class-transformer";
-import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested } from 'class-validator';
+import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested, IsUUID } from 'class-validator';
 import { CaracteristicasDelServicioDto } from "./caracteristicas-del-servicio.dto";
 
 export class CreateRenovacionDto {
@@ -38,4 +38,8 @@ export class CreateRenovacionDto {
     @ValidateNested()
     @Type(() => CaracteristicasDelServicioDto)
     caracteristicasDelServicio:CaracteristicasDelServicioDto;
+
+    @IsUUID()
+    @IsString()
+    servicioId:string;
 }
