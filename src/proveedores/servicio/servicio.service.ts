@@ -31,9 +31,7 @@ export class ServicioService {
       const servicios = await this.servicioRepository.find({
         take:paginationSetter.castPaginationLimit(),
         skip:paginationSetter.getSkipElements(pagina),
-        relations:{
-          renovaciones:true
-        }
+        relations:['renovaciones']
       });
       return servicios;
     }catch(error){

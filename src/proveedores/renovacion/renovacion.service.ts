@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
+import { flattenCaracteristica } from '../../helpers/flattenCaracterisitcas.function';
 
 @Injectable()
 export class RenovacionService {
@@ -28,22 +29,25 @@ export class RenovacionService {
   async create(createRenovacionDto: CreateRenovacionDto) {
     try{  
       
-      const {tarifaUnitaria, ivaFrontera, servicioId, ...rest} = createRenovacionDto;
+      let {tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest} = createRenovacionDto;
 
       if(servicioId){
         const servicioDb = await this.servicioRepository.findOneBy({id:servicioId});
-        
+                
         if(createRenovacionDto.ivaIncluido){
           const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
-          createRenovacionDto.tarifaUnitaria = ivaDesglosado.tarifa,
-          createRenovacionDto.iva = ivaDesglosado.iva
+          tarifaUnitaria = ivaDesglosado.tarifa,
+          iva = ivaDesglosado.iva
         }
         
         const renovacion = this.renovacionRepository.create({
           servicio:servicioDb,
+          tarifaUnitaria:tarifaUnitaria,
+          iva:iva,
           ...rest
         });
         await this.renovacionRepository.save(renovacion);
+        delete renovacion.servicio;
         return renovacion;
       
       }
@@ -85,13 +89,14 @@ export class RenovacionService {
           iva,
           fechaDeCreacion,
           estatus,
-          caracteristicasDelServicio, 
+          caracteristicasDelServicio,
+          servicioId,
           ...rest} = updateRenovacionDto;
 
         const renovacion = await this.findOne(id);
         
-        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || fechaDeCreacion){
-          throw new BadRequestException('Campos relacionados a estatus, tarifas o iva no pueden ser actualizados, crear nueva renovación');
+        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || fechaDeCreacion || servicioId){
+          throw new BadRequestException('Campos relacionados a estatus, tarifas ,iva o relación con el servicio no pueden ser actualizados, crear nueva renovación');
         }
         
         if(renovacion.estatus === false && estatus === true){

@@ -10,6 +10,12 @@ export class Servicio {
     id:string;
 
     @Column({
+        name:'nombre_de_servicio',
+        nullable:false
+    })
+    nombreDeServicio:string;
+    
+    @Column({
         name:'tipo_de_servicio',
         type:'enum',
         nullable:false,
@@ -25,6 +31,6 @@ export class Servicio {
     })
     estatus:boolean;
 
-    @OneToMany(() => Renovacion, (renovacion) => renovacion.id)
+    @OneToMany(() => Renovacion, (renovacion) => renovacion.servicio)
     renovaciones:Renovacion[]
 }

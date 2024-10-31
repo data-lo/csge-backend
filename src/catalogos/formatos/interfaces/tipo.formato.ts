@@ -1,5 +1,6 @@
 export enum TipoFormato {
     AUDIOVISUAL = "AUDIOVISUAL",
     IMPRESO = "IMPRESO",
-    PIEZA = "PIEZA"
+    PIEZA = "PIEZA",
+    SERVICIO = "SERVICIO"
 }
