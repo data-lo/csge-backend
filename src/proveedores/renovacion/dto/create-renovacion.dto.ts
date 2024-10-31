@@ -1,12 +1,11 @@
-import { Transform} from "class-transformer";
-import { IsBoolean, IsDate, IsJSON, IsNumber, IsObject, IsOptional, IsString, Min} from "class-validator";
+import { Transform, Type} from "class-transformer";
+import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested, IsUUID } from 'class-validator';
+import { CaracteristicasDelServicioDto } from "./caracteristicas-del-servicio.dto";
 
 export class CreateRenovacionDto {
     
     @IsString()
     descripcionDelServicio:string;
-
-    caracteristicasDelServicio:string;
 
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
@@ -34,4 +33,13 @@ export class CreateRenovacionDto {
     @IsBoolean()
     @IsOptional()
     estatus:boolean;
+
+    @IsObject()
+    @ValidateNested()
+    @Type(() => CaracteristicasDelServicioDto)
+    caracteristicasDelServicio:CaracteristicasDelServicioDto;
+
+    @IsUUID()
+    @IsString()
+    servicioId:string;
 }

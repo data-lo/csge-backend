@@ -4,7 +4,4 @@ export class DesactivarRenovacionDto {
     @IsUUID()
     @IsString()
     renovacionId:string;
-
-    @IsBoolean()
-    estatus:boolean;
 }

@@ -41,6 +41,9 @@ import { MunicipioService } from 'src/proveedores/municipio/municipio.service';
 import { ContactoService } from 'src/proveedores/contacto/contacto.service';
 import { contactosData } from './data/proveedores/contactos.data';
 import { CreateContactoDto } from 'src/proveedores/contacto/dto/create-contacto.dto';
+import { ServiciosData } from './data/proveedores/servicios.data';
+import { CreateServicioDto } from 'src/proveedores/servicio/dto/create-servicio.dto';
+import { ServicioService } from 'src/proveedores/servicio/servicio.service';
 
 @Injectable()
 export class SeedService {
@@ -62,7 +65,8 @@ export class SeedService {
     private readonly ivaService:IvaService,
 
     private readonly municipioService:MunicipioService,
-    private readonly contactosService:ContactoService
+    private readonly contactosService:ContactoService,
+    private readonly serviciosService:ServicioService,
 
   ){}
   
@@ -181,7 +185,6 @@ export class SeedService {
     }
   }
 
-
   async insertarFormato(){
     try{
       for(const formato of formatoData){
@@ -276,8 +279,9 @@ export class SeedService {
 
 
   async seedProveedores(){
-    await this.insertarMunicipios();
-    await this.insertarContactos();
+    //await this.insertarMunicipios();
+    //await this.insertarContactos();
+    await this.insertarServicios();
     return {message:"Datos de Municipios y Contactos insertados correctamente"};
   }
 
@@ -316,6 +320,21 @@ export class SeedService {
       }
       return;
     }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarServicios(){
+    try{
+      for(const servicio of ServiciosData){
+        const {nombreDeServicio, ...rest} = servicio;
+        const servicioDto = plainToClass(CreateServicioDto,{
+          nombreDeServicio:servicio.nombreDeServicio.toUpperCase(),
+          ...rest
+        });
+        await this.serviciosService.create(servicioDto);
+      }
+    }catch(error){
       handleExeptions(error);
     }
   }

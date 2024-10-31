@@ -67,6 +67,8 @@ export class CaracteristicasService {
         ...rest
       });
 
+      await this.caracteristicasRepository.save(caracterisiticas);
+
       const {nombre, tipo, ...restFlatten} = flattenCaracteristica(caracterisiticas);
       return {
         nombreFormato:nombre,

@@ -1,4 +1,5 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Servicio } from "src/proveedores/servicio/entities/servicio.entity";
+import { Column, Entity, Generated, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity('renovaciones')
 export class Renovacion {
@@ -17,7 +18,7 @@ export class Renovacion {
         nullable:false,
         default:{}
     })
-    caracteristicasDelServicio:any;
+    caracteristicasDelServicio:Object;
 
     @Column({
         name:'tarifa_unitaria',
@@ -67,4 +68,7 @@ export class Renovacion {
         default:true
     })
     estatus:boolean;
+
+    @ManyToOne(()=> Servicio,(servicio) => servicio.renovaciones)
+    servicio:Servicio;
 }

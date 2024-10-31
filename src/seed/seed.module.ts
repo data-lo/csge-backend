@@ -15,6 +15,7 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
 import { TextosModule } from 'src/configuracion/textos/textos.module';
 import { MunicipioModule } from 'src/proveedores/municipio/municipio.module';
 import { ContactoModule } from 'src/proveedores/contacto/contacto.module';
+import { ServicioModule } from 'src/proveedores/servicio/servicio.module';
 
 @Module({
   controllers: [SeedController],
@@ -33,7 +34,8 @@ import { ContactoModule } from 'src/proveedores/contacto/contacto.module';
     IvaModule,
     TextosModule,
     MunicipioModule,
-    ContactoModule
+    ContactoModule,
+    ServicioModule
   ]
 })
 export class SeedModule {}
