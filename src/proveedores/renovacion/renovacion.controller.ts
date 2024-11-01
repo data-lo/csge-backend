@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { RenovacionService } from './renovacion.service';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
 import { UpdateRenovacionDto } from './dto/update-renovacion.dto';
+import { DesactivarRenovacionDto } from './dto/desactivar-renovacion.dto';
 
-@Controller('renovacion')
+@Controller('proveedores/renovaciones')
 export class RenovacionController {
   constructor(private readonly renovacionService: RenovacionService) {}
 
@@ -12,23 +13,33 @@ export class RenovacionController {
     return this.renovacionService.create(createRenovacionDto);
   }
 
+  @Post('desactivar')
+  desactivarRenovacion(@Body() desactivarRenovacionDto: DesactivarRenovacionDto) {
+    return this.renovacionService.desactivarRenovacion(desactivarRenovacionDto);
+  }
+
   @Get()
-  findAll() {
-    return this.renovacionService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.renovacionService.findAll(+pagina);
+  }
+
+  @Get('estatus/:id')
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.renovacionService.obtenerEstatus(id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.renovacionService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.renovacionService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRenovacionDto: UpdateRenovacionDto) {
-    return this.renovacionService.update(+id, updateRenovacionDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateRenovacionDto: UpdateRenovacionDto) {
+    return this.renovacionService.update(id, updateRenovacionDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.renovacionService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.renovacionService.remove(id);
   }
 }

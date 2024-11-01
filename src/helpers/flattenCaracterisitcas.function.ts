@@ -2,27 +2,28 @@ import { isUUID } from "class-validator";
 
 type Caracteristica = Record<string, any>
 
-export function flattenCaracteristica(caracteristica: Caracteristica){
+export function flattenCaracteristica(caracteristicas: Caracteristica) {
     const result: Caracteristica = {};
 
-    for(const key in caracteristica){
-        const value = caracteristica[key];
-
-        if(typeof value === 'object' && value !== null){
-            
-            //const nestedObject = flattenCaracteristica(value);
-
-            for(const innerKey in value /*nestedObject*/){
-                if(innerKey !== 'id'){
-                    result[innerKey] = value[innerKey];
+    for (const key in caracteristicas) {
+        const value = caracteristicas[key];
+        
+        if (typeof value === 'object' && value !== null) {
+            for (const innerKey in value) {
+                const innerValue = value[innerKey];
+                if (typeof innerValue === 'object' && innerValue !== null) {
+                    const nestedFlattened = flattenCaracteristica(innerValue);
+                    Object.assign(result, nestedFlattened);
+                } 
+                else if (innerKey !== 'id' && !isUUID(innerValue) && innerValue !== null) {
+                    result[innerKey] = innerValue;
                 }
             }
-        }else if(value !== null){
-            if(!isUUID(value)){
-                const value = caracteristica[key];
-                result[key] = value;
-            }
+        }
+        else if (!isUUID(value) && value !== null) {
+            result[key] = value;
         }
     }
+    
     return result;
-};
+}

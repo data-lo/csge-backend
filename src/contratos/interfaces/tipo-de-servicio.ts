@@ -1,4 +1,5 @@
 export enum TipoDeServicio {
+    SERVICIOS_GENERALES = 'SERVICIOS GENERALES',
     CAPSULAS = 'CAPSULAS',
     CARTELERAS = 'CARTELERAS',
     CINE = 'CINE',
