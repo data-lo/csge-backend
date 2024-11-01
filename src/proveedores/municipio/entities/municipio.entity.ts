@@ -1,4 +1,5 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
+import { Column, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
 
 @Entity('municipios')
 export class Municipio {

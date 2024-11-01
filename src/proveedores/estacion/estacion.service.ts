@@ -1,26 +1,137 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateEstacionDto } from './dto/create-estacion.dto';
 import { UpdateEstacionDto } from './dto/update-estacion.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Estacion } from './entities/estacion.entity';
+import { Repository } from 'typeorm';
+import { MunicipioService } from '../municipio/municipio.service';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class EstacionService {
-  create(createEstacionDto: CreateEstacionDto) {
-    return 'This action adds a new estacion';
+
+  constructor(
+    @InjectRepository(Estacion)
+    private estacionRepository:Repository<Estacion>,
+    private readonly municipioService:MunicipioService
+  ){}
+
+  async create(createEstacionDto: CreateEstacionDto) {
+    try{
+      
+      const{municipiosIds,...rest} = createEstacionDto; 
+
+      let municipios = [];
+      for(const municipio of municipiosIds){
+        const municipioDb = await this.municipioService.findOne(municipio)
+        municipios.push(municipioDb);
+      }
+
+      const estacion = this.estacionRepository.create({
+        municipios:municipios,
+        ...rest
+      });
+
+      await this.estacionRepository.save(estacion);
+      return estacion;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all estacion`;
+  async findAll(pagina: number) {
+    try{
+      const paginationSetter = new PaginationSetter;
+      const estaciones = await this.estacionRepository.find({
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina),
+        relations:{
+          municipios:true,
+        }
+      });
+      return estaciones;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} estacion`;
+  async findOne(id: string) {
+    try{
+      const estacion = await this.estacionRepository.findOne({
+        where:{id:id},
+        relations:{
+          municipios:true,
+          contactos:true,
+          servicios:true
+        }
+      });
+      if(!estacion) throw new BadRequestException('La estacion no se encuentra');
+      return estacion;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }  
+
+  async update(id: string, updateEstacionDto: UpdateEstacionDto) {
+    try{
+      const estacionDb = await this.findOne(id);
+      let {municipios} = estacionDb;
+      let {municipiosIds, ...rest} = updateEstacionDto;
+      
+      if(updateEstacionDto.municipiosIds){
+        municipios = [];
+        for(const municipio of municipiosIds){
+          const municipioDb = await this.municipioService.findOne(municipio);
+          municipios.push(municipioDb);
+        }
+      }
+
+      await this.estacionRepository.update(id,{
+        municipios:municipios,
+        ...rest
+      });
+      
+      return await this.findOne(id);
+      
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateEstacionDto: UpdateEstacionDto) {
-    return `This action updates a #${id} estacion`;
+  remove(id: string) {
+    try{
+
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} estacion`;
+  
+
+  agregarContacto(){
+
   }
+
+  eliminarContacto(){
+
+  }
+
+  agregarServicio(){
+
+  }
+
+  eliminarServicio(){
+
+  }
+
+  agregarLugarDeOperacion(){
+
+  }
+
+  eliminarLugarDeOperacion(){
+
+  }
+
+
 }

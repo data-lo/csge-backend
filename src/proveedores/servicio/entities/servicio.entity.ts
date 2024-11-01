@@ -1,6 +1,7 @@
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
 import { Renovacion } from "src/proveedores/renovacion/entities/renovacion.entity";
-import { Column, Entity, Generated, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity('servicios')
 export class Servicio {
@@ -33,4 +34,7 @@ export class Servicio {
 
     @OneToMany(() => Renovacion, (renovacion) => renovacion.servicio)
     renovaciones:Renovacion[]
+
+    @ManyToOne(() => Estacion, (estacion) => estacion.servicios)
+    estacion:Estacion;
 }

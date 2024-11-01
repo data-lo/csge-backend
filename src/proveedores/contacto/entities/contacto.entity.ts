@@ -1,4 +1,5 @@
-import { Column, Entity, Generated, PrimaryColumn } from 'typeorm';
+import { Estacion } from 'src/proveedores/estacion/entities/estacion.entity';
+import { Column, Entity, Generated, ManyToMany, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('contactos')
 export class Contacto {
@@ -33,4 +34,7 @@ export class Contacto {
         default:null
     })
     observaciones:string;
+
+    @ManyToOne(()=> Estacion, (estacion) => estacion.contactos)
+    estacion:Estacion;
 }
