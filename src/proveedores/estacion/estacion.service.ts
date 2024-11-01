@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateEstacionDto } from './dto/create-estacion.dto';
 import { UpdateEstacionDto } from './dto/update-estacion.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { MunicipioService } from '../municipio/municipio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+
 
 @Injectable()
 export class EstacionService {
@@ -63,7 +64,9 @@ export class EstacionService {
         relations:{
           municipios:true,
           contactos:true,
-          servicios:true
+          servicios:{
+            renovaciones:true
+          }
         }
       });
       if(!estacion) throw new BadRequestException('La estacion no se encuentra');
@@ -75,39 +78,54 @@ export class EstacionService {
 
   async update(id: string, updateEstacionDto: UpdateEstacionDto) {
     try{
-      const estacionDb = await this.findOne(id);
-      let {municipios} = estacionDb;
-      let {municipiosIds, ...rest} = updateEstacionDto;
-      
-      if(updateEstacionDto.municipiosIds){
-        municipios = [];
-        for(const municipio of municipiosIds){
-          const municipioDb = await this.municipioService.findOne(municipio);
-          municipios.push(municipioDb);
+
+      const {municipiosIds, ...rest} = updateEstacionDto;
+      const estacionDb = await this.estacionRepository.findOne({
+        where:{id:id},
+        relations:{
+          municipios:true
         }
-      }
-
-      await this.estacionRepository.update(id,{
-        municipios:municipios,
-        ...rest
       });
+
+      if(!estacionDb) throw new NotFoundException('La estacion no se encuentra');
       
-      return await this.findOne(id);
+      Object.assign(estacionDb,rest);
+      if(municipiosIds && municipiosIds.length > 0){
+        
+        const municipios = await Promise.all(
+          municipiosIds.map(municipioId => 
+            this.municipioService.findOne(municipioId)
+          )
+        );
+
+        estacionDb.municipios = municipios;
+      }
       
+      if(municipiosIds && municipiosIds.length === 0){
+        estacionDb.municipios = [];
+      };
+
+      await this.estacionRepository.save(estacionDb);
+      return  await this.findOne(id);
+
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  remove(id: string) {
+  async desactivarEstacion(id:string){
     try{
-
+      const estacion = await this.findOne(id);
+      if(estacion){
+        await this.estacionRepository.update(id,{
+          estatus:false
+        });
+        return await this.findOne(id)
+      }
     }catch(error){
       handleExeptions(error);
     }
   }
-
-  
 
   agregarContacto(){
 

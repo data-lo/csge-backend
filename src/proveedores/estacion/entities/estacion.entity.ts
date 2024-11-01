@@ -30,6 +30,6 @@ export class Estacion {
     servicios:Servicio[];
 
     @ManyToMany(()=> Municipio)
-    @JoinTable()
+    @JoinTable({name:'estaciones_municipios'})
     municipios: Municipio[]
 }

@@ -279,9 +279,9 @@ export class SeedService {
 
 
   async seedProveedores(){
-    //await this.insertarMunicipios();
+    await this.insertarMunicipios();
     //await this.insertarContactos();
-    await this.insertarServicios();
+    //await this.insertarServicios();
     return {message:"Datos de Municipios y Contactos insertados correctamente"};
   }
 

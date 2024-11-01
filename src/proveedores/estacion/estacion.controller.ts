@@ -14,6 +14,11 @@ export class EstacionController {
     return this.estacionService.create(createEstacionDto);
   }
 
+  @Post('desactivar')
+  desactivarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
+    return this.estacionService.desactivarEstacion(estacionId);
+  }
+
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.estacionService.findAll(+pagina);
@@ -27,10 +32,5 @@ export class EstacionController {
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateEstacionDto: UpdateEstacionDto) {
     return this.estacionService.update(id, updateEstacionDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
-    return this.estacionService.remove(id);
   }
 }

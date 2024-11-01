@@ -11,5 +11,8 @@ import { MunicipioModule } from '../municipio/municipio.module';
   imports: [TypeOrmModule.forFeature([Estacion]),
     MunicipioModule
   ],
+  exports:[
+    EstacionService
+  ]
 })
 export class EstacionModule {}
