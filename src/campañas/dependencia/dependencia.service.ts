@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import { Dependencia } from './entities/dependencia.entity';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+
+
 @Injectable()
 export class DependenciaService {
 
@@ -63,7 +65,11 @@ export class DependenciaService {
 
   async remove(id: string) {
     try{
-      
+      const dependencia = await this.findOne(id);
+      if(dependencia){
+        await this.dependenciaRepository.delete(id);
+        return {message:"Dependencia eliminada correctamente"};
+      }
     }catch(error){
       handleExeptions(error);
     }
