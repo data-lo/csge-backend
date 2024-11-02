@@ -9,4 +9,8 @@ export class CreateEstacionDto {
 
     @IsArray()
     municipiosIds:string[]
+
+    @IsString()
+    @IsUUID()
+    proveedorId:string;
 }

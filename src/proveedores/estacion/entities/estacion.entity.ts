@@ -1,7 +1,8 @@
 import { Contacto } from "src/proveedores/contacto/entities/contacto.entity";
 import { Municipio } from "src/proveedores/municipio/entities/municipio.entity";
+import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
 import { Servicio } from "src/proveedores/servicio/entities/servicio.entity";
-import { Column, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 
 @Entity('estaciones')
 export class Estacion {
@@ -28,6 +29,9 @@ export class Estacion {
 
     @OneToMany(() => Servicio, (servicio) => servicio.estacion)
     servicios:Servicio[];
+
+    @ManyToOne(() => Proveedor, (proveedor) => proveedor.estaciones)
+    proveedor:Proveedor
 
     @ManyToMany(()=> Municipio)
     @JoinTable({name:'estaciones_municipios'})

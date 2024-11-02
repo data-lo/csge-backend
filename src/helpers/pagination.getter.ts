@@ -3,7 +3,7 @@ export class PaginationSetter{
         const paginationLimit = 15;
         return paginationLimit;
     }
-    getSkipElements(page){
+    getSkipElements(page:number){
         const take:number = this.castPaginationLimit();
         const skip:number = (page-1)*take;
         return skip;
