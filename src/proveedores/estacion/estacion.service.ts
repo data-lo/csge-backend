@@ -127,6 +127,15 @@ export class EstacionService {
     }
   }
 
+  async obtenerEstatus(id:string){
+    try{
+  
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   agregarContacto(){
 
   }
@@ -150,6 +159,4 @@ export class EstacionService {
   eliminarLugarDeOperacion(){
 
   }
-
-
 }

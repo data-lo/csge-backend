@@ -2,7 +2,8 @@ import { ContratoModificatorio } from "src/contratos/contratos_modificatorios/en
 import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
 import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
-import { Column, Entity, Generated, OneToMany, PrimaryColumn } from "typeorm";
+import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
+import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 
 @Entity({name:'contratos'})
 export class Contrato {
@@ -11,13 +12,8 @@ export class Contrato {
     @Generated('uuid')
     id:string;
     
-    @Column({
-        name:'proveedor_id',
-        type:'uuid',
-        default:null,
-        nullable:true
-    })
-    proveedorId:string;
+    @ManyToOne(()=>Proveedor, (proveedor)=> proveedor.contratos)
+    proveedor:Proveedor;
 
     @Column({
         name:'numero_de_contrato',
