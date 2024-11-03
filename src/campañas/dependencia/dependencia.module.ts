@@ -6,6 +6,7 @@ import { Dependencia } from './entities/dependencia.entity';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Dependencia])],
+  exports:[DependenciaService],
   controllers: [DependenciaController],
   providers: [DependenciaService],
 })

@@ -6,18 +6,25 @@ import { Contacto } from './entities/contacto.entity';
 import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { EstacionService } from '../estacion/estacion.service';
 
 @Injectable()
 export class ContactoService {
 
   constructor(
     @InjectRepository(Contacto)
-    private contactoRepository:Repository<Contacto>
+    private contactoRepository:Repository<Contacto>,
+    private estacionService:EstacionService
   ){}
 
   async create(createContactoDto: CreateContactoDto) {
     try{
-      const contacto = this.contactoRepository.create(createContactoDto);
+      const {estacionId, ...rest} = createContactoDto;
+      const estacionDb = await this.estacionService.findOne(estacionId);
+      const contacto = this.contactoRepository.create({
+        estacion:estacionDb,
+        ...rest
+      });
       await this.contactoRepository.save(contacto);
       return contacto;
     }catch(error:any){

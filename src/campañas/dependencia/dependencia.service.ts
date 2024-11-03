@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDependenciaDto } from './dto/create-dependencia.dto';
 import { UpdateDependenciaDto } from './dto/update-dependencia.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dependencia } from './entities/dependencia.entity';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
+
 
 @Injectable()
 export class DependenciaService {
@@ -24,33 +26,50 @@ export class DependenciaService {
     }
   }
 
-  findAll(pagina:number) {
+  async findAll(pagina:number) {
     try{
-      
+      const paginationSetter = new PaginationSetter()
+      const dependencias = await this.dependenciaRepository.find({
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina)
+      });
+      return dependencias;
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  findOne(id:string) {
+  async findOne(id:string) {
     try{
-
+      const dependencia = await this.dependenciaRepository.findOne({
+        where:{id:id}
+      });
+      if(!dependencia) throw new NotFoundException('La dependencia no existe');
+      return dependencia;
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  update(id: string, updateDependenciaDto: UpdateDependenciaDto) {
+  async update(id: string, updateDependenciaDto: UpdateDependenciaDto) {
     try{
-
+      const dependencia = await this.findOne(id);
+      if(dependencia){
+        await this.dependenciaRepository.update(id,updateDependenciaDto);
+        return this.findOne(id); 
+      }
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     try{
-
+      const dependencia = await this.findOne(id);
+      if(dependencia){
+        await this.dependenciaRepository.delete(id);
+        return {message:"Dependencia eliminada correctamente"};
+      }
     }catch(error){
       handleExeptions(error);
     }

@@ -6,6 +6,7 @@ import { Servicio } from './entities/servicio.entity';
 import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { EstacionService } from '../estacion/estacion.service';
 
 @Injectable()
 export class ServicioService {
@@ -13,11 +14,18 @@ export class ServicioService {
   constructor(
     @InjectRepository(Servicio)
     private servicioRepository:Repository<Servicio>,
+    private estacionService:EstacionService,
   ){}
 
   async create(createServicioDto: CreateServicioDto) {
     try{  
-      const servicio = this.servicioRepository.create(createServicioDto);
+      const {estacionId,...rest} = createServicioDto;
+      const estacionDb = await this.estacionService.findOne(createServicioDto.estacionId);
+      const servicio = this.servicioRepository.create({
+        estacion:estacionDb,
+        ...rest
+      });
+      
       await this.servicioRepository.save(servicio);
       return servicio;
     }catch(error){

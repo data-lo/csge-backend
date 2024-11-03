@@ -11,6 +11,7 @@ import { ContratosModificatoriosService } from '../contratos_modificatorios/cont
 import { AgregarContratoModificatorioDto } from './dto/agregar-contrato-modificatorio.dto';
 import { ContratoModificatorio } from '../contratos_modificatorios/entities/contratos_modificatorio.entity';
 import { EliminarContratoModificatorioDto } from './dto/eliminar-contrato-modificatorio.dto';
+import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 
 
 @Injectable()
@@ -19,33 +20,49 @@ export class ContratosService {
   constructor(
     @InjectRepository(Contrato)
     private contratoRepository:Repository<Contrato>,
+    
     @InjectRepository(ContratoModificatorio)
-    private ContratoModificatorioRepository:Repository<ContratoModificatorio>,
-    private contratoModificatorioService:ContratosModificatoriosService
+    private contratoModificatorioRepository:Repository<ContratoModificatorio>,
+    
+    private contratoModificatorioService:ContratosModificatoriosService,
+
+    @InjectRepository(Proveedor)
+    private readonly proveedorRepository:Repository<Proveedor>
   ){}
 
   async create(createContratoDto: CreateContratoDto) {
+    
     try{
       let montoDisponible:number = 0.00;
       
       const { 
         montoMaximoContratado,
         montoMinimoContratado,
+        proveedorId,
         ...rest
       } = createContratoDto;
+      
       if(montoMaximoContratado){
         montoDisponible = montoMaximoContratado; 
       }else{
         montoDisponible = montoMinimoContratado;
       }
+      
+      const proveedor = await this.proveedorRepository.findOne({
+        where:{id:proveedorId}
+      });
+      
       const contrato = this.contratoRepository.create({
         montoMinimoContratado:montoMinimoContratado,
         montoMaximoContratado:montoMaximoContratado,
         monto_disponible:montoDisponible,
+        proveedor:proveedor,
         ...rest
       });
+
       await this.contratoRepository.save(contrato);
       return contrato;
+    
     }catch(error){
       handleExeptions(error);
     }
@@ -69,7 +86,8 @@ export class ContratosService {
       const contrato = await this.contratoRepository.findOne({
         where:{id:id},
         relations:{
-          contratosModificatorios:true
+          contratosModificatorios:true,
+          proveedor:true,
         }
       });
       if(!contrato){
@@ -106,6 +124,8 @@ export class ContratosService {
   async update(id:string, updateContratoDto: UpdateContratoDto) {
     try{
       const estatusDelContrato = await this.obtenerEstatus(id);
+      if(updateContratoDto.proveedorId) throw new BadRequestException('No es posible modificar el proveedor');
+      
       if(estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE){
         throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
       }else{
@@ -156,7 +176,7 @@ export class ContratosService {
       const contratoModificatorio = await this.contratoModificatorioService
                                               .findOne(contratoModificatorioId);      
       contratoModificatorio.contrato = contrato;
-      await this.ContratoModificatorioRepository.save(contratoModificatorio);
+      await this.contratoModificatorioRepository.save(contratoModificatorio);
       return {message:"Contrato modificatorio agregado"};
   }catch(error){
       handleExeptions(error);
@@ -186,10 +206,6 @@ export class ContratosService {
   
   async actualizarMontos(){}
   
-  async agregarProveedor(){}
-
-  async eliminarProveedor(){}
-
   async agregarOrdenDeServicio(){}
 
   async eliminarOrdenDeServicio(){}

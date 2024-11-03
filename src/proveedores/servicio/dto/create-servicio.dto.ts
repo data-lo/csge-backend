@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString} from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID} from "class-validator";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 
 export class CreateServicioDto {
@@ -12,4 +12,8 @@ export class CreateServicioDto {
     @IsBoolean()
     @IsOptional()
     estatus:boolean;
+
+    @IsUUID()
+    @IsString()
+    estacionId:string;
 }
