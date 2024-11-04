@@ -13,7 +13,7 @@ export class RenovacionController {
     return this.renovacionService.create(createRenovacionDto);
   }
 
-  @Post('desactivar')
+  @Patch('desactivar')
   desactivarRenovacion(@Body() desactivarRenovacionDto: DesactivarRenovacionDto) {
     return this.renovacionService.desactivarRenovacion(desactivarRenovacionDto);
   }

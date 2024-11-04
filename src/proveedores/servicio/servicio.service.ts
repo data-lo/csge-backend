@@ -88,6 +88,21 @@ export class ServicioService {
     }
   }
 
+
+  async activarServicio(id:string){
+    try{
+      const servicio = await this.findOne(id);
+      if(servicio){
+        await this.servicioRepository.update(id,{
+          estatus:true
+        });
+        return await this.findOne(id);
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async renovarServicio(){
     try{
 

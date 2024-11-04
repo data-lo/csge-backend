@@ -14,9 +14,14 @@ export class EstacionController {
     return this.estacionService.create(createEstacionDto);
   }
 
-  @Post('desactivar')
+  @Patch('desactivar')
   desactivarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
     return this.estacionService.desactivarEstacion(estacionId);
+  }
+
+  @Patch('activar')
+  activarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
+    return this.estacionService.activarEstacion(estacionId);
   }
 
   @Get()

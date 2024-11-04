@@ -14,6 +14,7 @@ export class Proveedor {
     @Column({
         name:'numero_de_proveedor',
         nullable:true,
+        unique:true,
     })
     numeroProveedor:string;
 
@@ -52,6 +53,7 @@ export class Proveedor {
         name:'rfc',
         length:'13',
         nullable:true,
+        unique:true,
     })
     rfc:string;
     
@@ -60,7 +62,8 @@ export class Proveedor {
         name:'razon_social',
         length:100,
         nullable:true,
-        default:null
+        default:null,
+        unique:true,
     })
     razonSocial:string;
 
@@ -72,7 +75,7 @@ export class Proveedor {
     })
     domicilioFiscal:string;
 
-    @OneToMany(() => Estacion, (estacion) => estacion.proveedor)
+    @OneToMany(() => Estacion, (estacion) => estacion.proveedor,{eager:true})
     estaciones:Estacion[]
 
     @Column({

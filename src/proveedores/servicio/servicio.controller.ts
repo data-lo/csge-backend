@@ -12,12 +12,17 @@ export class ServicioController {
     return this.servicioService.create(createServicioDto);
   }
 
-  @Post('desactivar')
+  @Patch('desactivar')
   desactivarServicio(@Body('servicioId',ParseUUIDPipe) servicioId:string){
     return this.servicioService.desactivarServicio(servicioId);
   }
 
-  @Post('renovar')
+  @Patch('activar')
+  activarServicio(@Body('servicioId',ParseUUIDPipe) servicioId:string){
+    return this.servicioService.desactivarServicio(servicioId);
+  }
+
+  @Patch('renovar')
   renovarServicio(){
 
   }
