@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
@@ -18,9 +18,21 @@ export class CampañasService {
     private dependeciaRepository:Repository<Dependencia>
   ){}
 
-  create(createCampañaDto: CreateCampañaDto) {
+  async create(createCampañaDto: CreateCampañaDto) {
     try{
+      let dependencias = [];
+      const {dependenciasIds, ...rest} = createCampañaDto;
+      for(const dependenciaId of dependenciasIds){
+        const dependencia = await this.dependeciaRepository.findOneBy({id:dependenciaId});
+        if(!dependencia) throw new NotFoundException('No se encuentra la dependencia');
+        dependencias.push(dependencia); 
+      };
 
+      const campaña = this.campañaRepository.create({
+        dependencias:dependencias,
+        ...rest
+      });
+      await this.campañaRepository.save(campaña);
     }catch(error){
       handleExeptions(error);
     }
