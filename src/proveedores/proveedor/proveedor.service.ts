@@ -32,7 +32,12 @@ export class ProveedorService {
       const paginationSetter = new PaginationSetter()
       const proveedores = this.proveedorRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
+        take:paginationSetter.castPaginationLimit(),
+        relations:{
+          estaciones:{
+            municipios:true
+          }
+        }
       });
       return proveedores;
     }catch(error){
@@ -46,7 +51,9 @@ export class ProveedorService {
         where:{id:id},
         relations:{
           contactos:true,
-          estaciones:true,
+          estaciones:{
+            municipios:true
+          },
           contratos:true,
         }
       });
@@ -61,6 +68,7 @@ export class ProveedorService {
     try{
       const proveedorDb = await this.findOne(id);
       if(proveedorDb){
+        console.log(updateProveedorDto.nombreComercial);
         await this.proveedorRepository.update(id,updateProveedorDto);
         return await this.findOne(id);
       }
@@ -69,13 +77,10 @@ export class ProveedorService {
     }
   }
 
-  async obtenerEstatus(id){
+  async obtenerEstatus(id:string){
     try{
       const estatus = await this.proveedorRepository.findOne({
-        where:{id:id},
-        select:{
-          estatus:true
-        }
+        where:{id:id}
       });
       if(!estatus) throw new NotFoundException('No se encuentra el proveedor');
       return estatus;
@@ -92,6 +97,20 @@ export class ProveedorService {
           estatus:false
         });
         return {message:'Proveedor desactivado exitosamente'};
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async activarProveedor(id:string){
+    try{
+      const estatusProveedor = await this.obtenerEstatus(id);
+      if(estatusProveedor){
+        await this.proveedorRepository.update(id,{
+          estatus:true
+        });
+        return {message:'Proveedor activado exitosamente'};
       }
     }catch(error){
       handleExeptions(error);

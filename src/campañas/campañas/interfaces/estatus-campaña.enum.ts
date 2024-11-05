@@ -1,0 +1,8 @@
+export enum EstatusCampaña {
+    CREADA = "CREADA",
+    COTIZANDO = "COTIZANDO",
+    PENDIENTE = "PENDIENTE",
+    APROBADA = "APR0BADA",
+    INACTIVA = "INACTIVA",
+    REACTIVADA = "REACTIVADA"
+}

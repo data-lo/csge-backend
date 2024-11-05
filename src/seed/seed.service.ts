@@ -44,6 +44,9 @@ import { CreateContactoDto } from 'src/proveedores/contacto/dto/create-contacto.
 import { ServiciosData } from './data/proveedores/servicios.data';
 import { CreateServicioDto } from 'src/proveedores/servicio/dto/create-servicio.dto';
 import { ServicioService } from 'src/proveedores/servicio/servicio.service';
+import { DependenciasData } from './data/campañas/dependencias.data';
+import { CreateDependenciaDto } from 'src/campañas/dependencia/dto/create-dependencia.dto';
+import { DependenciaService } from 'src/campañas/dependencia/dependencia.service';
 
 @Injectable()
 export class SeedService {
@@ -67,6 +70,11 @@ export class SeedService {
     private readonly municipioService:MunicipioService,
     private readonly contactosService:ContactoService,
     private readonly serviciosService:ServicioService,
+
+
+    //modulo campañas
+
+    private readonly dependenciaService:DependenciaService,
 
   ){}
   
@@ -280,8 +288,10 @@ export class SeedService {
 
   async seedProveedores(){
     await this.insertarMunicipios();
-    //await this.insertarContactos();
-    //await this.insertarServicios();
+    await this.insertarContactos();
+    await this.insertarServicios();
+    await this.insertarEstaciones();
+    await this.insertarProveedores();
     return {message:"Datos de Municipios y Contactos insertados correctamente"};
   }
 
@@ -336,6 +346,29 @@ export class SeedService {
       }
     }catch(error){
       handleExeptions(error);
+    }
+  }
+
+  async insertarEstaciones(){
+
+  }
+
+  async insertarProveedores(){
+
+  }
+
+  async seedCampañas(){
+
+  }
+
+  async insertarDependencias(){
+    try{
+
+    }catch(error){
+      for(const dependencia of DependenciasData){
+        const dependenciaDto = plainToClass(CreateDependenciaDto,dependencia);
+        await this.dependenciaService.create(dependencia);
+      }
     }
   }
 }
