@@ -22,12 +22,12 @@ export class ProveedorController {
   activarProveedor(@Body('proveedorId',ParseUUIDPipe) proveedorId:string){
     return this.proveedorService.activarProveedor(proveedorId);
   }
+
   
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.proveedorService.findAll(+pagina);
   }
-  
 
   @Get('estatus/:id')
   obtenerEstatus(@Param('id',ParseUUIDPipe) id:string){
@@ -42,5 +42,10 @@ export class ProveedorController {
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateProveedorDto: UpdateProveedorDto) {
     return this.proveedorService.update(id, updateProveedorDto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id',ParseUUIDPipe) id:string){
+    return this.proveedorService.delete(id);
   }
 }
