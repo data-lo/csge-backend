@@ -13,9 +13,14 @@ export class ProveedorController {
     return this.proveedorService.create(createProveedorDto);
   }
 
-  @Post('desactivar')
+  @Patch('desactivar')
   desactivarProveedor(@Body('proveedorId',ParseUUIDPipe) proveedorId:string){
     return this.proveedorService.desactivarProveedor(proveedorId);
+  }
+
+  @Patch('activar')
+  activarProveedor(@Body('proveedorId',ParseUUIDPipe) proveedorId:string){
+    return this.proveedorService.activarProveedor(proveedorId);
   }
   
   @Get()

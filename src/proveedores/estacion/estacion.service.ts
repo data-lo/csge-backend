@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { MunicipioService } from '../municipio/municipio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { Proveedor } from '../proveedor/entities/proveedor.entity';
 
 
 @Injectable()
@@ -15,27 +16,35 @@ export class EstacionService {
   constructor(
     @InjectRepository(Estacion)
     private estacionRepository:Repository<Estacion>,
-    private readonly municipioService:MunicipioService
+    @InjectRepository(Proveedor)
+    private proveedorRepository:Repository<Proveedor>,
+    private readonly municipioService:MunicipioService,
+
   ){}
 
   async create(createEstacionDto: CreateEstacionDto) {
     try{
       
-      const{municipiosIds,...rest} = createEstacionDto; 
+      const{municipiosIds,proveedorId,...rest} = createEstacionDto; 
 
       let municipios = [];
       for(const municipio of municipiosIds){
         const municipioDb = await this.municipioService.findOne(municipio)
         municipios.push(municipioDb);
       }
+      
+      const proveedor = await this.proveedorRepository.findOneBy({id:proveedorId});
+      if(!proveedor) throw new NotFoundException('Proveedor no encontrado, crear primero proveedor');
 
       const estacion = this.estacionRepository.create({
         municipios:municipios,
+        proveedor:proveedor,
         ...rest
       });
 
       await this.estacionRepository.save(estacion);
       return estacion;
+    
     }catch(error){
       handleExeptions(error);
     }
@@ -119,6 +128,20 @@ export class EstacionService {
       if(estacion){
         await this.estacionRepository.update(id,{
           estatus:false
+        });
+        return await this.findOne(id)
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async activarEstacion(id:string){
+    try{
+      const estacion = await this.findOne(id);
+      if(estacion){
+        await this.estacionRepository.update(id,{
+          estatus:true
         });
         return await this.findOne(id)
       }
