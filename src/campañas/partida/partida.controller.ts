@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { PartidaService } from './partida.service';
 import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 
-@Controller('partida')
+@Controller('campanias/partidas')
 export class PartidaController {
   constructor(private readonly partidaService: PartidaService) {}
 
@@ -13,22 +13,33 @@ export class PartidaController {
   }
 
   @Get()
-  findAll() {
-    return this.partidaService.findAll();
+  findAll( @Query('pagina') pagina: string) {
+    return this.partidaService.findAll(+pagina);
+  }
+
+  @Get('estatus/:id')
+  obtenerEstatus( @Param('id', ParseUUIDPipe) id: string) {
+    return this.partidaService.obtenerEstatus(id);
+  }
+
+  @Get('montos/:id')
+  obtenerMontos( @Param('id', ParseUUIDPipe) id: string) {
+    return this.partidaService.obtenerMontos(id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.partidaService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.partidaService.findOne(id);
+  }
+
+  @Patch('desactivar')
+  desactivar(@Body('partidaId',ParseUUIDPipe) partidaId:string) {
+    console.log(partidaId);
+    return this.partidaService.desactivarPartida(partidaId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePartidaDto: UpdatePartidaDto) {
-    return this.partidaService.update(+id, updatePartidaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.partidaService.remove(+id);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePartidaDto: UpdatePartidaDto) {
+    return this.partidaService.update(id, updatePartidaDto);
   }
 }
