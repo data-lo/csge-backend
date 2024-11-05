@@ -98,6 +98,18 @@ export class PartidaService {
     }
   }
 
+  async delete(id:string){
+    try{
+      const partida = await this.findOne(id);
+      if(partida){
+        await this.partidaRepository.delete(id);
+        return {message:'Partida eliminada exitosamente'};
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async actualizarMontos(){
     try{
 //utilizar las ordenes de servicio

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, ParseUUIDPipe, Delete } from '@nestjs/common';
 import { PartidaService } from './partida.service';
 import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
@@ -42,4 +42,10 @@ export class PartidaController {
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePartidaDto: UpdatePartidaDto) {
     return this.partidaService.update(id, updatePartidaDto);
   }
+
+  @Delete(':id')
+  delete(@Param('id', ParseUUIDPipe) id:string){
+    return this.partidaService.delete(id);
+  }
+
 }
