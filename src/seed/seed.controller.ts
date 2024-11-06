@@ -24,8 +24,14 @@ export class SeedController {
   seedConfiguracion(){
     return this.seedService.seedConfiguracion();
   }
+  
   @Get('proveedores')
   seedProveedores(){
     return this.seedService.seedProveedores();
+  }
+
+  @Get('campanias')
+  seedCampanias(){
+    return this.seedService.seedCampañas();
   }
 };
