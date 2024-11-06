@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsDate, IsOptional, IsString } from "class-validator";
+import { IsDate, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateActivacionDto {
     
@@ -33,4 +33,12 @@ export class CreateActivacionDto {
         return new Date(`${year}-${month}-${day}`)
     })
     fechaDeCierre:string;
+
+    @IsString()
+    @IsUUID()
+    partidaId:string;
+
+    @IsString()
+    @IsUUID()
+    campañaId:string;
 }
