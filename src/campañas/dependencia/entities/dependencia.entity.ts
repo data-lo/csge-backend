@@ -9,7 +9,8 @@ export class Dependencia {
 
     @Column({
         name:'nombre_dependencia',
-        nullable:false
+        nullable:false,
+        unique:true
     })
     nombre:string;
 }
