@@ -7,6 +7,7 @@ import { Partida } from './entities/partida.entity';
 @Module({
   controllers: [PartidaController],
   providers: [PartidaService],
-  imports:[TypeOrmModule.forFeature([Partida])]
+  imports:[TypeOrmModule.forFeature([Partida])],
+  exports:[PartidaService]
 })
 export class PartidaModule {}

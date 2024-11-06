@@ -9,6 +9,7 @@ import { Campaña } from '../campañas/entities/campaña.entity';
 @Module({
   controllers: [ActivacionController],
   providers: [ActivacionService],
-  imports:[TypeOrmModule.forFeature([Partida, Activacion, Campaña])]
+  imports:[TypeOrmModule.forFeature([Partida, Activacion, Campaña])],
+  exports:[ActivacionService]
 })
 export class ActivacionModule {}
