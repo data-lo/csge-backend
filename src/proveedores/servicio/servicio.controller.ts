@@ -32,6 +32,11 @@ export class ServicioController {
     return this.servicioService.findAll(+pagina);
   }
 
+  @Get('estatus/:id')
+  obtenerEstatus(@Param('id',ParseUUIDPipe) id: string) {
+    return this.servicioService.obtenerEstatus(id);
+  }
+
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.servicioService.findOne(id);

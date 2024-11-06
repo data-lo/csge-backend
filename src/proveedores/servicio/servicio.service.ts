@@ -88,7 +88,6 @@ export class ServicioService {
     }
   }
 
-
   async activarServicio(id:string){
     try{
       const servicio = await this.findOne(id);
@@ -103,6 +102,18 @@ export class ServicioService {
     }
   }
 
+  async obtenerEstatus(id:string){
+    try{
+      const servicio = await this.findOne(id);
+      return {
+        id:servicio.id,
+        estatus:servicio.estatus
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async renovarServicio(){
     try{
 
@@ -110,5 +121,4 @@ export class ServicioService {
       handleExeptions(error);
     }
   }
-
 }

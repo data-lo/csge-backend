@@ -1,9 +1,11 @@
-import { Column, Entity, Generated, JoinColumn, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm";
 import { EstatusCampaña } from "../interfaces/estatus-campaña.enum";
 import { Dependencia } from "src/campañas/dependencia/entities/dependencia.entity";
+import { Activacion } from "src/campañas/activacion/entities/activacion.entity";
 
 @Entity('campañas')
 export class Campaña {
+    
     @Generated('uuid')
     @PrimaryColumn('uuid')
     id:string;
@@ -27,4 +29,6 @@ export class Campaña {
     @JoinTable({name:'campañas_dependencias'})
     dependencias:Dependencia[];
 
+    @OneToMany(()=>Activacion, (activacion)=> activacion.campaña)
+    activaciones:Activacion[];
 }

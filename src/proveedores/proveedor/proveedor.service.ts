@@ -79,11 +79,11 @@ export class ProveedorService {
 
   async obtenerEstatus(id:string){
     try{
-      const estatus = await this.proveedorRepository.findOne({
+      const proveedor = await this.proveedorRepository.findOne({
         where:{id:id}
       });
-      if(!estatus) throw new NotFoundException('No se encuentra el proveedor');
-      return estatus;
+      if(!proveedor) throw new NotFoundException('No se encuentra el proveedor');
+      return {id:proveedor.id,estatus:proveedor.estatus}
     }catch(error){
       handleExeptions(error);
     }
@@ -111,6 +111,18 @@ export class ProveedorService {
           estatus:true
         });
         return {message:'Proveedor activado exitosamente'};
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async delete(id:string){
+    try{
+      const proveedor = await this.findOne(id);
+      if(proveedor){
+        await this.proveedorRepository.delete(id);
+        return {message:'Proveedor eliminado exitosamente'};
       }
     }catch(error){
       handleExeptions(error);
