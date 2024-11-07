@@ -115,12 +115,12 @@ export class CampañasService {
   async update(id: string, updateCampañaDto: UpdateCampañaDto) {
     try{
       const estatus = (await this.verificarEstatus(id)).estatus;
-      if(estatus !== EstatusCampaña.CREADA || EstatusCampaña.COTIZANDO){
-        throw new BadRequestException('Estatus de campaña no valido para acutalizar, cancelar campaña');
+      console.log(estatus);
+      if(estatus === EstatusCampaña.CREADA || estatus === EstatusCampaña.COTIZANDO){
+        await this.campañaRepository.update(id,updateCampañaDto);
+        return this.findOne(id);  
       }
-      await this.campañaRepository.update(id,updateCampañaDto);
-      return this.findOne(id);
-    
+      throw new BadRequestException('Estatus de campaña no valido para actualizar, cancelar campaña');
     }catch(error){
       handleExeptions(error);
     }
@@ -153,7 +153,7 @@ export class CampañasService {
     try{ 
       const estatus = (await this.verificarEstatus(id)).estatus;
       if(estatus !== EstatusCampaña.INACTIVA){
-        throw new BadRequestException('Estatus de campaña no valido para reactivar');
+        throw new BadRequestException('Estatus de campaña no valido para reactivar, estatus valido: INACTIVA');
       }
       const activaciones = (await this.findOne(id)).activaciones;
       const index = activaciones.length;
@@ -186,6 +186,17 @@ export class CampañasService {
   async aprobarCampaña(id:string){
 
 
+  }
+
+  async actualizarEstatus(id:string,estatus:EstatusCampaña){
+    try{
+      const campaña = await this.findOne(id);
+      campaña.estatus = estatus;
+      await this.campañaRepository.update(id,{estatus:estatus});
+      return campaña;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
 }

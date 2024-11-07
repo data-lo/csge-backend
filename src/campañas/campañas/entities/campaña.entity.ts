@@ -2,6 +2,7 @@ import { Column, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryCol
 import { EstatusCampaña } from "../interfaces/estatus-campaña.enum";
 import { Dependencia } from "src/campañas/dependencia/entities/dependencia.entity";
 import { Activacion } from "src/campañas/activacion/entities/activacion.entity";
+import { TipoCampaña } from "../interfaces/tipo-campaña.enum";
 
 @Entity('campañas')
 export class Campaña {
@@ -24,6 +25,14 @@ export class Campaña {
         enum:EstatusCampaña
     })
     estatus:EstatusCampaña;
+
+    @Column({
+        name:'tipo_de_campaña',
+        nullable:false,
+        type:'enum',
+        enum:TipoCampaña
+    })
+    tipoDeCampaña:TipoCampaña;
 
     @ManyToMany(()=>Dependencia)
     @JoinTable({name:'campañas_dependencias'})

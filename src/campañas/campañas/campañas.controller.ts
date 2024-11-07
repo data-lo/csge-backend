@@ -3,6 +3,7 @@ import { CampañasService } from './campañas.service';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
+import { EstatusCampaña } from './interfaces/estatus-campaña.enum';
 
 @Controller('campanias/campanias')
 export class CampañasController {
@@ -30,6 +31,11 @@ export class CampañasController {
     return this.campañasService.findOne(id);
   }
 
+  @Patch('actualizar-estatus/:id')
+  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusCampaña) {
+    return this.campañasService.actualizarEstatus(id,estatus);
+  }
+  
   @Patch('activar/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
     return this.campañasService.agregarActivacion(id,createActivacionDto);
