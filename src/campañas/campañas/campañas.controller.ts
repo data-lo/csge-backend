@@ -41,7 +41,7 @@ export class CampañasController {
     return this.campañasService.agregarActivacion(id,createActivacionDto);
   }
 
-  @Patch('cancelar/:id')
+  @Patch('cancelar')
   cancelar(@Body('campañaId', ParseUUIDPipe) id:string) {
     return this.campañasService.cancelarCampaña(id);
   }
