@@ -33,8 +33,6 @@ import { OrdenModule } from './ordenes/orden/orden.module';
 import { FacturaModule } from './ordenes/factura/factura.module';
 import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio_contratado.module';
 import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 
 @Module({
   imports: [
@@ -49,9 +47,6 @@ import { join } from 'path';
       synchronize:true,
       autoLoadEntities:true
       }),
-    ServeStaticModule.forRoot({
-      rootPath:join(__dirname,'..','public')
-    }),
     UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 
