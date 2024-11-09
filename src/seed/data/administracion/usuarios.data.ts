@@ -8,7 +8,9 @@ export const usuariosData = [
         correo:"JUANCEPEDA@CHIH.GOB.MX",
         numeroDeEmpleado:"1285",
         rol:"SUPERADMIN",
-        permisos:["FIRMA","HISTORICO"]
+        permisos:["FIRMA","HISTORICO"],
+        documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
+        tipoOrdenDeServicio:['INTERNET']
     },
     {
         nombres:"MONICA",
@@ -19,7 +21,9 @@ export const usuariosData = [
         correo:"BMSAENZ@CHIHUAHUA.GOB.MX",
         numeroDeEmpleado:"1286",
         rol:"SUPERADMIN",
-        permisos:["FIRMA","HISTORICO"]
+        permisos:["FIRMA","HISTORICO"],
+        documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
+        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
     },
     {
         nombres:"SORACHI",
@@ -30,7 +34,9 @@ export const usuariosData = [
         correo:"SCARRENO@CHIH.GOB.MX",
         numeroDeEmpleado:"1287",
         rol:"DIRECCION",
-        permisos:["FIRMA","HISTORICO"]
+        permisos:["FIRMA","HISTORICO"],
+        documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
+        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
     },
     {
         nombres:"KATYA ILEANA",
@@ -129,7 +135,9 @@ export const usuariosData = [
         correo:"JOSELUIS.MARTINEZ@CHIHUAHUA.GOB.MX",
         numeroDeEmpleado:"1296",
         rol:"REPORTES",
-        permisos:["FIRMA","HISTORICO"]
+        permisos:["FIRMA","HISTORICO"],
+        documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
+        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
     },
     {
         nombres:"SERGIO",
@@ -140,7 +148,9 @@ export const usuariosData = [
         correo:"SERGIO.RAMIREZROBLES@CHIHUAHUA.GOB.MX",
         numeroDeEmpleado:"1297",
         rol:"REPORTES",
-        permisos:["FIRMA","HISTORICO"]
+        permisos:["FIRMA","HISTORICO"],
+        documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
+        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
     },
 
 ]

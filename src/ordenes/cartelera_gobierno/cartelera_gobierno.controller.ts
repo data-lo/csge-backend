@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { CarteleraGobiernoService } from './cartelera_gobierno.service';
 import { CreateCarteleraGobiernoDto } from './dto/create-cartelera_gobierno.dto';
 import { UpdateCarteleraGobiernoDto } from './dto/update-cartelera_gobierno.dto';
 
-@Controller('cartelera-gobierno')
+@Controller('ordenes/cartelera-gobierno')
 export class CarteleraGobiernoController {
   constructor(private readonly carteleraGobiernoService: CarteleraGobiernoService) {}
 
@@ -13,22 +13,22 @@ export class CarteleraGobiernoController {
   }
 
   @Get()
-  findAll() {
-    return this.carteleraGobiernoService.findAll();
+  findAll(@Query('pagina') pagina:string) {
+    return this.carteleraGobiernoService.findAll(+pagina);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.carteleraGobiernoService.findOne(+id);
+  findOne(@Param('id',ParseUUIDPipe) id: string) {
+    return this.carteleraGobiernoService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
-    return this.carteleraGobiernoService.update(+id, updateCarteleraGobiernoDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
+    return this.carteleraGobiernoService.update(id, updateCarteleraGobiernoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.carteleraGobiernoService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.carteleraGobiernoService.remove(id);
   }
 }

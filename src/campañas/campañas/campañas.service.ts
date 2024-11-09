@@ -100,7 +100,7 @@ export class CampañasService {
   async cancelarCampaña(id:string){
     try{
       const estatusCampaña = await this.verificarEstatus(id);
-      if(estatusCampaña.estatus === EstatusCampaña.CREADA || EstatusCampaña.COTIZANDO){
+      if(estatusCampaña.estatus === (EstatusCampaña.CREADA || EstatusCampaña.COTIZANDO)){
         throw new BadRequestException('La campaña no puede ser cancelada bajo este estatus, eliminar o modificar campaña');
       }
       await this.campañaRepository.update(id,{
@@ -115,12 +115,12 @@ export class CampañasService {
   async update(id: string, updateCampañaDto: UpdateCampañaDto) {
     try{
       const estatus = (await this.verificarEstatus(id)).estatus;
-      if(estatus !== EstatusCampaña.CREADA || EstatusCampaña.COTIZANDO){
-        throw new BadRequestException('Estatus de campaña no valido para acutalizar, cancelar campaña');
+      console.log(estatus);
+      if(estatus === EstatusCampaña.CREADA || estatus === EstatusCampaña.COTIZANDO){
+        await this.campañaRepository.update(id,updateCampañaDto);
+        return this.findOne(id);  
       }
-      await this.campañaRepository.update(id,updateCampañaDto);
-      return this.findOne(id);
-    
+      throw new BadRequestException('Estatus de campaña no valido para actualizar, cancelar campaña');
     }catch(error){
       handleExeptions(error);
     }
@@ -129,11 +129,11 @@ export class CampañasService {
   async remove(id: string) {
     try{
       const estatus = (await this.verificarEstatus(id)).estatus;
-      if(estatus !== EstatusCampaña.CREADA || EstatusCampaña.COTIZANDO){
-        throw new BadRequestException('Estatus de campaña no valido para eliminar, cancelar campaña');
+      if((estatus === EstatusCampaña.CREADA) || (estatus === EstatusCampaña.COTIZANDO)){
+        await this.campañaRepository.delete(id);
+        return {message:'Campaña eliminada existosamente'};
       }
-      await this.campañaRepository.delete(id);
-      return {message:'Campaña eliminada existosamente'};
+      throw new BadRequestException('Estatus de campaña no valido para eliminar, cancelar campaña');
     }catch(error){
       handleExeptions(error);
     }
@@ -153,11 +153,14 @@ export class CampañasService {
     try{ 
       const estatus = (await this.verificarEstatus(id)).estatus;
       if(estatus !== EstatusCampaña.INACTIVA){
-        throw new BadRequestException('Estatus de campaña no valido para reactivar');
+        throw new BadRequestException('Estatus de campaña no valido para reactivar, estatus valido: INACTIVA');
       }
       const activaciones = (await this.findOne(id)).activaciones;
       const index = activaciones.length;
-      const ultimaActivacion = activaciones[index];
+    
+      const ultimaActivacion = activaciones[index-1];
+
+      console.log(ultimaActivacion);
 
       await this.activacionService.desactivar(ultimaActivacion.id);
       const {partida, ...rest} = createActivacionDto;
@@ -172,7 +175,7 @@ export class CampañasService {
       });
 
       if(activacionDb){
-        this.update(id,{estatus:EstatusCampaña.REACTIVADA});
+        await this.campañaRepository.update(id,{estatus:EstatusCampaña.REACTIVADA});
       }
       
       return {message:'campaña reactivada exitosamente',activacion:activacionDb};
@@ -186,6 +189,17 @@ export class CampañasService {
   async aprobarCampaña(id:string){
 
 
+  }
+
+  async actualizarEstatus(id:string,estatus:EstatusCampaña){
+    try{
+      const campaña = await this.findOne(id);
+      campaña.estatus = estatus;
+      await this.campañaRepository.update(id,{estatus:estatus});
+      return campaña;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
 }

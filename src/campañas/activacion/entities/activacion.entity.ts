@@ -1,6 +1,6 @@
 import { Campaña } from "src/campañas/campañas/entities/campaña.entity";
 import { Partida } from "src/campañas/partida/entities/partida.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('activaciones')
 export class Activacion {
@@ -53,6 +53,16 @@ export class Activacion {
     partida:Partida;
 
     @ManyToOne(()=>Campaña, (campaña) => campaña.activaciones)
-    campaña:Campaña
+    campaña:Campaña;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 
 }

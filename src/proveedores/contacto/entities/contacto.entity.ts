@@ -1,6 +1,6 @@
 import { Estacion } from 'src/proveedores/estacion/entities/estacion.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
-import { Column, Entity, Generated, ManyToMany, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('contactos')
 export class Contacto {
@@ -41,4 +41,14 @@ export class Contacto {
 
     @ManyToOne(()=> Proveedor, (proveedor) => proveedor.contactos)
     proveedor:Proveedor;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

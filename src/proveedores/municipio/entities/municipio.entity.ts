@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('municipios')
 export class Municipio {
@@ -27,4 +27,14 @@ export class Municipio {
         default:false
     })
     frontera:boolean;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

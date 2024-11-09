@@ -26,9 +26,10 @@ export class UsuariosService {
         password: bcrypt.hashSync(defaultPassowrd,10),
         ...createUsuarioDto
       }
-      console.log(dbUser)
+
       const usuario = this.usuarioRepository.create(dbUser);
       await this.usuarioRepository.save(usuario)
+      
       delete usuario.password;
       return usuario;
     }catch(error){

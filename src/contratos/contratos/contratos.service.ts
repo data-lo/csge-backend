@@ -73,7 +73,10 @@ export class ContratosService {
         const paginationSetter = new PaginationSetter()
         const contratos = await this.contratoRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
+        take:paginationSetter.castPaginationLimit(),
+        relations:{
+          proveedor:true
+        }
       });
       return contratos
     }catch(error){

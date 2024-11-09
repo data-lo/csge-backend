@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('partidas')
 export class Partida {
@@ -42,6 +42,16 @@ export class Partida {
         nullable:false
     })
     montoPagado:number;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 
     //OneToMany
     //Orden de Servicio
