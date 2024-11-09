@@ -1,26 +1,75 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCarteleraGobiernoDto } from './dto/create-cartelera_gobierno.dto';
 import { UpdateCarteleraGobiernoDto } from './dto/update-cartelera_gobierno.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CarteleraGobierno } from './entities/cartelera_gobierno.entity';
+import { Repository } from 'typeorm';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class CarteleraGobiernoService {
-  create(createCarteleraGobiernoDto: CreateCarteleraGobiernoDto) {
-    return 'This action adds a new carteleraGobierno';
+
+  constructor(
+    @InjectRepository(CarteleraGobierno)
+    private carteleraGobiernoRepository:Repository<CarteleraGobierno>
+  ){}
+
+  async create(createCarteleraGobiernoDto: CreateCarteleraGobiernoDto) {
+    try{
+      const carteleraGob = this.carteleraGobiernoRepository.create(createCarteleraGobiernoDto);
+      await this.carteleraGobiernoRepository.save(carteleraGob);
+      return carteleraGob;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all carteleraGobierno`;
+  
+  findAll(pagina:number) {
+    try{
+      const pagiantionSetter = new PaginationSetter();
+      const cartelerasGobierno  = this.carteleraGobiernoRepository.find({
+        take:pagiantionSetter.castPaginationLimit(),
+        skip:pagiantionSetter.getSkipElements(pagina)
+      });
+      return cartelerasGobierno;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} carteleraGobierno`;
+  async findOne(id: string) {
+    try{
+      const cartelera = await this.carteleraGobiernoRepository.findOneBy({id:id});
+      if(!cartelera) throw new NotFoundException('Caretelera no encontrada');
+      return cartelera;
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 
-  update(id: number, updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
-    return `This action updates a #${id} carteleraGobierno`;
+  async update(id: string, updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
+    try{
+      const cartelera = await this.findOne(id);
+      if(cartelera){
+        await this.carteleraGobiernoRepository.update(id,updateCarteleraGobiernoDto);
+        return await this.findOne(id);
+      }
+    }catch(error:any){  
+      handleExeptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} carteleraGobierno`;
+  async remove(id: string) {
+    try{
+      const cartelera = await this.findOne(id);
+      if(cartelera){
+        await this.carteleraGobiernoRepository.delete(id);
+        return {message:'Cartelera eliminada correctamente'};
+      }
+    }catch(error:any){
+      handleExeptions(error);
+    }
   }
 }
