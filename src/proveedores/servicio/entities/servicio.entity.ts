@@ -1,7 +1,7 @@
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
 import { Renovacion } from "src/proveedores/renovacion/entities/renovacion.entity";
-import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('servicios')
 export class Servicio {
@@ -37,4 +37,14 @@ export class Servicio {
 
     @ManyToOne(() => Estacion, (estacion) => estacion.servicios)
     estacion:Estacion;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

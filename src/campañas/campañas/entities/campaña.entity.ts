@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinTable, ManyToMany, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { EstatusCampaña } from "../interfaces/estatus-campaña.enum";
 import { Dependencia } from "src/campañas/dependencia/entities/dependencia.entity";
 import { Activacion } from "src/campañas/activacion/entities/activacion.entity";
@@ -40,4 +40,14 @@ export class Campaña {
 
     @OneToMany(()=>Activacion, (activacion)=> activacion.campaña)
     activaciones:Activacion[];
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

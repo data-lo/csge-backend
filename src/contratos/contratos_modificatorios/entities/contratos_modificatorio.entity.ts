@@ -1,5 +1,5 @@
 import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Contrato } from '../../contratos/entities/contrato.entity';
 @Entity()
 export class ContratoModificatorio {
@@ -102,5 +102,15 @@ export class ContratoModificatorio {
     @ManyToOne(()=> Contrato, 
         (contrato)=> contrato.contratosModificatorios)
     @JoinColumn({name:'contrato_id'})
-    contrato: Contrato
+    contrato: Contrato;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

@@ -1,5 +1,5 @@
 import { Dimension } from "src/catalogos/dimensiones/entities/dimension.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('impresiones')
 export class Impresion {
@@ -20,4 +20,14 @@ export class Impresion {
     })
     @JoinColumn({name:'dimension_id'})
     dimensionId:Dimension;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

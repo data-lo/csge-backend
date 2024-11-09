@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
@@ -90,4 +90,13 @@ export class Usuario {
     @ManyToMany(() => ResponsableFirma, responsableFirma => responsableFirma.responsables)
     firmasResponsables:ResponsableFirma;
     
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }
