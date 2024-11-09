@@ -5,6 +5,8 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ValidRoles } from './interfaces/usuarios.roles';
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
@@ -12,6 +14,7 @@ export class UsuariosController {
 
   //crear usuario
   @Post()
+  @Auth(ValidRoles.SUPERADMIN)
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
   }

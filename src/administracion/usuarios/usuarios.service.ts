@@ -11,6 +11,8 @@ import { PaginationSetter } from '../../helpers/pagination.getter';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsuariosService {
@@ -18,6 +20,8 @@ export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private usuarioRepository:Repository<Usuario>,
+    private readonly jwtService:JwtService,
+  
   ){}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
@@ -143,7 +147,14 @@ export class UsuariosService {
       }
   
       delete dbUser.password;
-      return {message:'Inicio de sesion exitoso :)'}
+      return {
+        user:{
+          ... dbUser
+        },
+        token:{
+          token:this.getJwtToken({id:dbUser.id})
+        }
+      }
     }catch(error){
       handleExeptions(error);
     }
@@ -237,5 +248,17 @@ export class UsuariosService {
     } catch (error) {
       handleExeptions(error);
     }
+  }
+
+  async checkAuthStatus(usuario:Usuario){
+    return {
+      usuario,
+      token:this.getJwtToken({id:usuario.id})
+    }
+  }
+
+  private getJwtToken(payload:JwtPayload){
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 }
