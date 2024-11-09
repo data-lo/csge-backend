@@ -3,7 +3,8 @@ import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
 import { Puesto } from "src/administracion/puestos/entities/puesto.entity";
-import { ResponsableFirma } from "src/configuracion/resp_firma/entities/resp_firma.entity";
+import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
+import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 
 @Entity('usuarios')
 export class Usuario {
@@ -87,9 +88,24 @@ export class Usuario {
     })
     permisos:ValidPermises[];
 
-    @ManyToMany(() => ResponsableFirma, responsableFirma => responsableFirma.responsables)
-    firmasResponsables:ResponsableFirma;
+    @Column({
+        type:'enum',
+        enum:TipoDeDocumento,
+        array:true,
+        nullable:true,
+        default:[]
+    })
+    documentosDeFirma:TipoDeDocumento[];
     
+    @Column({
+        type:'enum',
+        enum:TipoDeServicio,
+        array:true,
+        nullable:true,
+        default:[]
+    })
+    tipoOrdenDeServicio:TipoDeServicio[];
+
     @CreateDateColumn({
         name:'creado_en'
     })
