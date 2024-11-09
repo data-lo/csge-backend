@@ -14,7 +14,6 @@ export class UsuariosController {
 
   //crear usuario
   @Post()
-  @Auth(ValidRoles.SUPERADMIN)
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
   }
