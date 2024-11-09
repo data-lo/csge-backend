@@ -358,17 +358,21 @@ export class SeedService {
   }
 
   async seedCampañas(){
-
+    await this.insertarDependencias();
+    return {message:'Dependencias insertadas correctamente'};
   }
 
   async insertarDependencias(){
     try{
-
-    }catch(error){
       for(const dependencia of DependenciasData){
-        const dependenciaDto = plainToClass(CreateDependenciaDto,dependencia);
-        await this.dependenciaService.create(dependencia);
+        const dependenciaDto = plainToClass(CreateDependenciaDto,{
+          nombre:dependencia.nombre.toUpperCase()
+        });
+        await this.dependenciaService.create(dependenciaDto);
       }
+      return;
+    }catch(error){
+      handleExeptions(error);
     }
   }
 }

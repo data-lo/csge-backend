@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { TipoFormato } from "../interfaces/tipo.formato";
 
 @Entity('tipo-formato')
@@ -18,5 +18,15 @@ export class Formato {
         type:'enum',
         enum:TipoFormato
     })
-    tipo:TipoFormato
+    tipo:TipoFormato;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

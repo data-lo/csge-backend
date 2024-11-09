@@ -1,5 +1,5 @@
 import { Longitud } from "src/catalogos/longitudes/entities/longitud.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('dimensiones')
 export class Dimension {
@@ -29,4 +29,14 @@ export class Dimension {
     @ManyToOne(()=> Longitud, (longitud)=> longitud.id)
     @JoinColumn({name:'longitud_id'})
     longitudId:Longitud;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

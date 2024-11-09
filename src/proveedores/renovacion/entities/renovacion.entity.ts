@@ -1,5 +1,5 @@
 import { Servicio } from "src/proveedores/servicio/entities/servicio.entity";
-import { Column, Entity, Generated, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('renovaciones')
 export class Renovacion {
@@ -71,4 +71,14 @@ export class Renovacion {
 
     @ManyToOne(()=> Servicio,(servicio) => servicio.renovaciones)
     servicio:Servicio;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

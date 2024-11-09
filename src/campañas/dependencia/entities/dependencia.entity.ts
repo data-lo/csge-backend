@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('dependencias')
 export class Dependencia {
@@ -9,7 +9,18 @@ export class Dependencia {
 
     @Column({
         name:'nombre_dependencia',
-        nullable:false
+        nullable:false,
+        unique:true
     })
     nombre:string;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

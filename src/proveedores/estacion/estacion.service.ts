@@ -159,6 +159,18 @@ export class EstacionService {
     }
   }
 
+  async delete(id:string){
+    try{
+      const estacion = await this.findOne(id);
+      if(estacion){
+        await this.estacionRepository.delete(id);
+        return {message:'Estacion eliminada correctamente'};
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   agregarContacto(){
 
   }

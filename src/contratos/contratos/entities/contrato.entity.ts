@@ -3,7 +3,7 @@ import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato"
 import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({name:'contratos'})
 export class Contrato {
@@ -160,5 +160,15 @@ export class Contrato {
         default:null
     })
     linkContrato:string;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
     
 }

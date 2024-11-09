@@ -38,4 +38,9 @@ export class EstacionController {
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateEstacionDto: UpdateEstacionDto) {
     return this.estacionService.update(id, updateEstacionDto);
   }
+
+  @Delete(':id')
+  delete(@Param('id',ParseUUIDPipe) id: string){
+    return this.estacionService.delete(id);
+  }
 }

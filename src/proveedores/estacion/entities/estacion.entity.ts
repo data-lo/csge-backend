@@ -2,7 +2,7 @@ import { Contacto } from "src/proveedores/contacto/entities/contacto.entity";
 import { Municipio } from "src/proveedores/municipio/entities/municipio.entity";
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
 import { Servicio } from "src/proveedores/servicio/entities/servicio.entity";
-import { Column, Entity, Generated, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('estaciones')
 export class Estacion {
@@ -35,5 +35,15 @@ export class Estacion {
 
     @ManyToMany(()=> Municipio)
     @JoinTable({name:'estaciones_municipios'})
-    municipios: Municipio[]
+    municipios: Municipio[];
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

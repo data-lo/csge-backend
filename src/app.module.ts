@@ -5,7 +5,6 @@ import { PuestosModule } from './administracion/puestos/puestos.module';
 import { DepartamentosModule } from './administracion/departamentos/departamentos.module';
 import { IvaModule } from './configuracion/iva/iva.module';
 import { TextosModule } from './configuracion/textos/textos.module';
-import { RespFirmaModule } from './configuracion/resp_firma/resp_firma.module';
 import { ColoresModule } from './configuracion/colores/colores.module';
 import { ConfigModule } from '@nestjs/config';
 import { SeedModule } from './seed/seed.module';
@@ -53,7 +52,6 @@ import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_
     DepartamentosModule, 
     IvaModule, 
     TextosModule, 
-    RespFirmaModule, 
     ColoresModule, 
     SeedModule, 
     AuthModule, 

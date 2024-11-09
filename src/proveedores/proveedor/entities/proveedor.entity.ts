@@ -1,4 +1,4 @@
-import { Column, Entity, Generated, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { TipoProveedor } from "../interfaces/tipo-proveedor.interface";
 import { Contrato } from "src/contratos/contratos/entities/contrato.entity";
 import { Contacto } from "src/proveedores/contacto/entities/contacto.entity";
@@ -92,4 +92,14 @@ export class Proveedor {
         nullable:false
     })
     estatus:boolean;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }

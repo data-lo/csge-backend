@@ -1,7 +1,7 @@
 import { Dimension } from "src/catalogos/dimensiones/entities/dimension.entity";
 import { Formato } from "src/catalogos/formatos/entities/formato.entity";
 import { Impresion } from "src/catalogos/impresiones/entities/impresion.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { TipoUnidad } from "../interfaces/tipo-unidad.interface";
 
 @Entity('caracteristicas')
@@ -79,4 +79,14 @@ export class Caracteristica {
         default:null
     })
     programa:string;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @UpdateDateColumn({
+        name:'actualizado_en'
+    })
+    actualizadoEn:Date;
 }
