@@ -3,7 +3,7 @@ import { ServicioContratadoService } from './servicio_contratado.service';
 import { CreateServicioContratadoDto } from './dto/create-servicio_contratado.dto';
 import { UpdateServicioContratadoDto } from './dto/update-servicio_contratado.dto';
 
-@Controller('servicio-contratado')
+@Controller('ordenes/servicio-contratado')
 export class ServicioContratadoController {
   constructor(private readonly servicioContratadoService: ServicioContratadoService) {}
 
@@ -14,7 +14,7 @@ export class ServicioContratadoController {
 
   @Get()
   findAll(@Query('pagina') pagina:string ) {
-    return this.servicioContratadoService.findAll(pagina);
+    return this.servicioContratadoService.findAll(+pagina);
   }
 
   @Get(':id')

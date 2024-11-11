@@ -1,8 +1,91 @@
-import { Entity } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { ServicioDto } from "../dto/servicio-json.dto";
+import { CarteleraGobierno } from "src/ordenes/cartelera_gobierno/entities/cartelera_gobierno.entity";
 
 @Entity('servicios_contratados')
 export class ServicioContratado {
 
+    @PrimaryColumn('uuid')
+    @Generated('uuid')
+    id:string;
 
+    @Column({
+        name:'servicio',
+        nullable:false,
+        default:{},
+        type:'json'
+    })
+    servicio:Object;
+
+    @Column({
+        name:'calendarizacion_del_servicio',
+        array:true,
+        type:'date',
+        nullable:false,
+        default:[]
+    })
+    calendarizacion:Date[];
+
+    @Column({
+        name:'observacion_del_servicio',
+        nullable:true,
+        default:null,
+    })
+    observacion:string;
+
+    @Column({
+        name:'cantidad_contratada_del_servicio',
+        type:'numeric',
+    })
+    cantidad:number;
+
+    @Column({
+        name:'fecha_de_inicio_del_servicio',
+        nullable:false,
+        type:'date'
+    })
+    fechaInicio:Date;
+
+    @Column({
+        name:'fecha_final_del_servicio',
+        nullable:false,
+        type:'date'
+    })
+    fechaFinal:Date;  
+
+    @Column({
+        name:'versiones_de_spot',
+        type:'numeric',
+        nullable:true,
+        default:null
+    })
+    versionesSpot:number;
+
+    @Column({
+        name:'impactos_por_version_de_spot',
+        type:'numeric',
+        nullable:true,
+        default:null
+    })
+    impactosVersionSpot:number;
+
+    @Column({
+        name:'numero_de_dias_de_spot',
+        type:'numeric',
+        nullable:true,
+        default:null
+    })
+    numeroDiasSpot:number;
+
+    @ManyToOne(() => CarteleraGobierno,{
+        nullable:true,
+        deferrable:null
+    })
+    @JoinColumn()
+    cartelera:CarteleraGobierno;
+
+
+    //Many to One orden de servicio
+    
 
 }

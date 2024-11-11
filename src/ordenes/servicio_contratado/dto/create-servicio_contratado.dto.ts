@@ -10,16 +10,19 @@ export class CreateServicioContratadoDto {
     @Type(() => ServicioDto,)
     servicio:ServicioDto
 
+    @IsOptional()
     @IsArray()
     @Transform(({value}) => {
-        value.map((dateString: string) => {
+        return value.map((dateString:string) => {
             const [day, month, year] = dateString.split('-');
             return new Date(`${year}-${month}-${day}`);
-        })
+        });
     })
-    @ValidateNested({each:true})
-    @Type(()=>Date)
+    @IsDate({each:true})
     calendarizacion:Date[];
+
+    @IsNumber()
+    cantidad:number;
 
     @IsString()
     @IsOptional()
@@ -59,5 +62,6 @@ export class CreateServicioContratadoDto {
 
     @IsUUID()
     @IsString()
+    @IsOptional()
     carteleraId:string;
 }
