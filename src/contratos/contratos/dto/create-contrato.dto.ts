@@ -74,7 +74,9 @@ export class CreateContratoDto {
     @IsDate()
     @Transform(({value}) => {
         const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
+        const date = new Date(`${year}-${month}-${day}`)
+        date.setHours(date.getHours()-6);
+        return date;
     })
     fechaFinal:string;
 

@@ -1,6 +1,7 @@
 import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { ServicioDto } from "../dto/servicio-json.dto";
 import { CarteleraGobierno } from "src/ordenes/cartelera_gobierno/entities/cartelera_gobierno.entity";
+import { Orden } from "src/ordenes/orden/entities/orden.entity";
 
 @Entity('servicios_contratados')
 export class ServicioContratado {
@@ -85,7 +86,7 @@ export class ServicioContratado {
     cartelera:CarteleraGobierno;
 
 
-    //Many to One orden de servicio
-    
+    @ManyToOne(() => Orden, (orden) => orden.serviciosContratados)
+    ordenDeServicio:Orden
 
 }
