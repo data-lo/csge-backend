@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
+import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
 
 @Injectable()
 export class ServicioService {
@@ -55,8 +56,17 @@ export class ServicioService {
           renovaciones:true
         }
       });
+      
       if(!servicio) throw new NotFoundException('No se encuentra el servicio');
-      return servicio;
+      const index = servicio.renovaciones.length
+      const ultimaRenovacion = servicio.renovaciones[index-1];
+      
+      delete ultimaRenovacion.fechaDeCreacion;
+      delete servicio.renovaciones;
+      
+      servicio.renovaciones = [ultimaRenovacion];
+      return flattenCaracteristica(servicio)
+      
       }catch(error){
         handleExeptions(error);
     }
