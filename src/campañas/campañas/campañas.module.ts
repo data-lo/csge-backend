@@ -17,5 +17,6 @@ import { PartidaModule } from '../partida/partida.module';
   ],
   controllers: [CampañasController],
   providers: [CampañasService],
+  exports: [CampañasService]
 })
 export class CampañasModule {}

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { CarteleraGobierno } from '../cartelera_gobierno/entities/cartelera_gobierno.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { Orden } from '../orden/entities/orden.entity';
 
 @Injectable()
 export class ServicioContratadoService {
@@ -14,25 +15,35 @@ export class ServicioContratadoService {
   constructor(
     @InjectRepository(ServicioContratado)
     private servicioContratadoRepository:Repository<ServicioContratado>,
+    
     @InjectRepository(CarteleraGobierno)
-    private carteleraGobiernoRepository:Repository<ServicioContratado>
+    private carteleraGobiernoRepository:Repository<CarteleraGobierno>,
+
+    @InjectRepository(Orden)
+    private ordenRepository:Repository<Orden>
   ){}
 
   async create(createServicioContratadoDto: CreateServicioContratadoDto) {
     try{
+      
       let cartelera = null;
-      const {carteleraId, ...rest} = createServicioContratadoDto;
+      const {carteleraId, ordenId, ...rest} = createServicioContratadoDto;
       if(carteleraId){
         cartelera = await this.carteleraGobiernoRepository.findOneBy({id:carteleraId});
         if(!cartelera) throw new NotFoundException('No se encuentra la cartelera');
       }
+
+      const orden = await this.ordenRepository.findOneBy({id:ordenId});
+      if(!orden) throw new NotFoundException('No se encuentra la orden');
+
       const servicioContratado = this.servicioContratadoRepository.create({
         cartelera:cartelera,
+        ordenDeServicio:orden,
         ...rest
       });
       await this.servicioContratadoRepository.save(servicioContratado);
-
       return servicioContratado;
+
     }catch(error){
       handleExeptions(error);
     }
@@ -45,7 +56,13 @@ export class ServicioContratadoService {
         take:paginationSetter.castPaginationLimit(),
         skip:paginationSetter.getSkipElements(pagina),
         relations:{
-          cartelera:true
+          cartelera:true,
+          ordenDeServicio:true,
+        },
+        select:{
+          ordenDeServicio:{
+            id:true
+          }
         }
       });
       return serviciosContratados;
@@ -59,7 +76,12 @@ export class ServicioContratadoService {
       const servicioContratado = await this.servicioContratadoRepository.findOne({
         where:{id:id},
         relations:{
-          cartelera:true
+          cartelera:true,
+          ordenDeServicio:true
+        },select:{
+          ordenDeServicio:{
+            id:true
+          }
         }
       });
       if(!servicioContratado) throw new NotFoundException('No se encuentra el servicio contratado');
@@ -97,9 +119,11 @@ export class ServicioContratadoService {
       const servicioContratado = await this.findOne(id);
       if(servicioContratado){
         await this.servicioContratadoRepository.delete(id);
+        return {message:'Servicio de orden eliminado correctamente'};
       }
     }catch(error){
       handleExeptions(error);
     }
   }
+  
 }

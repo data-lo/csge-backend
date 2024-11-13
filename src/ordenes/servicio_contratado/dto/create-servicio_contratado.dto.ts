@@ -1,6 +1,7 @@
 import { IsArray, IsDate, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
 import { ServicioDto } from "./servicio-json.dto";
 import { Transform, Type } from "class-transformer";
+import { Orden } from "src/ordenes/orden/entities/orden.entity";
 
 export class CreateServicioContratadoDto {
     
@@ -66,8 +67,6 @@ export class CreateServicioContratadoDto {
     carteleraId:string;
 
     @IsUUID()
-    @IsString()
     @IsOptional()
     ordenId:string;
-
 }

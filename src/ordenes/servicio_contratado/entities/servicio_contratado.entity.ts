@@ -1,5 +1,4 @@
-import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
-import { ServicioDto } from "../dto/servicio-json.dto";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { CarteleraGobierno } from "src/ordenes/cartelera_gobierno/entities/cartelera_gobierno.entity";
 import { Orden } from "src/ordenes/orden/entities/orden.entity";
 
@@ -84,7 +83,6 @@ export class ServicioContratado {
     })
     @JoinColumn()
     cartelera:CarteleraGobierno;
-
 
     @ManyToOne(() => Orden, (orden) => orden.serviciosContratados)
     ordenDeServicio:Orden
