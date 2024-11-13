@@ -9,5 +9,6 @@ import { CarteleraGobierno } from '../cartelera_gobierno/entities/cartelera_gobi
   imports:[TypeOrmModule.forFeature([ServicioContratado, CarteleraGobierno])],
   controllers: [ServicioContratadoController],
   providers: [ServicioContratadoService],
+  exports:[ServicioContratadoService]
 })
 export class ServicioContratadoModule {}

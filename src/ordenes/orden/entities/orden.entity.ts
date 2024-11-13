@@ -7,7 +7,6 @@ import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from "
 import { EstatusOrdenDeServicio } from "../interfaces/estatus-orden-de-servicio";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 
-
 @Entity('ordenes_de_servicio')
 export class Orden {
 
@@ -36,6 +35,7 @@ export class Orden {
         nullable:false,
         default:TipoDeServicio.SERVICIOS_GENERALES
     })
+    tipoDeServicio:TipoDeServicio;
 
     @Column({
         name:'fecha_de_emision',
@@ -44,7 +44,6 @@ export class Orden {
     })
     fechaDeEmision:Date;
 
-    
     @Column({
         name:'fecha_de_aprobacion',
         type:'date',
@@ -92,6 +91,7 @@ export class Orden {
         name:'orden_anterior_cancelada',
         type:'uuid',
         nullable:true,
+        default:null
     })
     ordenAnteriorCancelada:string;
 
