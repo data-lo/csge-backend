@@ -11,8 +11,8 @@ import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
   imports:[TypeOrmModule.forFeature([Contrato,ContratoModificatorio,Proveedor]),
     ContratosModificatoriosModule,
   ],
-  exports:[ContratosService],
   controllers: [ContratosController],
   providers: [ContratosService],
+  exports:[ContratosService],
 })
 export class ContratosModule {}

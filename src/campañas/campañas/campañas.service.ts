@@ -160,8 +160,6 @@ export class CampañasService {
     
       const ultimaActivacion = activaciones[index-1];
 
-      console.log(ultimaActivacion);
-
       await this.activacionService.desactivar(ultimaActivacion.id);
       const {partida, ...rest} = createActivacionDto;
 
@@ -180,7 +178,6 @@ export class CampañasService {
       
       return {message:'campaña reactivada exitosamente',activacion:activacionDb};
       
-
     }catch(error){
       handleExeptions(error);
     }

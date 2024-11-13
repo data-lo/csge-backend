@@ -1,9 +1,9 @@
 import { isUUID } from "class-validator";
 
-type Caracteristica = Record<string, any>
+type Objeto = Record<string, any>
 
-export function flattenCaracteristica(caracteristicas: Caracteristica) {
-    const result: Caracteristica = {};
+export function flattenCaracteristica(caracteristicas: Objeto) {
+    const result: Objeto = {};
 
     for (const key in caracteristicas) {
         const value = caracteristicas[key];
