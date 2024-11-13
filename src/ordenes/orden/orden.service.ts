@@ -102,6 +102,7 @@ export class OrdenService {
           folio:true,
           tipoDeServicio:true,
           fechaDeEmision:true,
+          estatus:true,
           campaña:{
             nombre:true
           },
@@ -245,7 +246,7 @@ export class OrdenService {
         estatus:nuevoEstatus
       });
     }
-    return await this.findOne(id);
+    return {id:orden.id,estatus:nuevoEstatus,message:'Estatus actualizado correctamente'};
    }catch(error){
     handleExeptions(error);
    }
@@ -263,12 +264,13 @@ export class OrdenService {
   async cancelarOrden(id:string){
     try{
       const orden = await this.findOne(id);
-      if(orden){
+      if(orden.estatus !== EstatusOrdenDeServicio.PENDIENTE){
         await this.ordenRepository.update(id,{
           estatus:EstatusOrdenDeServicio.CANCELADA
         });
+        return {message:'Orden cancelada exitosamente'};
       }
-      return {message:'Orden cancelada exitosamente'};
+      throw new BadRequestException('La orden no cuenta con estatus valido para su cancelacion, Eliminar orden');
     }catch(error){
      handleExeptions(error);
     }

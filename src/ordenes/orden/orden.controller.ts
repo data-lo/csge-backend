@@ -18,7 +18,7 @@ export class OrdenController {
     return this.ordenService.findAll(+pagina);
   }
 
-  @Get('obtener-estatus:id')
+  @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenService.obtenerEstatusOrden(id);
   }
