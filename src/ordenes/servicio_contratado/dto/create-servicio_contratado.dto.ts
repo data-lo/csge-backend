@@ -66,6 +66,7 @@ export class CreateServicioContratadoDto {
     @IsOptional()
     carteleraId:string;
 
+    @IsUUID()
     @IsOptional()
-    orden:Orden;
+    ordenId:string;
 }

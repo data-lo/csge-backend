@@ -13,6 +13,8 @@ import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
 import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { plainToClass } from 'class-transformer';
+import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 
 @Injectable()
 export class OrdenService {
@@ -53,7 +55,6 @@ export class OrdenService {
         folio:folio,
         tipoDeServicio:tipoDeServicio,
         ...rest
-      
       });
 
       await this.ordenRepository.save(orden);
@@ -61,12 +62,12 @@ export class OrdenService {
       for(const servicioContratado of serviciosContratados){
         await this.servicioContratadoService.create({
           ...servicioContratado,
-          orden:orden
+          ordenId:orden.id
         });
       }
       
-      await this.calcularMontosDeOrden(orden);
-      
+      const montos = await this.calcularMontosDeOrden(orden.id);
+
       delete orden.contrato;
       delete orden.campaña.activaciones;
       delete orden.campaña.dependencias;
@@ -74,7 +75,11 @@ export class OrdenService {
       delete orden.campaña.actualizadoEn;
       delete orden.partida;
       delete orden.proveedor;
-
+      
+      orden.subtotal = montos.subtotal;
+      orden.iva = montos.iva;
+      orden.total = montos.total;
+      
       return orden;
 
     }catch(error){
@@ -128,7 +133,6 @@ export class OrdenService {
     }
   }
 
-
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
     try{
       const {
@@ -160,21 +164,39 @@ export class OrdenService {
 
       if(tipoDeServicio){
         orden.tipoDeServicio = tipoDeServicio;
-        for(const servicioContratado of orden.serviciosContratados)
+        for(const servicioContratado of orden.serviciosContratados){
           await this.servicioContratadoService.remove(servicioContratado.id);
+        }
+        orden.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
       }
 
       if(serviciosContratados){
+        for(const servicioContratado of orden.serviciosContratados){
+          await this.servicioContratadoService.remove(servicioContratado.id);
+        }
         for(const servicioContratado of serviciosContratados){
           await this.servicioContratadoService.create({
             ...servicioContratado,
-            orden:orden
+            ordenId:orden.id
           });
         }
       }
 
+      
       await this.ordenRepository.save(orden);
-      return await this.findOne(id);
+      await this.calcularMontosDeOrden(orden.id);
+      
+      const ordenModificada =  await this.findOne(id);
+
+      delete ordenModificada.contrato;
+      delete ordenModificada.campaña.activaciones;
+      delete ordenModificada.campaña.dependencias;
+      delete ordenModificada.campaña.creadoEn;
+      delete ordenModificada.campaña.actualizadoEn;
+      delete ordenModificada.partida;
+      delete ordenModificada.proveedor;
+      
+      return ordenModificada;
 
     }catch(error){
       handleExeptions(error);
@@ -197,7 +219,6 @@ export class OrdenService {
       handleExeptions(error);
     }
   }
-
 
   async obtenerFolioDeOrden(tipoDeServicio:TipoDeServicio){
     try{
@@ -241,22 +262,59 @@ export class OrdenService {
 
   async cancelarOrden(id:string){
     try{
-
+      const orden = await this.findOne(id);
+      if(orden){
+        await this.ordenRepository.update(id,{
+          estatus:EstatusOrdenDeServicio.CANCELADA
+        });
+      }
+      return {message:'Orden cancelada exitosamente'};
     }catch(error){
      handleExeptions(error);
     }
   }
 
-  
-
-  async calcularMontosDeOrden(orden:Orden){
+  async calcularMontosDeOrden(ordenId:string){
     try{
-      const serviciosContratados = orden.serviciosContratados;
-      let subtotal, iva, total = 0.00;
-      serviciosContratados.forEach((servicio) => {
-        
+      const orden = await this.findOne(ordenId);
+      const { serviciosContratados } = orden;
+      
+      let iva = 0;
+      let subtotal = 0;
+      let total = 0.00;      
+      
+      serviciosContratados.forEach((servicioContratado) => {
+        const servicio = plainToClass(ServicioDto,servicioContratado.servicio);
+        const cantidad = servicioContratado.cantidad;
+        const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
+        const ivaServicio = parseFloat(servicio.iva);
+
+        if(isNaN(cantidad) || isNaN(tarifaUnitaria) || isNaN(ivaServicio)){
+          throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
+        }
+
+        const subtotalServicio = tarifaUnitaria * cantidad;
+        const ivaTotalServicio = ivaServicio * cantidad;
+
+        subtotal += subtotalServicio;
+        iva += ivaTotalServicio;
+
       });
-    }catch(error){
+
+      total = subtotal + iva;
+      
+      orden.subtotal = parseFloat(subtotal.toFixed(2));
+      orden.iva = parseFloat(iva.toFixed(2));
+      orden.total = parseFloat(total.toFixed(2));
+      
+      await this.ordenRepository.save(orden);
+      return {
+        subtotal:orden.subtotal,
+        iva:orden.iva,
+        total:orden.total
+      };
+    }
+    catch(error){
      handleExeptions(error);
     }
   }

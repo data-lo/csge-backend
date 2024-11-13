@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { OrdenService } from './orden.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
+import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
 
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
@@ -18,8 +19,23 @@ export class OrdenController {
   }
 
   @Get(':id')
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordenService.obtenerEstatusOrden(id);
+  }
+
+  @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenService.findOne(id);
+  }
+
+  @Patch('actualizar-estatus/:id')
+  actualizarEstatus(@Param('id',ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
+    return this.ordenService.actualizarEstatusOrden(id, estatus);
+  }
+
+  @Patch('cancelar/:id')
+  cancelarOrden(@Param('id',ParseUUIDPipe) id: string) {
+    return this.ordenService.cancelarOrden(id);
   }
 
   @Patch(':id')

@@ -3,7 +3,7 @@ import { Partida } from "src/campañas/partida/entities/partida.entity";
 import { Contrato } from "src/contratos/contratos/entities/contrato.entity";
 import { ServicioContratado } from "src/ordenes/servicio_contratado/entities/servicio_contratado.entity";
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { EstatusOrdenDeServicio } from "../interfaces/estatus-orden-de-servicio";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
 
@@ -25,7 +25,8 @@ export class Orden {
 
     @Column({
         name:'folio',
-        nullable:false
+        nullable:false,
+        unique:true
     })
     folio:string;
 
@@ -101,6 +102,16 @@ export class Orden {
         default:null
     })
     motivoDeCancelacion:string;
+
+    @CreateDateColumn({
+        name:'creado_en'
+    })
+    creadoEn:Date;
+
+    @CreateDateColumn({
+        name:'actualizado_en'
+    })
+    acutalizadoEn:Date;
 
     @ManyToOne(()=> Contrato, (contrato) => contrato.id)
     contrato:Contrato;
