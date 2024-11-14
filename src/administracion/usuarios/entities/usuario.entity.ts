@@ -5,6 +5,7 @@ import { Departamento } from "src/administracion/departamentos/entities/departam
 import { Puesto } from "src/administracion/puestos/entities/puesto.entity";
 import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { Factura } from "src/ordenes/factura/entities/factura.entity";
 
 @Entity('usuarios')
 export class Usuario {
