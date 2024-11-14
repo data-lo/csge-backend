@@ -4,23 +4,34 @@ import { Transform } from "class-transformer";
 
 export class CreateFacturaDto {
     
+    
+    @IsUUID()
+    @IsOptional()
+    id:string;
+    
     @IsArray({each:true,})
+    @IsOptional()
     ordenesDeServicio:string[];
 
     @IsUUID()
     @IsString()
+    @IsOptional()
     proveedorId:string;
     
     @IsString()
+    @IsOptional()
     pdf:string;
 
     @IsString()
+    @IsOptional()
     xml:string;
 
     @IsBoolean()
+    @IsOptional()
     validacionTestigo:boolean;
 
     @IsDate()
+    @IsOptional()
     @Transform(({value}) => {
         const [day, month, year] = value.split('-');
         return new Date(`${year}-${month}-${day}`)

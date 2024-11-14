@@ -6,7 +6,6 @@ import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 @Entity('facturas')
 export class Factura {
     
-    @Generated('uuid')
     @PrimaryColumn('uuid')
     id:string;
 
@@ -43,20 +42,18 @@ export class Factura {
     total:number;
 
     @Column({
-        name:'archivo_pdf',
-        type:'boolean',
+        name:'ruta_al_archivo_pdf',
         nullable:false,
         default:false,
     })
-    pdf:boolean;
+    pdf:string;
 
     @Column({
-        name:'archivo_xml',
-        type:'boolean',
+        name:'ruta_al_archivo_xml',
         nullable:false,
         default:false,
     })
-    xml:boolean;
+    xml:string;
 
     @Column({
         name:'validacion_testigo',
