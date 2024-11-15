@@ -26,7 +26,7 @@ export class FacturaController {
       }),
     })
   )
-  create(
+  async create(
     @UploadedFiles() archivosFactura: Express.Multer.File[],
     @Body() createFacturaDto: CreateFacturaDto
     ){
@@ -47,9 +47,9 @@ export class FacturaController {
       createFacturaDto.pdf = pdfFile.path;
 
       console.log(createFacturaDto.xml)
-      this.facturaService.obtenerDatosDeArchivoXML(createFacturaDto.xml);
+      return await this.facturaService.obtenerDatosDeArchivoXML(createFacturaDto.xml);
       //this.facturaService.create(createFacturaDto);
-      return
+      
     }
 
   @Get()

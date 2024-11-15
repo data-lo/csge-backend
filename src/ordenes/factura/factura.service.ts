@@ -7,14 +7,16 @@ import { Factura } from './entities/factura.entity';
 import { Repository } from 'typeorm';
 import { Orden } from '../orden/entities/orden.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
-import { join } from 'path';
+import * as path from 'path';
 import * as fs from 'fs';
+import * as xmls2js from 'xml-js'
+
 
 
 @Injectable()
 export class FacturaService {
   
-  private readonly rutaDeCarga = join(__dirname,'../../../');
+  private readonly rutaDeCarga = path.join(__dirname,'../../../');
   
   constructor(
     @InjectRepository(Factura)
@@ -49,6 +51,7 @@ export class FacturaService {
       });
 
       await this.facturaRepository.save(factura);
+      
       return factura;
       
     }catch(error:any){
@@ -88,30 +91,26 @@ export class FacturaService {
     }
   }
 
-  obtenerDatosDeArchivoXML(rutaXml:string){
+  async obtenerDatosDeArchivoXML(rutaXml:string){
     try{
-      
-      const convertidor = require('xml-js');
+    
       const rutaCompletaXml = this.rutaDeCarga+rutaXml;
-
-      const xml = fs.readdirSync(rutaCompletaXml);
-
-      const resultadoEnJson = convertidor.xml2js(
+      const filePath = path.resolve(rutaCompletaXml);
+      
+      await new Promise(r => setTimeout(r,3000));
+      const xml = await fs.readFileSync(filePath,'utf-8');
+      const resultadoEnJson = xmls2js.xml2json(
         xml,{
-          compact:false,spaces:4
-        });
-        return resultadoEnJson;
+          compact:true,spaces:4
+        }
+      );
+
+      console.log(resultadoEnJson);
+      return JSON.parse(resultadoEnJson);
 
     }catch(error){
       handleExeptions(error);
     }
-  }
-
-  esperarElArchivo(rutaDeArchivo:string, timeout = 2000){
-    const dirPath = rutaDeArchivo;
-    return new Promise((resolve, reject) => {
-      const watcher = fs.watch(dirPath)
-    })
   }
 
 }

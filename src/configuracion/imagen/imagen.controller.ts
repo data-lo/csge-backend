@@ -26,6 +26,7 @@ export class ImagenController {
       if(path === null){
         res.send({message:null});
       }else{
+        
         res.sendFile(path);
       }
   }
