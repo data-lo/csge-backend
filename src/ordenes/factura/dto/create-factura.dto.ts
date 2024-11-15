@@ -9,9 +9,9 @@ export class CreateFacturaDto {
     @IsOptional()
     id:string;
     
-    @IsArray({each:true,})
     @IsOptional()
-    ordenesDeServicio:string[];
+    @IsArray({each:true})
+    ordenesDeServicioIds:string[];
 
     @IsUUID()
     @IsString()
@@ -72,14 +72,14 @@ export class CreateFacturaDto {
 
     @IsOptional()
     @IsNumber()
-    iva:string;
+    iva:number;
 
     @IsOptional()
     @IsNumber()
-    subtotal:string;
+    subtotal:number;
 
     @IsOptional()
     @IsNumber()
-    total:string;
+    total:number;
 
 }

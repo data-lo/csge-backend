@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UploadedFiles, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -45,31 +45,34 @@ export class FacturaController {
       createFacturaDto.id = uuid;
       createFacturaDto.xml = xmlFile.path;
       createFacturaDto.pdf = pdfFile.path;
-      return this.facturaService.create(createFacturaDto);
 
+      console.log(createFacturaDto.xml)
+      this.facturaService.obtenerDatosDeArchivoXML(createFacturaDto.xml);
+      //this.facturaService.create(createFacturaDto);
+      return
     }
 
   @Get()
-  findAll() {
-    return this.facturaService.findAll();
+  findAll(@Query('pagina') pagina:string){
+    return this.facturaService.findAll(+pagina);
   }
 
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.facturaService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.facturaService.findOne(id);
   }
 
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
-    return this.facturaService.update(+id, updateFacturaDto);
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
+    return this.facturaService.update(id, updateFacturaDto);
   }
 
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.facturaService.remove(+id);
+  remove(@Param('id',ParseUUIDPipe) id: string) {
+    return this.facturaService.remove(id);
   }
 
 }

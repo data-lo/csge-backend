@@ -31,7 +31,7 @@ export class ImagenController {
   }
 
   @Post()
-  @UseInterceptors( FileInterceptor('imagen',{
+  @UseInterceptors( FileInterceptor ('imagen',{
     fileFilter:fileFilter,
     storage: diskStorage({
       destination:'./static/uploads/imagen',
@@ -41,6 +41,7 @@ export class ImagenController {
   async uploadProductImage(
     @UploadedFile() file:Express.Multer.File,
   ){
+      console.log(file);
       if(!file){
         throw new BadRequestException('Formatos de Imágen Aceptadas: jpg, png, jpeg');
       }

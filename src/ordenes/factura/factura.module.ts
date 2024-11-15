@@ -3,11 +3,11 @@ import { FacturaService } from './factura.service';
 import { FacturaController } from './factura.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
+import { Orden } from '../orden/entities/orden.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
-import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Factura,Proveedor,Usuario])],
+  imports:[TypeOrmModule.forFeature([Factura,Orden,Proveedor])],
   controllers: [FacturaController],
   providers: [FacturaService],
 })

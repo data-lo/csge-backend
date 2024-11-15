@@ -1,7 +1,8 @@
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, Generated, ManyToOne, PrimaryColumn, OneToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
 import { EstatusFactura } from "../interfaces/estatus-factura";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
+import { Orden } from "src/ordenes/orden/entities/orden.entity";
 
 @Entity('facturas')
 export class Factura {
@@ -114,4 +115,7 @@ export class Factura {
     @ManyToOne(()=> Usuario, (usuario) => usuario.id)
     usuarioTestigo:Usuario;
 
+    @ManyToMany(() => Orden)
+    @JoinTable()
+    ordenesDeServicio:Orden[]
 }
