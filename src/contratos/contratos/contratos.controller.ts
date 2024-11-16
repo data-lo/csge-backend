@@ -4,10 +4,12 @@ import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { AgregarContratoModificatorioDto } from './dto/agregar-contrato-modificatorio.dto';
 import { EliminarContratoModificatorioDto } from './dto/eliminar-contrato-modificatorio.dto';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('contratos/contratos')
 export class ContratosController {
   constructor(private readonly contratosService: ContratosService) {}
+  private readonly logger = new LoggerService(ContratosController.name);
 
   @Post()
   create(@Body() createContratoDto: CreateContratoDto) {
@@ -16,6 +18,7 @@ export class ContratosController {
 
   @Post('agregar-contrato-modificatorio')
   agregarContratoModificatorio(@Body() agregarContratoModificatorioDto: AgregarContratoModificatorioDto) {
+    this.logger.log('RQ agregar contrato')
     return this.contratosService.agregarContratoModificatorio(agregarContratoModificatorioDto);
   }
 
