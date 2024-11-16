@@ -64,20 +64,10 @@ export class CreateContratoDto {
     ivaFrontera:boolean;
 
     @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
     fechaInicial:string;
 
     
     @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        const date = new Date(`${year}-${month}-${day}`)
-        date.setHours(date.getHours()-6);
-        return date;
-    })
     fechaFinal:string;
 
     @IsUUID()

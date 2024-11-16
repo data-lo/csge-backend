@@ -47,6 +47,11 @@ import { ServicioService } from 'src/proveedores/servicio/servicio.service';
 import { DependenciasData } from './data/campañas/dependencias.data';
 import { CreateDependenciaDto } from 'src/campañas/dependencia/dto/create-dependencia.dto';
 import { DependenciaService } from 'src/campañas/dependencia/dependencia.service';
+import { proveedoresData } from './data/proveedores/proveedores.data';
+import { ProveedorParcialDto } from 'src/proveedores/proveedor/dto/proveedor-parcial.dto';
+import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
+import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
+import { EstacionService } from 'src/proveedores/estacion/estacion.service';
 
 @Injectable()
 export class SeedService {
@@ -71,6 +76,8 @@ export class SeedService {
     private readonly contactosService:ContactoService,
     private readonly serviciosService:ServicioService,
 
+    private readonly proveedoresService:ProveedorService,
+    private readonly estacionService:EstacionService,
 
     //modulo campañas
 
@@ -287,11 +294,12 @@ export class SeedService {
 
 
   async seedProveedores(){
-    await this.insertarMunicipios();
-    await this.insertarContactos();
-    await this.insertarServicios();
-    await this.insertarEstaciones();
     await this.insertarProveedores();
+    //await this.insertarMunicipios();
+    //await this.insertarContactos();
+    //await this.insertarServicios();
+    //await this.insertarEstaciones();
+    
     return {message:"Datos de Municipios y Contactos insertados correctamente"};
   }
 
@@ -354,7 +362,22 @@ export class SeedService {
   }
 
   async insertarProveedores(){
+    try{
+      for(const proveedor of proveedoresData){
+        const proveedorDto = plainToClass(
+          ProveedorParcialDto,{
+            rfc:proveedor.rfc.replaceAll(" ","").replaceAll("-","").trim(),
+            razonSocial:proveedor.razonSocial.toUpperCase().trim(),
+            tipoProveedor:TipoProveedor.PUBLICIDAD
+          }
+        )
+        console.log(proveedorDto.rfc);
+        await this.proveedoresService.create(proveedorDto);
+      }
+      return 'proveedores insertados exitosamente';
+    }catch(error){
 
+    }
   }
 
   async seedCampañas(){
