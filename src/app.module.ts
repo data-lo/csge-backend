@@ -33,6 +33,7 @@ import { OrdenModule } from './ordenes/orden/orden.module';
 import { FacturaModule } from './ordenes/factura/factura.module';
 import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio_contratado.module';
 import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -78,7 +79,8 @@ import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_
     OrdenModule,
     FacturaModule,
     ServicioContratadoModule,
-    CarteleraGobiernoModule
+    CarteleraGobiernoModule,
+    LoggerModule
   ],
 })
 export class AppModule {}

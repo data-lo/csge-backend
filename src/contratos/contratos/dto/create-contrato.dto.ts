@@ -2,7 +2,6 @@ import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato"
 import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
 import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
 import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, Min } from "class-validator";
-import { Transform } from "class-transformer";
 
 export class CreateContratoDto {
             
