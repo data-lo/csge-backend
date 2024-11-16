@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe, ParseBoolPipe } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -28,9 +28,9 @@ export class FacturaController {
   )
   async create(
     @UploadedFiles() archivosFactura: Express.Multer.File[],
-    @Body() createFacturaDto: CreateFacturaDto
+    @Body( ) createFacturaDto: CreateFacturaDto,
     ){
-    
+      
       const uuid = archivosFactura[0].filename.split('.')[0];
       
       if(!uuid) throw new InternalServerErrorException('No se logro generar el UUID para los archivos');
@@ -45,12 +45,8 @@ export class FacturaController {
       createFacturaDto.id = uuid;
       createFacturaDto.xml = xmlFile.path;
       createFacturaDto.pdf = pdfFile.path;
-
-      console.log(createFacturaDto.xml)
-      return await this.facturaService.obtenerDatosDeArchivoXML(createFacturaDto.xml);
-      //this.facturaService.create(createFacturaDto);
-      
-    }
+      return this.facturaService.create(createFacturaDto);
+  }
 
   @Get()
   findAll(@Query('pagina') pagina:string){
