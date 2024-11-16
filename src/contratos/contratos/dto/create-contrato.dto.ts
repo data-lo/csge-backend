@@ -62,10 +62,10 @@ export class CreateContratoDto {
     @IsBoolean({})
     ivaFrontera:boolean;
 
-    @IsDate()
+    @IsOptional()
     fechaInicial:Date;
     
-    @IsDate()
+    @IsOptional()
     fechaFinal:Date;
 
     @IsUUID()
