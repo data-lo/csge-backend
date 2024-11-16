@@ -40,15 +40,14 @@ export class ImagenController {
     }),
   }))
   async uploadProductImage(
-    @UploadedFile() file:Express.Multer.File,
+    @UploadedFile() imagen:Express.Multer.File,
   ){
-      console.log(file);
-      if(!file){
+      if(!imagen){
         throw new BadRequestException('Formatos de Imágen Aceptadas: jpg, png, jpeg');
       }
-        await this.imagenService.eliminarImagenExistente();
-        const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${file.filename}`
-        return{secureUrl};  
+      await this.imagenService.eliminarImagenExistente();
+      const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${imagen.filename}`
+      return{secureUrl};  
   }
 
   @Delete()

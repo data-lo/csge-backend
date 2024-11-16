@@ -18,9 +18,6 @@ export class Proveedor {
     })
     numeroProveedor:string;
 
-    //ordenDeServicio
-    //OneToMany 
-
     @OneToMany(() => Contrato, (contrato) => contrato.proveedor)
     contratos:Contrato[];
     

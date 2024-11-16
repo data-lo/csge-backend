@@ -2,7 +2,6 @@ import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato"
 import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
 import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
 import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, Min } from "class-validator";
-import { Transform } from "class-transformer";
 
 export class CreateContratoDto {
             
@@ -63,22 +62,11 @@ export class CreateContratoDto {
     @IsBoolean({})
     ivaFrontera:boolean;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaInicial:string;
-
+    @IsOptional()
+    fechaInicial:Date;
     
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        const date = new Date(`${year}-${month}-${day}`)
-        date.setHours(date.getHours()-6);
-        return date;
-    })
-    fechaFinal:string;
+    @IsOptional()
+    fechaFinal:Date;
 
     @IsUUID()
     @IsOptional()
