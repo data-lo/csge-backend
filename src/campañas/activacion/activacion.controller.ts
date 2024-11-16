@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { ActivacionService } from './activacion.service';
 import { CreateActivacionDto } from './dto/create-activacion.dto';
 import { UpdateActivacionDto } from './dto/update-activacion.dto';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Controller('campanias/activaciones')
 export class ActivacionController {
@@ -13,7 +15,10 @@ export class ActivacionController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina: string) {
+  findAll(
+    @Query('pagina') pagina: string,
+    @GetUser() user:Usuario
+  ) {
     return this.activacionService.findAll(+pagina);
   }
 
