@@ -127,6 +127,4 @@ export class Orden {
 
     @OneToMany(()=>ServicioContratado,(servicioContratado)=>servicioContratado.ordenDeServicio)
     serviciosContratados:ServicioContratado[];
-
-    //factura many to many
 }

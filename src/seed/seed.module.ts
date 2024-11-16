@@ -17,6 +17,8 @@ import { MunicipioModule } from 'src/proveedores/municipio/municipio.module';
 import { ContactoModule } from 'src/proveedores/contacto/contacto.module';
 import { ServicioModule } from 'src/proveedores/servicio/servicio.module';
 import { DependenciaModule } from 'src/campañas/dependencia/dependencia.module';
+import { ProveedorModule } from 'src/proveedores/proveedor/proveedor.module';
+import { EstacionModule } from 'src/proveedores/estacion/estacion.module';
 
 @Module({
   controllers: [SeedController],
@@ -37,7 +39,9 @@ import { DependenciaModule } from 'src/campañas/dependencia/dependencia.module'
     MunicipioModule,
     ContactoModule,
     ServicioModule,
-    DependenciaModule
+    DependenciaModule,
+    ProveedorModule,
+    EstacionModule
   ]
 })
 export class SeedModule {}

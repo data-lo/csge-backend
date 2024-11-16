@@ -26,12 +26,13 @@ export class ImagenController {
       if(path === null){
         res.send({message:null});
       }else{
+        
         res.sendFile(path);
       }
   }
 
   @Post()
-  @UseInterceptors( FileInterceptor('imagen',{
+  @UseInterceptors( FileInterceptor ('imagen',{
     fileFilter:fileFilter,
     storage: diskStorage({
       destination:'./static/uploads/imagen',
@@ -39,14 +40,14 @@ export class ImagenController {
     }),
   }))
   async uploadProductImage(
-    @UploadedFile() file:Express.Multer.File,
+    @UploadedFile() imagen:Express.Multer.File,
   ){
-      if(!file){
+      if(!imagen){
         throw new BadRequestException('Formatos de Imágen Aceptadas: jpg, png, jpeg');
       }
-        await this.imagenService.eliminarImagenExistente();
-        const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${file.filename}`
-        return{secureUrl};  
+      await this.imagenService.eliminarImagenExistente();
+      const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${imagen.filename}`
+      return{secureUrl};  
   }
 
   @Delete()

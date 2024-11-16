@@ -1,0 +1,7 @@
+export enum EstatusFactura {
+    RECIBIDA = 'RECIBIDA',
+    APROBADA = 'APROBADA',
+    PROGRMADA_PARA_PAGO = 'PROGRAMADA_PARA_PAGO',
+    PAGADA = 'PAGADA',
+    CANCELADA = 'CANCELADA'
+}
