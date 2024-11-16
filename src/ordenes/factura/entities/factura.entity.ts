@@ -115,7 +115,9 @@ export class Factura {
     @ManyToOne(()=> Usuario, (usuario) => usuario.id)
     usuarioTestigo:Usuario;
 
-    @ManyToMany(() => Orden)
+    @ManyToMany(() => Orden,{
+        eager:false
+    })     
     @JoinTable()
     ordenesDeServicio:Orden[]
 }

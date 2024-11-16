@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
+import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 
 @Injectable()
@@ -33,13 +34,18 @@ export class FacturaService {
   async create(createFacturaDto: CreateFacturaDto) {
     try{
       
-      const {ordenesDeServicioIds, proveedorId, validacionTestigo, xml, ...rest} = createFacturaDto; 
+      const {ordenesDeServicioIds, proveedorId, validacionTestigo, xml, ...rest} = createFacturaDto;
+      const validacionBool = Boolean(validacionTestigo);
+      if(!validacionBool) throw new BadRequestException('Validar testigo');
+      
       let ordenes:Orden[] = [];
-
+      let totalDeOrdenes:number;
+      
       const ordenesIds = [ordenesDeServicioIds]
       for(const ordenId of ordenesIds){
         const orden = await this.ordenRepository.findOneBy({id:ordenId});
         if(!orden) throw new NotFoundException(`La orden con el Id ${ordenId} no se encuentra`);
+        totalDeOrdenes += orden.total;
         ordenes.push(orden);
       }
 
@@ -47,11 +53,10 @@ export class FacturaService {
       if(!proveedor) throw new NotFoundException('No se encuentra el proveedor');
 
       const facturaXmlData = await this.obtenerDatosDeArchivoXML(xml);
-      const validacionBool = Boolean(validacionTestigo);
-      
+    
       if(proveedor.rfc !== facturaXmlData.rfc) throw new BadRequestException('RFC de la factura y RFC del proveedor no coinciden');
-      if(!validacionBool) throw new BadRequestException('Validar testigo');
-
+      if(totalDeOrdenes !== parseFloat(facturaXmlData.total)) throw new BadRequestException('El monto total de las ordenes y el total de la factura no coinciden');
+    
       const factura = this.facturaRepository.create({
         ordenesDeServicio:ordenes,
         proveedor:proveedor,
@@ -66,7 +71,6 @@ export class FacturaService {
       });
       
       await this.facturaRepository.save(factura);
-      delete factura.proveedor
       return factura;
       
     }catch(error:any){
@@ -76,7 +80,23 @@ export class FacturaService {
 
   async findAll(pagina:number) {
     try{
-      
+      const paginationSetter = new PaginationSetter()
+      const facturas = await this.facturaRepository.find({
+        take:paginationSetter.castPaginationLimit(),
+        skip:paginationSetter.getSkipElements(pagina),
+        relations:{
+          proveedor:true
+        },
+        select:{
+          proveedor:{
+            rfc:true,
+            nombreComercial:true
+          },
+          total:true,
+          estatus:true
+        }
+      });
+      return facturas;
     }catch(error:any){
       handleExeptions(error);
     }
@@ -84,7 +104,14 @@ export class FacturaService {
 
   async findOne(id: string) {
     try{
-      
+      const factura = await this.facturaRepository.findOne({
+        where:{id:id},
+        relations:{
+          proveedor:true,
+          ordenesDeServicio:true
+        },
+      });
+      return factura;
     }catch(error:any){
       handleExeptions(error);
     }
