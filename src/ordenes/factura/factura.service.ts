@@ -1,4 +1,4 @@
-import { BadRequestException, ConsoleLogger, Injectable, NotFoundException, ParseBoolPipe } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-
+import { TipoArchivoDescarga } from './interfaces/tipo-archivo-descarga';
 
 @Injectable()
 export class FacturaService {
@@ -181,5 +181,17 @@ export class FacturaService {
     }
   }
   
+  obtenerArchivosDescarga(id:string,type:string){
+    try{
+      if(type === 'xml' || 'pdf'){
+        const pathArchivo = path.join(this.rutaDeCarga,`static/uploads/${type}/${id}/.${type}`);
+        if(!fs.existsSync(pathArchivo)) throw new BadRequestException('No se encontro el archivo');
+        return pathArchivo;
+      }
+      throw new BadRequestException('formato de archivo no aceptado');
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
 
 }

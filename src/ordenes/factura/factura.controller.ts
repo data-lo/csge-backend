@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe, Res } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -6,6 +6,9 @@ import { fileFilter } from 'src/helpers/fileFilter';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer } from 'src/helpers/fileNamer';
+import { Response } from 'express';
+import { TipoArchivoDescarga } from './interfaces/tipo-archivo-descarga';
+import { plainToClass } from 'class-transformer';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -54,6 +57,22 @@ export class FacturaController {
   }
 
 
+  @Get('descargar:id/:type')
+  descargarArchivo(
+    @Param( ) params:string[],
+    @Res() res:Response
+  ){
+    const id = params[0];
+    const tipoArchivo = params[1];
+    
+    const path = this.facturaService.obtenerArchivosDescarga(id,tipoArchivo);
+      if(path === null){
+        res.send({message:null});
+      }else{
+        res.sendFile(path);
+      }
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.findOne(id);
@@ -65,6 +84,7 @@ export class FacturaController {
     return this.facturaService.update(id, updateFacturaDto);
   }
 
+  
 
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
