@@ -38,13 +38,16 @@ import { LoggerModule } from './logger/logger.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.cloud',
+      envFilePath: '.env.development.local',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
-      url:process.env.DATABASE_URL,
-      ssl:true,
+      database:process.env.DB_NAME,
+      username:process.env.DB_USERNAME,
+      password:process.env.DB_PASSWORD,
+      host:process.env.DB_HOST,
+      port:Number(process.env.DB_PORT),
       synchronize:true,
       autoLoadEntities:true
       }),

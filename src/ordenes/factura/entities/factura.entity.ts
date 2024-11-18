@@ -1,5 +1,5 @@
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
 import { EstatusFactura } from "../interfaces/estatus-factura";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 import { Orden } from "src/ordenes/orden/entities/orden.entity";
@@ -12,7 +12,8 @@ export class Factura {
 
     concepto:string;
 
-    @ManyToOne(()=>Proveedor,(proveedor)=>proveedor.id)
+    @ManyToOne(()=>Proveedor, (proveedor)=>proveedor.id )
+    @JoinColumn({name:"proveedorId"})
     proveedor:Proveedor;
 
     @Column({

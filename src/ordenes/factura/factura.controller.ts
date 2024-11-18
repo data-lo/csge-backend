@@ -7,8 +7,6 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer } from 'src/helpers/fileNamer';
 import { Response } from 'express';
-import { TipoArchivoDescarga } from './interfaces/tipo-archivo-descarga';
-import { plainToClass } from 'class-transformer';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -57,15 +55,14 @@ export class FacturaController {
   }
 
 
-  @Get('descargar:id/:type')
-  descargarArchivo(
-    @Param( ) params:string[],
+  @Get('descargar/:id/:type')
+  async descargarArchivo(
+    @Param( ) params,
     @Res() res:Response
   ){
-    const id = params[0];
-    const tipoArchivo = params[1];
-    
-    const path = this.facturaService.obtenerArchivosDescarga(id,tipoArchivo);
+    const id = params.id;
+    const tipoArchivo = params.type;  
+    const path = await this.facturaService.obtenerArchivosDescarga(id,tipoArchivo);
       if(path === null){
         res.send({message:null});
       }else{
@@ -84,11 +81,9 @@ export class FacturaController {
     return this.facturaService.update(id, updateFacturaDto);
   }
 
-  
-
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
-    return this.facturaService.remove(id);
+    return this.facturaService.eliminarArchivoDeFactura(id);
   }
 
 }

@@ -12,7 +12,8 @@ import * as fs from 'fs';
 import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { TipoArchivoDescarga } from './interfaces/tipo-archivo-descarga';
+import { EstatusFactura } from './interfaces/estatus-factura';
+import { BADFAMILY } from 'dns';
 
 @Injectable()
 export class FacturaService {
@@ -87,16 +88,19 @@ export class FacturaService {
         relations:{
           proveedor:true
         },
-        select:{
+      });
+      const facturasFilter = facturas.map((factura)=>{
+        return {
+          id:factura.id,
+          total:factura.total,
+          estatus:factura.estatus,
           proveedor:{
-            rfc:true,
-            nombreComercial:true
-          },
-          total:true,
-          estatus:true
+            nombre:factura.proveedor.nombreComercial,
+            rfc:factura.proveedor.rfc
+          }
         }
       });
-      return facturas;
+      return facturasFilter;
     }catch(error:any){
       handleExeptions(error);
     }
@@ -127,7 +131,10 @@ export class FacturaService {
 
   async remove(id: string) {
     try{
-      
+      const factura = await this.findOne(id);
+      if(factura){
+
+      }
     }catch(error:any){
       handleExeptions(error);
     }
@@ -181,17 +188,45 @@ export class FacturaService {
     }
   }
   
-  obtenerArchivosDescarga(id:string,type:string){
+  async obtenerArchivosDescarga(id:string, tipoArchivo:string){
     try{
-      if(type === 'xml' || 'pdf'){
-        const pathArchivo = path.join(this.rutaDeCarga,`static/uploads/${type}/${id}/.${type}`);
+        const factura = await this.facturaRepository.findOneBy({id:id})
+        if(!factura) throw new BadRequestException('No se encuentra la factura');
+
+        if(tipoArchivo != 'xml' && tipoArchivo != 'pdf') throw new BadRequestException('Archivo no admitido');
+
+        const rutaDeArchivo = tipoArchivo === 'xml' ? factura.xml : factura.pdf;
+
+        const pathArchivo = path.join(this.rutaDeCarga,rutaDeArchivo);
         if(!fs.existsSync(pathArchivo)) throw new BadRequestException('No se encontro el archivo');
         return pathArchivo;
-      }
-      throw new BadRequestException('formato de archivo no aceptado');
     }catch(error){
       handleExeptions(error);
     }
+  }
+
+  eliminarArchivoDeFactura(id:string){
+    try{
+      const pdf = path.join(this.rutaDeCarga,'static/uploads/pdf/',`${id}.pdf`);
+      const xml = path.join(this.rutaDeCarga,'static/uploads/xml/',`${id}.xml`);
+      if(!fs.existsSync(pdf)) throw new BadRequestException('archivo pdf no encontrado');
+      if(fs.existsSync(xml)) throw new BadRequestException('archivo xml no encontrado');
+      
+      fs.unlinkSync(pdf);
+      fs.unlinkSync(xml);
+      
+      return {
+        message:'Archivos xml y pdf de la factura eliminados exitosamente',
+        value:true,
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async actualizarEstatusDeFactura(id:string,estatus:EstatusFactura){
+    const factura = await this.facturaRepository.findOneBy({id:id});
+
   }
 
 }
