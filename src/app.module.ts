@@ -43,11 +43,8 @@ import { LoggerModule } from './logger/logger.module';
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
-      database:process.env.DB_NAME,
-      username:process.env.DB_USERNAME,
-      password:process.env.DB_PASSWORD,
-      host:process.env.DB_HOST,
-      port:Number(process.env.DB_PORT),
+      url:process.env.DATABASE_URL,
+      ssl:true,
       synchronize:true,
       autoLoadEntities:true
       }),
