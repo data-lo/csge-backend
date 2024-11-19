@@ -49,6 +49,11 @@ export class UsuariosController {
     return this.usuariosService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.usuariosService.findAllBusqueda();
+  }
+
   //obtener un usuario
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {

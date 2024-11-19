@@ -32,6 +32,11 @@ export class ContratosController {
     return this.contratosService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.contratosService.findAllBusqueda();
+  }
+
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosService.obtenerEstatus(id);

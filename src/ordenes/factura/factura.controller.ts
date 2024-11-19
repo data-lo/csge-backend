@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, BadRequestException, InternalServerErrorException, Query, ParseUUIDPipe, Res } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -6,6 +6,7 @@ import { fileFilter } from 'src/helpers/fileFilter';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer } from 'src/helpers/fileNamer';
+import { Response } from 'express';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -53,22 +54,44 @@ export class FacturaController {
     return this.facturaService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda(){
+    return this.facturaService.findAllBusqueda();
+  }
 
+  @Get('estatus/:id')
+  findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.facturaService.obtenerEstatusDeFactura(id);
+  }
+  
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.findOne(id);
   }
 
+  @Get('descargar/:id/:type')
+  async descargarArchivo(
+    @Param( ) params,
+    @Res() res:Response
+  ){
+    const id = params.id;
+    const tipoArchivo = params.type;  
+    const path = await this.facturaService.obtenerArchivosDescarga(id,tipoArchivo);
+      if(path === null){
+        res.send({message:null});
+      }else{
+        res.sendFile(path);
+      }
+  }
 
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
     return this.facturaService.update(id, updateFacturaDto);
   }
 
-
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
-    return this.facturaService.remove(id);
+    return this.facturaService.eliminarArchivoDeFactura(id);
   }
 
 }

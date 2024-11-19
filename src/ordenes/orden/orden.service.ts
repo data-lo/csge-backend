@@ -109,7 +109,37 @@ export class OrdenService {
           proveedor:{
             nombreComercial:true
           }
+        },
+        order:{
+          fechaDeEmision:'ASC'
         }
+      });
+      return ordenes;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async findAllBusqueda() {
+    try{
+      const ordenes = await this.ordenRepository.find({
+        relations:{
+          proveedor:true,
+          campaña:true
+        },
+        select:{
+          id:true,
+          folio:true,
+          tipoDeServicio:true,
+          fechaDeEmision:true,
+          estatus:true,
+          campaña:{
+            nombre:true
+          },
+          proveedor:{
+            nombreComercial:true
+          }
+        },
       });
       return ordenes;
     }catch(error){

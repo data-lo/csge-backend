@@ -1,7 +1,7 @@
 import { Catch, ArgumentsHost, HttpStatus, HttpException } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import { Request, Response } from 'express';
-import { LoggerService } from "./logger/logger.service";
+import { LoggerService } from "../logger/logger.service";
 
 type MyResponseObj = {
     statusCode: number,

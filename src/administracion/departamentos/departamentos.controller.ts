@@ -14,10 +14,8 @@ export class DepartamentosController {
   }
 
   @Get()
-  findAll(
-    @Query('pagina') pagina:string)
-  {
-    return this.departamentosService.findAll(+pagina);
+  findAll(){
+    return this.departamentosService.findAll();
   }
 
   @Get(':id')

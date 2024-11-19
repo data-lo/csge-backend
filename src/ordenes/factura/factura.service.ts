@@ -1,4 +1,4 @@
-import { BadRequestException, ConsoleLogger, Injectable, NotFoundException, ParseBoolPipe } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-
+import { EstatusFactura } from './interfaces/estatus-factura';
 
 @Injectable()
 export class FacturaService {
@@ -78,6 +78,30 @@ export class FacturaService {
     }
   }
 
+  async findAllBusqueda(){
+    try{
+      const facturas = await this.facturaRepository.find({
+        relations:{
+          proveedor:true
+        }
+      });
+      const facturasFilter = facturas.map((factura)=>{
+        return {
+          id:factura.id,
+          total:factura.total,
+          estatus:factura.estatus,
+          proveedor:{
+            nombre:factura.proveedor.nombreComercial,
+            rfc:factura.proveedor.rfc
+          }
+        }
+      });
+      return facturasFilter;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async findAll(pagina:number) {
     try{
       const paginationSetter = new PaginationSetter()
@@ -87,16 +111,19 @@ export class FacturaService {
         relations:{
           proveedor:true
         },
-        select:{
+      });
+      const facturasFilter = facturas.map((factura)=>{
+        return {
+          id:factura.id,
+          total:factura.total,
+          estatus:factura.estatus,
           proveedor:{
-            rfc:true,
-            nombreComercial:true
-          },
-          total:true,
-          estatus:true
+            nombre:factura.proveedor.nombreComercial,
+            rfc:factura.proveedor.rfc
+          }
         }
       });
-      return facturas;
+      return facturasFilter;
     }catch(error:any){
       handleExeptions(error);
     }
@@ -117,17 +144,12 @@ export class FacturaService {
     }
   }
 
-  async update(id: string, updateFacturaDto: UpdateFacturaDto) {
-    try{
-      
-    }catch(error:any){
-      handleExeptions(error);
-    }
-  }
-
   async remove(id: string) {
     try{
-      
+      const factura = await this.findOne(id);
+      if(factura){
+
+      }
     }catch(error:any){
       handleExeptions(error);
     }
@@ -181,5 +203,75 @@ export class FacturaService {
     }
   }
   
+  async obtenerArchivosDescarga(id:string, tipoArchivo:string){
+    try{
+        const factura = await this.facturaRepository.findOneBy({id:id})
+        if(!factura) throw new BadRequestException('No se encuentra la factura');
 
+        if(tipoArchivo != 'xml' && tipoArchivo != 'pdf') throw new BadRequestException('Archivo no admitido');
+
+        const rutaDeArchivo = tipoArchivo === 'xml' ? factura.xml : factura.pdf;
+
+        const pathArchivo = path.join(this.rutaDeCarga,rutaDeArchivo);
+        if(!fs.existsSync(pathArchivo)) throw new BadRequestException('No se encontro el archivo');
+        return pathArchivo;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async eliminarArchivoDeFactura(id:string){
+    try{
+      const pdf = path.join(this.rutaDeCarga,'static/uploads/pdf/',`${id}.pdf`);
+      const xml = path.join(this.rutaDeCarga,'static/uploads/xml/',`${id}.xml`);
+      if(!fs.existsSync(pdf)) throw new BadRequestException('archivo pdf no encontrado');
+      if(fs.existsSync(xml)) throw new BadRequestException('archivo xml no encontrado');
+      
+      fs.unlinkSync(pdf);
+      fs.unlinkSync(xml);
+      
+      return {
+        message:'Archivos xml y pdf de la factura eliminados exitosamente',
+        value:true,
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async update(id:string, updateFacturaDto:UpdateFacturaDto){
+    try{
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async actualizarEstatusDeFactura(id:string,estatus:EstatusFactura){
+    try{
+      const factura = await this.facturaRepository.findOneBy({id:id});
+      if(!factura) throw new NotFoundException('No se encontro la factura');
+      factura.estatus = estatus;
+      await this.facturaRepository.update(id,factura);
+      return {message:'estatus de factura actualizado'};
+    }
+    catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async obtenerEstatusDeFactura(id){
+    try{
+      const factura = await this.facturaRepository.findOneBy(id);
+      if(!factura) throw new NotFoundException('No se encontro la factura');
+      
+      return{
+        id:factura.id,
+        estatus:factura.estatus
+      }
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
 }

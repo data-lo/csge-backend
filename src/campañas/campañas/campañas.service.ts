@@ -73,6 +73,33 @@ export class CampañasService {
             fechaDeCreacion:true,
             fechaDeInicio:true
           }
+        },
+        order:{
+          activaciones:{
+            fechaDeAprobacion:'DESC'
+          }
+        }
+      });
+      return campañas;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+
+  async findAllBusuqueda() {
+    try{
+      const campañas = await this.campañaRepository.find({
+        relations:{
+          dependencias:true,
+          activaciones:true
+        },select:{
+          activaciones:{
+            fechaDeAprobacion:true,
+            fechaDeCierre:true,
+            fechaDeCreacion:true,
+            fechaDeInicio:true
+          }
         }
       });
       return campañas;

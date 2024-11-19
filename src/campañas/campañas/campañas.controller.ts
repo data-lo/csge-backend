@@ -21,6 +21,11 @@ export class CampañasController {
     return this.campañasService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.campañasService.findAllBusuqueda();
+  }
+
   @Get('estatus/:id')
   estatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.campañasService.verificarEstatus(id);

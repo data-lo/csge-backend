@@ -72,7 +72,7 @@ export class Proveedor {
     })
     domicilioFiscal:string;
 
-    @OneToMany(() => Estacion, (estacion) => estacion.proveedor,{eager:true})
+    @OneToMany(() => Estacion, (estacion) => estacion.proveedor)
     estaciones:Estacion[]
 
     @Column({

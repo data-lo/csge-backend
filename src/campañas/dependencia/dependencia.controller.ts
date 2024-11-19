@@ -17,6 +17,11 @@ export class DependenciaController {
     return this.dependenciaService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.dependenciaService.findAllBusqueda();
+  }
+
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.dependenciaService.findOne(id);
