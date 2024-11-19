@@ -38,7 +38,7 @@ import { LoggerModule } from './logger/logger.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.development.local',
+      envFilePath: '.env.cloud',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
