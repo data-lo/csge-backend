@@ -58,7 +58,7 @@ export class UsuariosService {
         },
         order:{
           primerApellido:'ASC',
-          estatus:'ASC'
+          estatus:'DESC'
         }
       });
       return usuarios;
