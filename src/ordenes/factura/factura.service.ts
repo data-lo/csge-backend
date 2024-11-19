@@ -13,7 +13,6 @@ import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
-import { BADFAMILY } from 'dns';
 
 @Injectable()
 export class FacturaService {

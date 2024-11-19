@@ -44,7 +44,7 @@ export class UsuariosService {
   async findAll(pagina:number) {
     try{
       const paginationSetter = new PaginationSetter()
-      return await this.usuarioRepository.find({
+      const usuarios = await this.usuarioRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
         take:paginationSetter.castPaginationLimit(),
         select:{
@@ -55,8 +55,13 @@ export class UsuariosService {
           segundoApellido:true,
           correo:true,
           permisos:true
+        },
+        order:{
+          primerApellido:'ASC',
+          estatus:'ASC'
         }
-      })
+      });
+      return usuarios;
     }catch(error){
       handleExeptions(error);
     }
