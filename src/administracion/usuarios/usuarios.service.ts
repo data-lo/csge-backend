@@ -44,25 +44,53 @@ export class UsuariosService {
   async findAll(pagina:number) {
     try{
       const paginationSetter = new PaginationSetter()
+      const usuarios = await this.usuarioRepository.createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.departamento','departamento')
+      .leftJoinAndSelect('usuario.puesto','puesto')
+      .select([
+        'usuario.id',
+        'usuario.estatus',
+        'usuario.nombres',
+        'usuario.primerApellido',
+        'usuario.segundoApellido',
+        'usuario.correo',
+        'usuario.permisos',
+        'departamento.nombre',
+        'puesto.nombre'
+      ])
+      .orderBy('usuario.estatus', 'DESC') 
+      .addOrderBy('usuario.primerApellido', 'ASC')
+      .skip(paginationSetter.getSkipElements(pagina))
+      .take(paginationSetter.castPaginationLimit())
+      .getMany();
+
+      return usuarios;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async findAllBusqueda(){
+    try{
       const usuarios = await this.usuarioRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit(),
         select:{
-          id:true,
           estatus:true,
           nombres:true,
           primerApellido:true,
           segundoApellido:true,
           correo:true,
-          permisos:true
-        },
-        order:{
-          primerApellido:'ASC',
-          estatus:'DESC'
+          permisos:true,
+          puesto:{
+            nombre:true
+          },
+          departamento:{
+            nombre:true
+          }
         }
       });
       return usuarios;
-    }catch(error){
+    }
+    catch(error){
       handleExeptions(error);
     }
   }

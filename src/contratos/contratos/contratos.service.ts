@@ -76,9 +76,21 @@ export class ContratosService {
         take:paginationSetter.castPaginationLimit(),
         relations:{
           proveedor:true
-        }
+        },
       });
       return contratos
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async findAllBusqueda(){
+    try{
+      const contratos = await this.contratoRepository.find({
+      relations:{
+        proveedor:true
+      }});
+      return contratos;
     }catch(error){
       handleExeptions(error);
     }

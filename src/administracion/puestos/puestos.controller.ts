@@ -13,9 +13,8 @@ export class PuestosController {
   }
 
   @Get()
-  findAll(
-    @Query('pagina') pagina:string){
-    return this.puestosService.findAll(+pagina);
+  findAll(){
+    return this.puestosService.findAll();
   }
 
   @Get(':id')

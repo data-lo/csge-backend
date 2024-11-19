@@ -29,6 +29,11 @@ export class ProveedorController {
     return this.proveedorService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.proveedorService.findAllBusqueda();
+  }
+
   @Get('estatus/:id')
   obtenerEstatus(@Param('id',ParseUUIDPipe) id:string){
     return this.proveedorService.obtenerEstatus(id);

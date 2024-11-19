@@ -31,8 +31,21 @@ export class DependenciaService {
       const paginationSetter = new PaginationSetter()
       const dependencias = await this.dependenciaRepository.find({
         take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina)
+        skip:paginationSetter.getSkipElements(pagina),
+        order:{
+          nombre:'ASC'
+        }
       });
+      return dependencias;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+
+  async findAllBusqueda() {
+    try{
+      const dependencias = await this.dependenciaRepository.find();
       return dependencias;
     }catch(error){
       handleExeptions(error);

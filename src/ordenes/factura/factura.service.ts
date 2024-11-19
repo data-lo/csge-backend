@@ -78,6 +78,30 @@ export class FacturaService {
     }
   }
 
+  async findAllBusqueda(){
+    try{
+      const facturas = await this.facturaRepository.find({
+        relations:{
+          proveedor:true
+        }
+      });
+      const facturasFilter = facturas.map((factura)=>{
+        return {
+          id:factura.id,
+          total:factura.total,
+          estatus:factura.estatus,
+          proveedor:{
+            nombre:factura.proveedor.nombreComercial,
+            rfc:factura.proveedor.rfc
+          }
+        }
+      });
+      return facturasFilter;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async findAll(pagina:number) {
     try{
       const paginationSetter = new PaginationSetter()
@@ -115,14 +139,6 @@ export class FacturaService {
         },
       });
       return factura;
-    }catch(error:any){
-      handleExeptions(error);
-    }
-  }
-
-  async update(id: string, updateFacturaDto: UpdateFacturaDto) {
-    try{
-      
     }catch(error:any){
       handleExeptions(error);
     }
@@ -204,7 +220,7 @@ export class FacturaService {
     }
   }
 
-  eliminarArchivoDeFactura(id:string){
+  async eliminarArchivoDeFactura(id:string){
     try{
       const pdf = path.join(this.rutaDeCarga,'static/uploads/pdf/',`${id}.pdf`);
       const xml = path.join(this.rutaDeCarga,'static/uploads/xml/',`${id}.xml`);
@@ -223,9 +239,39 @@ export class FacturaService {
     }
   }
 
-  async actualizarEstatusDeFactura(id:string,estatus:EstatusFactura){
-    const factura = await this.facturaRepository.findOneBy({id:id});
+  async update(id:string, updateFacturaDto:UpdateFacturaDto){
+    try{
 
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
+  async actualizarEstatusDeFactura(id:string,estatus:EstatusFactura){
+    try{
+      const factura = await this.facturaRepository.findOneBy({id:id});
+      if(!factura) throw new NotFoundException('No se encontro la factura');
+      factura.estatus = estatus;
+      await this.facturaRepository.update(id,factura);
+      return {message:'estatus de factura actualizado'};
+    }
+    catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async obtenerEstatusDeFactura(id){
+    try{
+      const factura = await this.facturaRepository.findOneBy(id);
+      if(!factura) throw new NotFoundException('No se encontro la factura');
+      
+      return{
+        id:factura.id,
+        estatus:factura.estatus
+      }
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
 }

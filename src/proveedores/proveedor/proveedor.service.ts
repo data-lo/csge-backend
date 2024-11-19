@@ -33,11 +33,24 @@ export class ProveedorService {
       const proveedores = this.proveedorRepository.find({
         skip:paginationSetter.getSkipElements(pagina),
         take:paginationSetter.castPaginationLimit(),
+        order:{
+          estatus:'DESC',
+        }
+      });
+      return proveedores;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async findAllBusqueda(){
+    try{
+      const proveedores = this.proveedorRepository.find({
         relations:{
           estaciones:{
             municipios:true
           }
-        }
+        },
       });
       return proveedores;
     }catch(error){

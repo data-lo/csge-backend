@@ -11,10 +11,15 @@ export class CarteleraGobiernoController {
   create(@Body() createCarteleraGobiernoDto: CreateCarteleraGobiernoDto) {
     return this.carteleraGobiernoService.create(createCarteleraGobiernoDto);
   }
-
+  
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.carteleraGobiernoService.findAll(+pagina);
+  }
+
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.carteleraGobiernoService.findAllBusqueda();
   }
 
   @Get(':id')

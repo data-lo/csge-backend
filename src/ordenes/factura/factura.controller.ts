@@ -54,6 +54,20 @@ export class FacturaController {
     return this.facturaService.findAll(+pagina);
   }
 
+  @Get('busqueda')
+  findAllBusqueda(){
+    return this.facturaService.findAllBusqueda();
+  }
+
+  @Get('estatus/:id')
+  findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.facturaService.obtenerEstatusDeFactura(id);
+  }
+  
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.facturaService.findOne(id);
+  }
 
   @Get('descargar/:id/:type')
   async descargarArchivo(
@@ -69,12 +83,6 @@ export class FacturaController {
         res.sendFile(path);
       }
   }
-
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.facturaService.findOne(id);
-  }
-
 
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {

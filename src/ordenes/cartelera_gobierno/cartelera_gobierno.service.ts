@@ -39,6 +39,15 @@ export class CarteleraGobiernoService {
     }
   }
 
+  findAllBusqueda() {
+    try{
+      const cartelerasGobierno  = this.carteleraGobiernoRepository.find();
+      return cartelerasGobierno;
+    }catch(error:any){
+      handleExeptions(error);
+    }
+  }
+
   async findOne(id: string) {
     try{
       const cartelera = await this.carteleraGobiernoRepository.findOneBy({id:id});
