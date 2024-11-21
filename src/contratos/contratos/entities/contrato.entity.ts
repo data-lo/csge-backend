@@ -91,7 +91,7 @@ export class Contrato {
         default:0.00,
         nullable:false
     })
-    monto_ejecido:number;
+    montoEjecido:number;
 
     @Column({
         name:'monto_pagado',
@@ -100,7 +100,7 @@ export class Contrato {
         default:0.00,
         nullable:false
     })
-    monto_pagado:number;
+    montoPagado:number;
 
     @Column({
         name:'monto_disponible',
@@ -109,7 +109,7 @@ export class Contrato {
         default:0.00,
         nullable:false
     })
-    monto_disponible:number;
+    montoDisponible:number;
 
     @Column({
         name:'iva_frontera',
@@ -117,7 +117,7 @@ export class Contrato {
         nullable:false,
         default:false
     })
-    iva_frontera:boolean;
+    ivaFrontera:boolean;
 
     @Column({
         name:'fecha_inicial',

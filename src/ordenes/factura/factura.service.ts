@@ -239,9 +239,20 @@ export class FacturaService {
     }
   }
 
-  async update(id:string, updateFacturaDto:UpdateFacturaDto){
+  async cancelarFactura(id:string, updateFacturaDto:UpdateFacturaDto){
     try{
+      const {motivoDeCancelacion} = updateFacturaDto;
+      const factura = await this.facturaRepository.findOneBy({id:id});
+      if(!factura) throw new NotFoundException('Factura no encontrada');
+      if(!motivoDeCancelacion) throw new BadRequestException('Se debe de incluir el motivo de cancelación');
 
+      factura.motivoCancelacion = motivoDeCancelacion;
+      const {message, value} = await this.eliminarArchivoDeFactura(id);
+
+      if(value){
+        await this.facturaRepository.save(factura);
+        return {message:`Factura cancelada correctamente, ${message}`};
+      }
     }catch(error){
       handleExeptions(error);
     }
@@ -264,14 +275,15 @@ export class FacturaService {
     try{
       const factura = await this.facturaRepository.findOneBy(id);
       if(!factura) throw new NotFoundException('No se encontro la factura');
-      
       return{
         id:factura.id,
         estatus:factura.estatus
       }
-
     }catch(error){
       handleExeptions(error);
     }
   }
+
+
+  //aprobar factura
 }

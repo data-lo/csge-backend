@@ -55,7 +55,7 @@ export class ContratosService {
       const contrato = this.contratoRepository.create({
         montoMinimoContratado:montoMinimoContratado,
         montoMaximoContratado:montoMaximoContratado,
-        monto_disponible:montoDisponible,
+        montoDisponible:montoDisponible,
         proveedor:proveedor,
         ...rest
       });
@@ -139,12 +139,19 @@ export class ContratosService {
   async update(id:string, updateContratoDto: UpdateContratoDto) {
     try{
       const estatusDelContrato = await this.obtenerEstatus(id);
-      if(updateContratoDto.proveedorId) throw new BadRequestException('No es posible modificar el proveedor');
+      const {proveedorId, ...rest} = updateContratoDto;
+      
+
+      if(!proveedorId) throw new BadRequestException('No es posible modificar el proveedor, proveedorId no existe');
       
       if(estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE){
         throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
       }else{
-        await this.contratoRepository.update(id,updateContratoDto);
+        const proveedor = await this.proveedorRepository.findOneBy({id:proveedorId});
+        await this.contratoRepository.update(id,{
+          proveedor:proveedor,
+          ...rest
+        });
         return await this.findOne(id);
       }
     }catch(error){
@@ -220,10 +227,7 @@ export class ContratosService {
   }
   
   async actualizarMontos(){}
+
   
-  async agregarOrdenDeServicio(){}
-
-  async eliminarOrdenDeServicio(){}
-
   async descargarReporte(){}
 }
