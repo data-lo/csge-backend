@@ -174,12 +174,13 @@ export class ContratosService {
   }
 
   async desactivarCancelarContrato(id:string,updateContratoDto:UpdateContratoDto){
-    const {estatusDeContrato} = updateContratoDto
+    const {estatusDeContrato, motivoCancelacion} = updateContratoDto
     try{
       const estatusDeContratoDb = await this.obtenerEstatus(id);
       if(estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO){
         await this.contratoRepository.update(id,{
-            estatusDeContrato:estatusDeContrato
+          estatusDeContrato:estatusDeContrato,
+          motivoCancelacion:motivoCancelacion
         });
         return {message:`Estatus de contrato ${estatusDeContrato}`}
       }
@@ -228,6 +229,6 @@ export class ContratosService {
   
   async actualizarMontos(){}
 
-  
+
   async descargarReporte(){}
 }

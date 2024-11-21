@@ -10,7 +10,7 @@ import { ActivacionEventosService } from './activacion.events.service';
 @Module({
   controllers: [ActivacionController],
   providers: [ActivacionService, ActivacionEventosService],
-  imports:[TypeOrmModule.forFeature([Partida, Activacion, Campaña])],
-  exports:[ActivacionService]
+  imports: [TypeOrmModule.forFeature([Partida, Activacion, Campaña])],
+  exports: [ActivacionService],
 })
 export class ActivacionModule {}

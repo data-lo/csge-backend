@@ -16,5 +16,4 @@ export class PartidaEventosService {
         await this.activacionService.delete(partidaId);
         return;
     }
-
 }

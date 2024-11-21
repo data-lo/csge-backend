@@ -13,7 +13,7 @@ export class Contacto {
        name:'nombre',
        nullable:false,
     })
-    nombre:string;
+    nombreContacto:string;
 
     @Column({
         name:'telefono',

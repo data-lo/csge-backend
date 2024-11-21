@@ -10,7 +10,7 @@ import { ValidRoles } from './interfaces/usuarios.roles';
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
-  constructor(private readonly usuariosService: UsuariosService) {}
+  constructor(private readonly usuariosService: UsuariosService) { }
 
   //crear usuario
   @Post()
@@ -26,26 +26,26 @@ export class UsuariosController {
 
   //actualizar contraseña
   @Post('update-password')
-  updatePassword(@Body() updatePassword:UpdatePasswordDto) {
+  updatePassword(@Body() updatePassword: UpdatePasswordDto) {
     return this.usuariosService.updatePassword(updatePassword);
   }
 
   //remover permisos
   @Post('remover-permisos')
-  removerPermisos(@Body() actualizarPermisosDto:ActualizarPermisosDto) {
+  removerPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     return this.usuariosService.removerPermisos(actualizarPermisosDto);
   }
 
   //agregar permisos
   @Post('agregar-permisos')
-  agregarPermisos(@Body() actualizarPermisosDto:ActualizarPermisosDto) {
+  agregarPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     return this.usuariosService.agregarPermisos(actualizarPermisosDto);
   }
 
   //obtener todos los usuarios
   @Get()
   findAll(
-    @Query('pagina') pagina:string) {
+    @Query('pagina') pagina: string) {
     return this.usuariosService.findAll(+pagina);
   }
 
@@ -56,31 +56,31 @@ export class UsuariosController {
 
   //obtener un usuario
   @Get(':id')
-  findOne(@Param('id',ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.findOne(id);
   }
 
   //reestablecer contraseña
   @Get('/reestablecer/:id')
-  reestablecer(@Param('id',ParseUUIDPipe) id: string) {
+  reestablecer(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.reestablecer(id);
   }
 
   //obtener el estatus de un usuario
   @Get('/obtener-estatus/:id')
-  obtenerEstatus(@Param('id',ParseUUIDPipe) id: string) {
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.obtenerEstatus(id);
   }
 
   //actualizar un usuario
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(id, updateUsuarioDto);
   }
 
   //desactivar un usuario
   @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.deactivate(id);
   }
 }
