@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuariosModule } from './administracion/usuarios/usuarios.module';
 import { PuestosModule } from './administracion/puestos/puestos.module';
@@ -34,6 +35,7 @@ import { FacturaModule } from './ordenes/factura/factura.module';
 import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio_contratado.module';
 import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
 import { LoggerModule } from './logger/logger.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -48,6 +50,9 @@ import { LoggerModule } from './logger/logger.module';
       synchronize:true,
       autoLoadEntities:true
       }),
+    EventEmitterModule.forRoot({
+      delimiter:'.'
+    }),
     UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 
@@ -80,7 +85,8 @@ import { LoggerModule } from './logger/logger.module';
     FacturaModule,
     ServicioContratadoModule,
     CarteleraGobiernoModule,
-    LoggerModule
+    LoggerModule,
+    DocumentsModule
   ],
 })
 export class AppModule {}

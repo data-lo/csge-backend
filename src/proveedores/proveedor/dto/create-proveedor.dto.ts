@@ -6,9 +6,6 @@ export class CreateProveedorDto {
     @IsString()
     @MaxLength(18)
     numeroProveedor:string;
-
-    //ordenDeServicio
-    //OneToMany
     
     @IsString()
     @MaxLength(120)

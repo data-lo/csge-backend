@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -19,256 +19,257 @@ export class UsuariosService {
 
   constructor(
     @InjectRepository(Usuario)
-    private usuarioRepository:Repository<Usuario>,
-    private readonly jwtService:JwtService,
-  
-  ){}
+    private usuarioRepository: Repository<Usuario>,
+    private readonly jwtService: JwtService,
+
+  ) { }
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    try{
+    try {
       const dbUser = {
-        password: bcrypt.hashSync(defaultPassowrd,10),
+        password: bcrypt.hashSync(defaultPassowrd, 10),
         ...createUsuarioDto
       }
 
       const usuario = this.usuarioRepository.create(dbUser);
       await this.usuarioRepository.save(usuario)
-      
+
       delete usuario.password;
       return usuario;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async findAll(pagina:number) {
-    try{
+  async findAll(pagina: number) {
+    try {
       const paginationSetter = new PaginationSetter()
       const usuarios = await this.usuarioRepository.createQueryBuilder('usuario')
-      .leftJoinAndSelect('usuario.departamento','departamento')
-      .leftJoinAndSelect('usuario.puesto','puesto')
-      .select([
-        'usuario.id',
-        'usuario.estatus',
-        'usuario.nombres',
-        'usuario.primerApellido',
-        'usuario.segundoApellido',
-        'usuario.correo',
-        'usuario.permisos',
-        'departamento.nombre',
-        'puesto.nombre'
-      ])
-      .orderBy('usuario.estatus', 'DESC') 
-      .addOrderBy('usuario.primerApellido', 'ASC')
-      .skip(paginationSetter.getSkipElements(pagina))
-      .take(paginationSetter.castPaginationLimit())
-      .getMany();
+        .leftJoinAndSelect('usuario.departamento', 'departamento')
+        .leftJoinAndSelect('usuario.puesto', 'puesto')
+        .select([
+          'usuario.id',
+          'usuario.estatus',
+          'usuario.nombres',
+          'usuario.primerApellido',
+          'usuario.segundoApellido',
+          'usuario.correo',
+          'usuario.permisos',
+          'departamento.nombre',
+          'puesto.nombre'
+        ])
+        .orderBy('usuario.estatus', 'DESC')
+        .addOrderBy('usuario.primerApellido', 'ASC')
+        .skip(paginationSetter.getSkipElements(pagina))
+        .take(paginationSetter.castPaginationLimit())
+        .getMany();
 
       return usuarios;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async findAllBusqueda(){
-    try{
+  async findAllBusqueda() {
+    try {
       const usuarios = await this.usuarioRepository.find({
-        select:{
-          estatus:true,
-          nombres:true,
-          primerApellido:true,
-          segundoApellido:true,
-          correo:true,
-          permisos:true,
-          puesto:{
-            nombre:true
+        select: {
+          estatus: true,
+          nombres: true,
+          primerApellido: true,
+          segundoApellido: true,
+          correo: true,
+          permisos: true,
+          puesto: {
+            nombre: true
           },
-          departamento:{
-            nombre:true
+          departamento: {
+            nombre: true
           }
         }
       });
       return usuarios;
     }
-    catch(error){
+    catch (error) {
       handleExeptions(error);
     }
   }
 
-  async findOne(userId:string) {
-    try{
-      const usuario = await this.usuarioRepository.findOneBy({id:userId});
-      if(!usuario){
+  async findOne(userId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOneBy({ id: userId });
+      if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
       };
       delete usuario.password;
       delete usuario.puestoId;
       delete usuario.departamentoId;
       return usuario;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     };
   }
 
-  async update(userId:string, updateUsuarioDto: UpdateUsuarioDto) {
-    try{
+  async update(userId: string, updateUsuarioDto: UpdateUsuarioDto) {
+    try {
       const usuarioDb = await this.findOne(userId);
-      if(usuarioDb){
-        const updateResult = await this.usuarioRepository.update(userId,updateUsuarioDto);
-        if(updateResult.affected === 0){
+      if (usuarioDb) {
+        const updateResult = await this.usuarioRepository.update(userId, updateUsuarioDto);
+        if (updateResult.affected === 0) {
           throw new NotFoundException('Usuario no encontrado');
         }
         return this.findOne(userId);
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async deactivate(id:string) {
-    try{
+  async deactivate(id: string) {
+    try {
       const deactivate = false;
       const usuarioDb = await this.findOne(id);
-      if(usuarioDb){
+      if (usuarioDb) {
         await this.usuarioRepository.update(id,
-          {estatus:deactivate});
-        return {message:'usuario desactivado'}
+          { estatus: deactivate });
+        return { message: 'usuario desactivado' }
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async updatePassword(updatePasswordDto:UpdatePasswordDto){
-    try{
-      const {userId, newPassword} = updatePasswordDto;
-      const updatedPassword = bcrypt.hashSync(newPassword,10)
+  async updatePassword(updatePasswordDto: UpdatePasswordDto) {
+    try {
+      const { userId, newPassword } = updatePasswordDto;
+      const updatedPassword = bcrypt.hashSync(newPassword, 10)
       const usuarioDb = await this.findOne(userId);
-      if(usuarioDb){
-        await this.usuarioRepository.update(userId,{
-          password:updatedPassword});
-        return {"message":"contraseña actualizada"}
+      if (usuarioDb) {
+        await this.usuarioRepository.update(userId, {
+          password: updatedPassword
+        });
+        return { "message": "contraseña actualizada" }
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
-      
+
   }
 
-  async login(loginUserDto:LoginUserDto){
-    try{
-      const {password,correo} = loginUserDto;
-      const dbUser = (await this.usuarioRepository.findOneBy({correo:correo}));
-      
-      if(!dbUser){
+  async login(loginUserDto: LoginUserDto) {
+    try {
+      const { password, correo } = loginUserDto;
+      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo }));
+
+      if (!dbUser) {
         throw new UnauthorizedException('Usuario no encontrado')
       }
-      
-      if(await this.verificarPrimerInicioDeSesion(password,dbUser.password)){
+
+      if (await this.verificarPrimerInicioDeSesion(password, dbUser.password)) {
         return {
-          'defaultPassword':true,
-          'userId':dbUser.id
+          'defaultPassword': true,
+          'userId': dbUser.id
         };
       }
-  
-      if(!bcrypt.compareSync(password,dbUser.password)){
+
+      if (!bcrypt.compareSync(password, dbUser.password)) {
         throw new UnauthorizedException('Contraseña no valida')
       }
-      
-      if(dbUser.estatus === false){
+
+      if (dbUser.estatus === false) {
         throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
       }
-  
+
       delete dbUser.password;
       return {
-        user:{
-          ... dbUser
+        user: {
+          ...dbUser
         },
-        token:{
-          token:this.getJwtToken({id:dbUser.id})
+        token: {
+          token: this.getJwtToken({ id: dbUser.id })
         }
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async verificarPrimerInicioDeSesion(password:string,dbPassword:string){
-    try{
-      if(password === defaultPassowrd){
-        if(bcrypt.compareSync(defaultPassowrd,dbPassword)){
+  async verificarPrimerInicioDeSesion(password: string, dbPassword: string) {
+    try {
+      if (password === defaultPassowrd) {
+        if (bcrypt.compareSync(defaultPassowrd, dbPassword)) {
           return true;
-        }else{
+        } else {
           return false;
         }
-      }else{
+      } else {
         return false;
       };
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
-    
+
   }
 
-  async reestablecer(userId:string){
-    try{
-      const updateResult = await this.usuarioRepository.update(userId,{
-        password:bcrypt.hashSync(defaultPassowrd,10)
+  async reestablecer(userId: string) {
+    try {
+      const updateResult = await this.usuarioRepository.update(userId, {
+        password: bcrypt.hashSync(defaultPassowrd, 10)
       });
-      if(updateResult.affected === 0){
+      if (updateResult.affected === 0) {
         throw new NotFoundException('Departamento no encontrado');
       }
-      return {message:"Contraseña reestablecida"};
-    }catch(error){
+      return { message: "Contraseña reestablecida" };
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async removerPermisos(actualizarPermisosDto:ActualizarPermisosDto){
-    try{
-      const {id,permisos} = actualizarPermisosDto;
+  async removerPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
+    try {
+      const { id, permisos } = actualizarPermisosDto;
       const usuarioDb = await this.findOne(id);
-      
-      if(usuarioDb.estatus === false){
-        return {message:"Usuario desactivado. Activar usuario para hacer cambios"}
+
+      if (usuarioDb.estatus === false) {
+        return { message: "Usuario desactivado. Activar usuario para hacer cambios" }
       }
-      
+
       const permisosActualizados = usuarioDb.permisos.filter(
         (permiso) => !permisos.includes(permiso),
       );
-      
+
       await this.usuarioRepository.update(id, { permisos: permisosActualizados });
       return { message: "Permisos removidos exitosamente", permisos_activos: permisosActualizados }
-    
-    }catch(error){
+
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async agregarPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
-    try{
+    try {
       const { id, permisos } = actualizarPermisosDto;
       const usuarioDb = await this.findOne(id);
-  
+
       if (!usuarioDb) {
         return { message: "Usuario no encontrado" };
       }
-  
+
       if (usuarioDb.estatus === false) {
         return { message: "Usuario desactivado. Activar usuario para hacer cambios" };
       }
-  
+
       // Combinar los permisos existentes con los nuevos sin duplicados
       const permisosActualizadosSet = new Set([...usuarioDb.permisos, ...permisos]);
       const permisosActualizados = Array.from(permisosActualizadosSet);
-  
+
       await this.usuarioRepository.update(id, { permisos: permisosActualizados });
       return { message: "Permisos agregados exitosamente", permisos: permisosActualizados };
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
-  
+
   async obtenerEstatus(userId: string) {
     try {
       const usuario = await this.usuarioRepository.findOne({
@@ -276,21 +277,21 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-  
-      return { usuario: usuario.id, estatus: usuario.estatus};
+
+      return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async checkAuthStatus(usuario:Usuario){
+  async checkAuthStatus(usuario: Usuario) {
     return {
       usuario,
-      token:this.getJwtToken({id:usuario.id})
+      token: this.getJwtToken({ id: usuario.id })
     }
   }
 
-  private getJwtToken(payload:JwtPayload){
+  private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
   }

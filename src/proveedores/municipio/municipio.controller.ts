@@ -1,12 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { MunicipioService } from './municipio.service';
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
 
 @Controller('proveedores/municipios')
-
 export class MunicipioController {
-  constructor(private readonly municipioService: MunicipioService) {}
+  constructor(private readonly municipioService: MunicipioService) { }
 
   @Post()
   create(@Body() createMunicipioDto: CreateMunicipioDto) {
@@ -14,8 +22,14 @@ export class MunicipioController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.municipioService.findAll(+pagina);
+  findAll() {
+    return this.municipioService.findAll();
+  }
+
+
+  @Get('estatal')
+  findEstatal() {
+    return this.municipioService.findEstatal();
   }
 
   @Get(':id')
@@ -29,12 +43,15 @@ export class MunicipioController {
   }
 
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateMunicipioDto: UpdateMunicipioDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateMunicipioDto: UpdateMunicipioDto,
+  ) {
     return this.municipioService.update(id, updateMunicipioDto);
   }
 
   @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.municipioService.remove(id);
   }
 }

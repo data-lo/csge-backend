@@ -85,13 +85,8 @@ export class FacturaController {
   }
 
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
-    return this.facturaService.update(id, updateFacturaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
-    return this.facturaService.eliminarArchivoDeFactura(id);
+  cancelarFactura(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
+    return this.facturaService.cancelarFactura(id, updateFacturaDto);
   }
 
 }

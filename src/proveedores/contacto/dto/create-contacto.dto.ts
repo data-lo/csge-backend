@@ -4,7 +4,7 @@ export class CreateContactoDto {
     
     @IsString()
     @IsOptional()
-    nombre:string;
+    nombreContacto:string;
 
     @IsString()
     @IsOptional()
@@ -23,4 +23,9 @@ export class CreateContactoDto {
     @IsOptional()
     @IsUUID()
     estacionId:string;
+
+    @IsString()
+    @IsOptional()
+    @IsUUID()
+    proveedorId:string;
 }

@@ -14,7 +14,7 @@ export class Estacion {
         name:'nombre_estacion',
         nullable:false
     })
-    nombre:string;
+    nombreEstacion:string;
 
     @Column({
         name:'estatus',

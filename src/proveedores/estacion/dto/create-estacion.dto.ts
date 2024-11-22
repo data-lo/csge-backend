@@ -2,7 +2,7 @@ import { IsArray, IsBoolean, IsString, IsUUID } from "class-validator";
 
 export class CreateEstacionDto {
     @IsString()
-    nombre:string;
+    nombreEstacion:string;
 
     @IsBoolean()
     estatus:boolean;

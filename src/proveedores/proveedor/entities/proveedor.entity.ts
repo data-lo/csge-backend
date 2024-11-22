@@ -30,8 +30,8 @@ export class Proveedor {
 
     @Column({
         name:'nombre_comercial',
+        default:'SIN NOMBRE COMERCIAL',
         nullable:true,
-        default:null,
     })
     nombreComercial:string;
 
