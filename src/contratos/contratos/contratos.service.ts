@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
@@ -15,12 +19,9 @@ import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ContratoEvent } from '../interfaces/contrato-evento';
 
-
 @Injectable()
 export class ContratosService {
-
   constructor(
-
     private eventEmitter: EventEmitter2,
 
     @InjectRepository(Contrato)
@@ -32,13 +33,12 @@ export class ContratosService {
     private contratoModificatorioService: ContratosModificatoriosService,
 
     @InjectRepository(Proveedor)
-    private readonly proveedorRepository: Repository<Proveedor>
-  ) { }
+    private readonly proveedorRepository: Repository<Proveedor>,
+  ) {}
 
   async create(createContratoDto: CreateContratoDto) {
-
     try {
-      let montoDisponible: number = 0.00;
+      let montoDisponible: number = 0.0;
 
       const {
         montoMaximoContratado,
@@ -54,7 +54,7 @@ export class ContratosService {
       }
 
       const proveedor = await this.proveedorRepository.findOne({
-        where: { id: proveedorId }
+        where: { id: proveedorId },
       });
 
       const contrato = this.contratoRepository.create({
@@ -62,12 +62,11 @@ export class ContratosService {
         montoMaximoContratado: montoMaximoContratado,
         montoDisponible: montoDisponible,
         proveedor: proveedor,
-        ...rest
+        ...rest,
       });
 
       await this.contratoRepository.save(contrato);
       return contrato;
-
     } catch (error) {
       handleExeptions(error);
     }
@@ -75,15 +74,24 @@ export class ContratosService {
 
   async findAll(pagina: number) {
     try {
-      const paginationSetter = new PaginationSetter()
-      const contratos = await this.contratoRepository.find({
-        skip: paginationSetter.getSkipElements(pagina),
-        take: paginationSetter.castPaginationLimit(),
-        relations: {
-          proveedor: true
-        },
-      });
-      return contratos
+      const paginationSetter = new PaginationSetter();
+      const contratos = await this.contratoRepository.createQueryBuilder('contrato')
+      .leftJoinAndSelect('contrato.proveedor', 'proveedor')
+      .select([
+        'contrato.id',
+        'contrato.numeroDeContrato',
+        'contrato.tipoDeServicio',
+        'contrato.montoEjercido',
+        'contrato.montoPagado',
+        'contrato.montoDisponible',
+        'contrato.estatusDeContrato',
+        'proveedor.id',
+        'proveedor.nombreComercial',
+      ])
+      .skip(paginationSetter.getSkipElements(pagina))
+      .take(paginationSetter.castPaginationLimit())
+      .getMany();
+      return contratos;
     } catch (error) {
       handleExeptions(error);
     }
@@ -93,8 +101,8 @@ export class ContratosService {
     try {
       const contratos = await this.contratoRepository.find({
         relations: {
-          proveedor: true
-        }
+          proveedor: true,
+        },
       });
       return contratos;
     } catch (error) {
@@ -109,7 +117,7 @@ export class ContratosService {
         relations: {
           contratosModificatorios: true,
           proveedor: true,
-        }
+        },
       });
       if (!contrato) {
         throw new NotFoundException('El contrato no se encuentra');
@@ -134,9 +142,11 @@ export class ContratosService {
     try {
       const { estatusDeContrato, ...rest } = updateContratoDto;
       await this.contratoRepository.update(id, {
-        estatusDeContrato: estatusDeContrato
+        estatusDeContrato: estatusDeContrato,
       });
-      return { message: `Estatus de contrato actuzalizado a ${estatusDeContrato}` }
+      return {
+        message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
+      };
     } catch (error) {
       handleExeptions(error);
     }
@@ -147,16 +157,22 @@ export class ContratosService {
       const estatusDelContrato = await this.obtenerEstatus(id);
       const { proveedorId, ...rest } = updateContratoDto;
 
-
-      if (!proveedorId) throw new BadRequestException('No es posible modificar el proveedor, proveedorId no existe');
+      if (!proveedorId)
+        throw new BadRequestException(
+          'No es posible modificar el proveedor, proveedorId no existe',
+        );
 
       if (estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE) {
-        throw new BadRequestException('El contrato no se encuentra PENDIENTE. Cancelar Contrato')
+        throw new BadRequestException(
+          'El contrato no se encuentra PENDIENTE. Cancelar Contrato',
+        );
       } else {
-        const proveedor = await this.proveedorRepository.findOneBy({ id: proveedorId });
+        const proveedor = await this.proveedorRepository.findOneBy({
+          id: proveedorId,
+        });
         await this.contratoRepository.update(id, {
           proveedor: proveedor,
-          ...rest
+          ...rest,
         });
         return await this.findOne(id);
       }
@@ -169,78 +185,97 @@ export class ContratosService {
     try {
       const estatusDelContrato = await this.obtenerEstatus(id);
       if (estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE) {
-        throw new BadRequestException('El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato')
+        throw new BadRequestException(
+          'El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato',
+        );
       } else {
         await this.contratoRepository.delete({ id: id });
-        return { message: 'contrato eliminado' }
+        return { message: 'contrato eliminado' };
       }
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async desactivarCancelarContrato(id: string, updateContratoDto: UpdateContratoDto) {
-    const { estatusDeContrato, motivoCancelacion } = updateContratoDto
+  async desactivarCancelarContrato(
+    id: string,
+    updateContratoDto: UpdateContratoDto,
+  ) {
+    const { estatusDeContrato, motivoCancelacion } = updateContratoDto;
     try {
       const estatusDeContratoDb = await this.obtenerEstatus(id);
       if (estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO) {
         const contrato = await this.findOne(id);
-        await this.emiter(contrato, 'desactivado')
+        await this.emiter(contrato, 'desactivado');
         await this.contratoRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
-          motivoCancelacion: motivoCancelacion
+          motivoCancelacion: motivoCancelacion,
         });
-        return { message: `Estatus de contrato ${estatusDeContrato}` }
-      }
-      else {
-        throw new BadRequestException('El contrato se debe encontrar LIBERADO para desactivarse o cancelarse');
+        return { message: `Estatus de contrato ${estatusDeContrato}` };
+      } else {
+        throw new BadRequestException(
+          'El contrato se debe encontrar LIBERADO para desactivarse o cancelarse',
+        );
       }
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async agregarContratoModificatorio(agregarContratoModifictorioDto: AgregarContratoModificatorioDto) {
+  async agregarContratoModificatorio(
+    agregarContratoModifictorioDto: AgregarContratoModificatorioDto,
+  ) {
     try {
-      const { contratoId, contratoModificatorioId } = agregarContratoModifictorioDto;
+      const { contratoId, contratoModificatorioId } =
+        agregarContratoModifictorioDto;
       const contrato = await this.findOne(contratoId);
-      const contratoModificatorio = await this.contratoModificatorioService
-        .findOne(contratoModificatorioId);
+      const contratoModificatorio =
+        await this.contratoModificatorioService.findOne(
+          contratoModificatorioId,
+        );
       contratoModificatorio.contrato = contrato;
       await this.contratoModificatorioRepository.save(contratoModificatorio);
-      return { message: "Contrato modificatorio agregado" };
+      return { message: 'Contrato modificatorio agregado' };
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async eliminarContratoModificatorio(eliminarContratoModificatorio: EliminarContratoModificatorioDto) {
+  async eliminarContratoModificatorio(
+    eliminarContratoModificatorio: EliminarContratoModificatorioDto,
+  ) {
     try {
-
-      const { contratoId, contratoModificatorioId } = eliminarContratoModificatorio;
+      const { contratoId, contratoModificatorioId } =
+        eliminarContratoModificatorio;
       const contrato = await this.findOne(contratoId);
-      if (!contrato.contratosModificatorios.find(modificatorio => modificatorio.id === contratoModificatorioId)) {
-        throw new NotFoundException('El contrato modificatorio no está asociado al contrato');
+      if (
+        !contrato.contratosModificatorios.find(
+          (modificatorio) => modificatorio.id === contratoModificatorioId,
+        )
+      ) {
+        throw new NotFoundException(
+          'El contrato modificatorio no está asociado al contrato',
+        );
       }
 
-      contrato.contratosModificatorios = contrato.contratosModificatorios.filter(
-        mod => mod.id !== contratoModificatorioId
-      );
+      contrato.contratosModificatorios =
+        contrato.contratosModificatorios.filter(
+          (mod) => mod.id !== contratoModificatorioId,
+        );
       await this.contratoRepository.save(contrato);
-      await this.contratoModificatorioService.remove(contratoModificatorioId)
-      return { message: "Contrato modificatorio eliminado correctamente" };
-
+      await this.contratoModificatorioService.remove(contratoModificatorioId);
+      return { message: 'Contrato modificatorio eliminado correctamente' };
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async descargarReporte() { }
+  async descargarReporte() {}
 
   async emiter(contrato: Contrato, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
-      new ContratoEvent({ contrato })
-    )
+      new ContratoEvent({ contrato }),
+    );
   }
 }

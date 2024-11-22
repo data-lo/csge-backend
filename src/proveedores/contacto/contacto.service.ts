@@ -23,12 +23,14 @@ export class ContactoService {
       const { estacionId, proveedorId, ...rest } = createContactoDto;
       let estacionDb = null;
       let proveedorDb = null;
+
       if (estacionId) {
         estacionDb = await this.estacionService.findOne(estacionId);
       }
       if (proveedorId) {
         proveedorDb = await this.proveedorService.findOne(proveedorId);
       }
+
       const contacto = this.contactoRepository.create({
         estacion: estacionDb,
         proveedor: proveedorDb,

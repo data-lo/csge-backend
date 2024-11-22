@@ -83,7 +83,6 @@ export class ProveedorService {
           estaciones: {
             municipios: true
           },
-          contratos: true,
         }
       });
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
