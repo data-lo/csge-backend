@@ -21,6 +21,5 @@ import { DocumentsModule } from 'src/documents/documents.module';
   ],
   controllers: [OrdenController],
   providers: [OrdenService],
-
 })
 export class OrdenModule {}

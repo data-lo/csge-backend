@@ -24,7 +24,12 @@ export class OrdenController {
     return this.ordenService.findAllBusqueda();
   }
 
-  @Get('pdf')
+  @Get('obtener-estatus/:id')
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordenService.obtenerEstatusOrden(id);
+  }
+
+  @Get('pdf/:id')
   async crearOrdenEnPdf(
     @Res() res:Response,
     @Param('id',ParseUUIDPipe) id:string
@@ -33,11 +38,6 @@ export class OrdenController {
     res.setHeader('Content-Type','application/pdf');
     pdfDoc.pipe(res);
     pdfDoc.end();
-  }
-
-  @Get('obtener-estatus/:id')
-  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordenService.obtenerEstatusOrden(id);
   }
 
   @Get(':id')

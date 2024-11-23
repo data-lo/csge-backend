@@ -334,6 +334,7 @@ export class OrdenService {
         const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
         const ivaServicio = parseFloat(servicio.iva);
 
+        console.log(cantidad,tarifaUnitaria,ivaServicio);
         if (isNaN(cantidad) || isNaN(tarifaUnitaria) || isNaN(ivaServicio)) {
           throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
         }

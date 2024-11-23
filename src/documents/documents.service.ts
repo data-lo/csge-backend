@@ -13,13 +13,20 @@ export class DocumentsService {
     private facturRepository: Repository<Factura>,
     @InjectRepository(Orden)
     private ordenDeServicioRepository: Repository<Orden>,
-    private readonly printerService: PrinterService,
+    private readonly printerService: PrinterService
   ) {}
 
   async construirOrdenDeServicio(id:string) {
 
-    const orden = await this.ordenDeServicioRepository.findOneBy({id:id});
-    const definicionDeOrden = ordenDeServicioPdf({ordenDeServicio:orden});
+    const orden = await this.ordenDeServicioRepository.findOne({
+      where:{id:id},
+      relations:{
+        campaña:true,
+        proveedor:true,
+        serviciosContratados:true
+      }
+    });
+    const definicionDeOrden = await ordenDeServicioPdf({ordenDeServicio:orden});
     const document = this.printerService.createPdf(definicionDeOrden);
     return document;
   }
