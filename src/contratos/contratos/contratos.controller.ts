@@ -2,8 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
-import { AgregarContratoModificatorioDto } from './dto/agregar-contrato-modificatorio.dto';
-import { EliminarContratoModificatorioDto } from './dto/eliminar-contrato-modificatorio.dto';
 import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('contratos/contratos')
@@ -14,17 +12,6 @@ export class ContratosController {
   @Post()
   create(@Body() createContratoDto: CreateContratoDto) {
     return this.contratosService.create(createContratoDto);
-  }
-
-  @Post('agregar-contrato-modificatorio')
-  agregarContratoModificatorio(@Body() agregarContratoModificatorioDto: AgregarContratoModificatorioDto) {
-    this.logger.log('RQ agregar contrato')
-    return this.contratosService.agregarContratoModificatorio(agregarContratoModificatorioDto);
-  }
-
-  @Post('eliminar-contrato-modificatorio')
-  eliminarContratoModificatorio(@Body() eliminarContratoModificatorioDto: EliminarContratoModificatorioDto) {
-    return this.contratosService.eliminarContratoModificatorio(eliminarContratoModificatorioDto);
   }
 
   @Get()
