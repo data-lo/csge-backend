@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res } from '@nestjs/common';
 import { OrdenService } from './orden.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { Response } from 'express';
 
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
@@ -21,6 +22,17 @@ export class OrdenController {
   @Get('busqueda')
   findAllBusqueda() {
     return this.ordenService.findAllBusqueda();
+  }
+
+  @Get('pdf')
+  async crearOrdenEnPdf(
+    @Res() res:Response,
+    @Param('id',ParseUUIDPipe) id:string
+  ) {
+    const pdfDoc = await this.ordenService.crearOrdenEnPdf(id);
+    res.setHeader('Content-Type','application/pdf');
+    pdfDoc.pipe(res);
+    pdfDoc.end();
   }
 
   @Get('obtener-estatus/:id')
@@ -52,4 +64,5 @@ export class OrdenController {
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.ordenService.remove(id);
   }
+
 }
