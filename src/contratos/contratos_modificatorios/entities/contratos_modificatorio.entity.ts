@@ -104,14 +104,14 @@ export class ContratoModificatorio {
     type: 'date',
     nullable: false,
   })
-  fechaInicial: string;
+  fechaInicial: Date;
 
   @Column({
     name: 'fecha_final',
     type: 'date',
     nullable: false,
   })
-  fechaFinal: string;
+  fechaFinal: Date;
 
   @Column({
     name: 'link_al_contrato',

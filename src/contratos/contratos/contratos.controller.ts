@@ -11,11 +11,13 @@ export class ContratosController {
 
   @Post()
   create(@Body() createContratoDto: CreateContratoDto) {
+    this.logger.log('crear contrato')
     return this.contratosService.create(createContratoDto);
   }
 
   @Get()
   findAll(@Query('pagina') pagina:string) {
+    this.logger.log('obtener contratos')
     return this.contratosService.findAll(+pagina);
   }
 
@@ -36,21 +38,25 @@ export class ContratosController {
 
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    this.logger.log('actualizar contrato')
     return this.contratosService.update(id, updateContratoDto);
   }
 
   @Patch('modificar-estatus/:id')
   modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    this.logger.log('modificar estatus de contrato');
     return this.contratosService.modificarEstatus(id, updateContratoDto);
   }
 
   @Patch('desactivar-cancelar/:id')
   desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+    this.logger.log('desactivar o cancelar contrato');
     return this.contratosService.desactivarCancelarContrato(id, updateContratoDto);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
+    this.logger.log('eliminar contrato');
     return this.contratosService.remove(id);
   }
 }

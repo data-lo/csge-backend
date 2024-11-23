@@ -45,19 +45,11 @@ export class CreateContratoModificatorioDto {
     @Min(0.01)
     montoPagado:number;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaInicial:string;
+    @IsOptional()
+    fechaInicial:Date;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaFinal:string;
+    @IsOptional()
+    fechaFinal:Date;
 
     @IsString()
     @IsOptional()
