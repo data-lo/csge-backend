@@ -33,10 +33,16 @@ export const headerSection = async (options:HeaderOptions):Promise<Content> => {
         const imagePath = refreshRoute();
         const {width, height} = await getImageDimensions(imagePath);
 
-        const maxWidth = 200;
-        const maxheight  = 200;
-        const scale = Math.min(maxWidth/width, maxheight/height);
+        console.log(width,height);
 
+        const maxWidth = 100;
+        const maxheight  = 100;
+        const scale = Math.min(maxWidth/width, maxheight/height);
+        console.log(scale);
+        console.log({
+            width: width * scale,
+            height: height * scale,
+        })
         logo = {
             image:imagePath,
             width: width * scale,
@@ -44,19 +50,21 @@ export const headerSection = async (options:HeaderOptions):Promise<Content> => {
             alignment: 'left',
             margin:[30,20,10,10]
         };
+        
     }
     
     const headerText:Content = {
         text:'COORDINACIÓN DE COMUNICACIÓN\n DE GOBIERNO DEL ESTADO DE \n CHIHUAHUA',
         alignment:'center',
         bold:true,
-        margin: [10,10]
+        margin: [30,30,0,20]
     }
 
     return {
         columns: [
             showLogo ? logo : null,
             showTitle ? headerText: null
-        ]
+        ],
+        margin:[0,0,0,20]
     }
 }
