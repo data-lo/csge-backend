@@ -36,6 +36,7 @@ import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio
 import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
 import { LoggerModule } from './logger/logger.module';
 import { DocumentsModule } from './documents/documents.module';
+import { FirmamexModule } from './firma/firmamex/firmamex.module';
 
 @Module({
   imports: [
@@ -86,7 +87,8 @@ import { DocumentsModule } from './documents/documents.module';
     ServicioContratadoModule,
     CarteleraGobiernoModule,
     LoggerModule,
-    DocumentsModule
+    DocumentsModule,
+    FirmamexModule
   ],
 })
 export class AppModule {}
