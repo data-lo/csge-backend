@@ -31,7 +31,6 @@ export class DepartamentosService{
 
   async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
       return await this.departamentoRepository.find();
     }catch(error){
       handleExeptions(error);

@@ -1,116 +1,145 @@
-import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
-import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Generated,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Contrato } from '../../contratos/entities/contrato.entity';
 @Entity()
 export class ContratoModificatorio {
-    
-    @PrimaryColumn('uuid')
-    @Generated('uuid')
-    id:string;
+  @PrimaryColumn('uuid')
+  @Generated('uuid')
+  id: string;
 
-    @Column({
-        name:'estatus_de_contrato',
-        type:'enum',
-        default:EstatusDeContrato.PENDIENTE,
-        enum:EstatusDeContrato
-    })
-    estatusDeContrato:EstatusDeContrato;
+  @Column({
+    name: 'estatus_de_contrato',
+    type: 'enum',
+    default: EstatusDeContrato.PENDIENTE,
+    enum: EstatusDeContrato,
+  })
+  estatusDeContrato: EstatusDeContrato;
 
-    @Column({
-        name:'monto_contratado',
-        type:'decimal',
-        default:0.00,
-        scale:2,
-        nullable:false
-    })
-    montoContratado:number;
+  @Column({
+    name:'numero_de_contrato'
+  })
+  numeroDeContrato:string;
 
-    @Column({
-        name:'iva_monto_contratado',
-        type:'decimal',
-        default:0.00,
-        scale:2,
-        nullable:false
-    })
-    ivaMontoContratado:number;
+  @Column({
+    name: 'monto_maximo_contratado',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  montoMaximoContratado: number;
 
-    @Column({
-        name:'iva_frontera',
-        type:'boolean',
-        default:false
-    })
-    ivaFrontera:boolean;
+  @Column({
+    name: 'monto_minimo_contratado',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  montoMinimoContratado: number;
 
-    @Column({
-        name:'monto_ejercido',
-        type:'decimal',
-        default:0.00,
-        scale:2,
-        nullable:false
-    })
-    montoEjecido:number;
+  @Column({
+    name: 'iva_monto_minimo_contratado',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  ivaMontoMinimoContratado: number;
 
-    @Column({
-        name:'monto_pagado',
-        type:'decimal',
-        default:0.00,
-        scale:2,
-        nullable:false
-    })
-    montoPagado:number;
+  @Column({
+    name: 'iva_monto_maximo_contratado',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  ivaMontoMaximoContratado: number;
 
-    @Column({
-        name:'monto_disponible',
-        type:'decimal',
-        default:0.00,
-        scale:2,
-        nullable:false
-    })
-    montoDisponible:number;
+  @Column({
+    name: 'iva_frontera',
+    type: 'boolean',
+    default: false,
+  })
+  ivaFrontera: boolean;
 
-    @Column({
-        name:'fecha_inicial',
-        type:'date',
-        nullable:false
-    })
-    fechaInicial:string;
+  @Column({
+    name: 'monto_ejercido',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  montoEjecido: number;
 
-    
-    @Column({
-        name:'fecha_final',
-        type:'date',
-        nullable:false
-    })
-    fechaFinal:string;
+  @Column({
+    name: 'monto_pagado',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  montoPagado: number;
 
-    @Column({
-        name:'link_al_contrato',
-        nullable:true,
-        default:null
-    })
-    linkContrato:string;
+  @Column({
+    name: 'monto_disponible',
+    type: 'decimal',
+    default: 0.0,
+    scale: 2,
+    nullable: false,
+  })
+  montoDisponible: number;
 
-    @Column({
-        name:'ordenes_de_servicio_id',
-        type:'uuid',
-        nullable:true,
-        default:null,
-        array:true
-    })
-    ordenesDeServicioId:string[];
+  @Column({
+    name: 'fecha_inicial',
+    type: 'date',
+    nullable: false,
+  })
+  fechaInicial: Date;
 
-    @ManyToOne(()=> Contrato, 
-        (contrato)=> contrato.contratosModificatorios)
-    @JoinColumn({name:'contrato_id'})
-    contrato: Contrato;
+  @Column({
+    name: 'fecha_final',
+    type: 'date',
+    nullable: false,
+  })
+  fechaFinal: Date;
 
-    @CreateDateColumn({
-        name:'creado_en'
-    })
-    creadoEn:Date;
+  @Column({
+    name: 'link_al_contrato',
+    nullable: true,
+    default: null,
+  })
+  linkContrato: string;
 
-    @UpdateDateColumn({
-        name:'actualizado_en'
-    })
-    actualizadoEn:Date;
+  @Column({
+    name: 'ordenes_de_servicio_id',
+    type: 'uuid',
+    nullable: true,
+    default: null,
+    array: true,
+  })
+  ordenesDeServicioId: string[];
+
+  @ManyToOne(() => Contrato, (contrato) => contrato.contratosModificatorios)
+  @JoinColumn({ name: 'contrato_id' })
+  contrato: Contrato;
+
+  @CreateDateColumn({
+    name: 'creado_en',
+  })
+  creadoEn: Date;
+
+  @UpdateDateColumn({
+    name: 'actualizado_en',
+  })
+  actualizadoEn: Date;
 }
