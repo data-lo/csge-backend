@@ -23,7 +23,8 @@ export class DocumentsService {
       relations:{
         campaña:true,
         proveedor:true,
-        serviciosContratados:true
+        serviciosContratados:true,
+        contrato:true
       }
     });
     const definicionDeOrden = await ordenDeServicioPdf({ordenDeServicio:orden});
