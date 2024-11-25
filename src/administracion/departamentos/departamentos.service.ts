@@ -29,13 +29,9 @@ export class DepartamentosService{
     }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
-      return await this.departamentoRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
-      });
+      return await this.departamentoRepository.find();
     }catch(error){
       handleExeptions(error);
     }

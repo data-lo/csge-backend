@@ -50,6 +50,20 @@ export class EstacionService {
     }
   }
 
+
+  async findAllBusqueda(){
+    try{
+      const estaciones = await this.estacionRepository.find({
+        relations:{
+          municipios:true,
+        }
+      });
+      return estaciones;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async findAll(pagina: number) {
     try{
       const paginationSetter = new PaginationSetter;
@@ -64,6 +78,24 @@ export class EstacionService {
     }catch(error){
       handleExeptions(error);
     }
+  }
+
+  async findAllByServicio(servicio:string){
+    try{
+      const estaciones = await this.estacionRepository.find({
+        relations:{
+          municipios:true,
+          servicios:true
+        }
+      });
+      const estacionesFiltradas = estaciones.filter(estacion =>
+        estacion.servicios.some(s=>s.tipoDeServicio === servicio)
+      );
+      return estacionesFiltradas;
+    }catch(error){
+      handleExeptions(error);
+    }
+    
   }
 
   async findOne(id: string) {
@@ -152,8 +184,14 @@ export class EstacionService {
 
   async obtenerEstatus(id:string){
     try{
-  
-
+      const estacion = await this.estacionRepository.findOneBy({
+        id:id
+      });
+      if(!estacion) throw new NotFoundException('Estacion no encontrada');
+      return {
+        id:id,
+        estatus:estacion.estatus
+      }
     }catch(error){
       handleExeptions(error);
     }
@@ -169,29 +207,5 @@ export class EstacionService {
     }catch(error){
       handleExeptions(error);
     }
-  }
-
-  agregarContacto(){
-
-  }
-
-  eliminarContacto(){
-
-  }
-
-  agregarServicio(){
-
-  }
-
-  eliminarServicio(){
-
-  }
-
-  agregarLugarDeOperacion(){
-
-  }
-
-  eliminarLugarDeOperacion(){
-
   }
 }

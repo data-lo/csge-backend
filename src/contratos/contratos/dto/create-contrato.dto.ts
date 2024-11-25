@@ -1,88 +1,96 @@
-import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
-import { TipoDeContrato } from "src/contratos/interfaces/tipo-de-contrato";
+import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
+import { TipoDeContrato } from 'src/contratos/interfaces/tipo-de-contrato';
 import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
-import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, Min } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateContratoDto {
-            
-    @IsOptional()
-    @IsUUID()
-    proveedorId:string;
-    
-    @IsString()
-    numeroDeContrato:string;
-    
-    @IsEnum(EstatusDeContrato)
-    @IsOptional()
-    estatusDeContrato:EstatusDeContrato;
+  @IsOptional()
+  @IsUUID()
+  proveedorId: string;
 
-    @IsEnum(TipoDeContrato)
-    tipoDeContrato:TipoDeContrato;
+  @IsString()
+  numeroDeContrato: string;
 
-    @IsEnum(TipoDeServicio)
-    tipoDeServicio:TipoDeServicio;
+  @IsEnum(EstatusDeContrato)
+  @IsOptional()
+  estatusDeContrato: EstatusDeContrato;
 
-    @IsString()
-    objetoContrato:string;
+  @IsEnum(TipoDeContrato)
+  tipoDeContrato: TipoDeContrato;
 
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoMinimoContratado:number;
+  @IsEnum(TipoDeServicio)
+  tipoDeServicio: TipoDeServicio;
 
-    @IsOptional()
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoMaximoContratado:number;
+  @IsString()
+  objetoContrato: string;
 
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    ivaMontoMinimoContratado:number;
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  montoMinimoContratado: number;
 
-    @IsOptional()
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    ivaMontoMaximoContratado:number;
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  montoMaximoContratado: number;
 
-    @IsOptional()
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoEjecido:number;
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  ivaMontoMinimoContratado: number;
 
-    @IsOptional()
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoPagado:number;
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  ivaMontoMaximoContratado: number;
 
-    @IsOptional()
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoDisponible:number;
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  montoEjercido: number;
 
-    @IsOptional()
-    @IsBoolean({})
-    ivaFrontera:boolean;
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  montoPagado: number;
 
-    @IsOptional()
-    fechaInicial:Date;
-    
-    @IsOptional()
-    fechaFinal:Date;
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  montoDisponible: number;
 
-    @IsUUID()
-    @IsOptional()
-    @IsArray({each:true})
-    contratoModificatorioId:string[];
+  @IsOptional()
+  @IsBoolean({})
+  ivaFrontera: boolean;
 
-    @IsUUID()
-    @IsOptional()
-    @IsArray({each:true})
-    ordenesDeServicioId:string[];
+  @IsOptional()
+  fechaInicial: Date;
 
-    @IsString()
-    @IsOptional()
-    motivoCancelacionId:string;
-    
-    @IsString()
-    @IsOptional()
-    linkContrato:string;
+  @IsOptional()
+  fechaFinal: Date;
+
+  @IsUUID()
+  @IsOptional()
+  @IsArray({ each: true })
+  contratoModificatorioId: string[];
+
+  @IsUUID()
+  @IsOptional()
+  @IsArray({ each: true })
+  ordenesDeServicioId: string[];
+
+  @IsString()
+  @IsOptional()
+  motivoCancelacion: string;
+
+  @IsString()
+  @IsOptional()
+  linkContrato: string;
 }

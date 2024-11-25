@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuariosModule } from './administracion/usuarios/usuarios.module';
 import { PuestosModule } from './administracion/puestos/puestos.module';
@@ -34,23 +35,25 @@ import { FacturaModule } from './ordenes/factura/factura.module';
 import { ServicioContratadoModule } from './ordenes/servicio_contratado/servicio_contratado.module';
 import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_gobierno.module';
 import { LoggerModule } from './logger/logger.module';
+import { DocumentsModule } from './documents/documents.module';
+import { FirmamexModule } from './firma/firmamex/firmamex.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.development.local',
+      envFilePath: '.env.cloud',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
-      database:process.env.DB_NAME,
-      username:process.env.DB_USERNAME,
-      password:process.env.DB_PASSWORD,
-      host:process.env.DB_HOST,
-      port:Number(process.env.DB_PORT),
+      url:process.env.DATABASE_URL,
+      ssl:true,
       synchronize:true,
       autoLoadEntities:true
       }),
+    EventEmitterModule.forRoot({
+      delimiter:'.'
+    }),
     UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 
@@ -83,7 +86,9 @@ import { LoggerModule } from './logger/logger.module';
     FacturaModule,
     ServicioContratadoModule,
     CarteleraGobiernoModule,
-    LoggerModule
+    LoggerModule,
+    DocumentsModule,
+    FirmamexModule
   ],
 })
 export class AppModule {}
