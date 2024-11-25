@@ -41,7 +41,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     info: {
       creationDate: new Date(),
       author:
-        'COORDINACIÓN DE COMUNICACIÓN SOCIAL DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
+        'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
       title: `ORDEN DE SERVICIO ${folio}`,
     },
     pageSize: 'LETTER',
@@ -72,7 +72,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
           ],
         ]
       },
-      //serviciosContratadosSection({serviciosContratados})
+      serviciosContratadosSection({serviciosContratados})
     ],
   };
   return docDefinition;
