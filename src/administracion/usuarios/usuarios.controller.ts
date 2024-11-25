@@ -7,38 +7,44 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from './interfaces/usuarios.roles';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
-  constructor(private readonly usuariosService: UsuariosService) {}
-
+  constructor(private readonly usuariosService: UsuariosService) { }
+  private readonly logger = new LoggerService(UsuariosController.name);
   //crear usuario
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
+    this.logger.log('usuario creado');
     return this.usuariosService.create(createUsuarioDto);
   }
 
   //inicio de sesion
   @Post('login')
   login(@Body() login: LoginUserDto) {
+    this.logger.log(`Usuario loggin ${login.correo}`)
     return this.usuariosService.login(login);
   }
 
   //actualizar contraseña
   @Post('update-password')
-  updatePassword(@Body() updatePassword:UpdatePasswordDto) {
+  updatePassword(@Body() updatePassword: UpdatePasswordDto) {
+    this.logger.log(`Usuario actualizado`);
     return this.usuariosService.updatePassword(updatePassword);
   }
 
   //remover permisos
   @Post('remover-permisos')
-  removerPermisos(@Body() actualizarPermisosDto:ActualizarPermisosDto) {
+  removerPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
+    this.logger.log(`Permisos removidos`)
     return this.usuariosService.removerPermisos(actualizarPermisosDto);
   }
 
   //agregar permisos
   @Post('agregar-permisos')
-  agregarPermisos(@Body() actualizarPermisosDto:ActualizarPermisosDto) {
+  agregarPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
+    this.logger.log(`Permisos agregados`)
     return this.usuariosService.agregarPermisos(actualizarPermisosDto);
   }
 
@@ -57,7 +63,8 @@ export class UsuariosController {
 
   //reestablecer contraseña
   @Get('/reestablecer/:id')
-  reestablecer(@Param('id',ParseUUIDPipe) id: string) {
+  reestablecer(@Param('id', ParseUUIDPipe) id: string) {
+    this.logger.log(`Contraseña reestablecida`)
     return this.usuariosService.reestablecer(id);
   }
 
@@ -75,7 +82,8 @@ export class UsuariosController {
 
   //desactivar un usuario
   @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    this.logger.log(`Usuario desactivado ${id}`)
     return this.usuariosService.deactivate(id);
   }
 }

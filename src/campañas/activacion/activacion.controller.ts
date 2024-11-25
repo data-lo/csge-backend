@@ -8,7 +8,7 @@ import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 @Controller('campanias/activaciones')
 export class ActivacionController {
   constructor(private readonly activacionService: ActivacionService) {}
-
+  
   @Post()
   create(@Body() createActivacionDto: CreateActivacionDto) {
     return this.activacionService.create(createActivacionDto);
