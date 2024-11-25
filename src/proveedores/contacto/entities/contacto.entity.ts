@@ -4,51 +4,51 @@ import { Column, CreateDateColumn, Entity, Generated, ManyToMany, ManyToOne, Pri
 
 @Entity('contactos')
 export class Contacto {
-    
+
     @Generated('uuid')
     @PrimaryColumn('uuid')
-    id:string
+    id: string
 
     @Column({
-       name:'nombre',
-       nullable:false,
+        name: 'nombre',
+        nullable: false,
     })
-    nombre:string;
+    nombreContacto: string;
 
     @Column({
-        name:'telefono',
-        nullable:true,
-        default:null
+        name: 'telefono',
+        nullable: true,
+        default: null
     })
-    telefono:string;
+    telefono: string;
 
     @Column({
-        name:'correo_electronico',
-        nullable:true,
-        default:null
+        name: 'correo_electronico',
+        nullable: true,
+        default: null
     })
-    correoElectronico:string;
+    correoElectronico: string;
 
     @Column({
-        name:'observaciones',
-        nullable:true,
-        default:null
+        name: 'observaciones',
+        nullable: true,
+        default: null
     })
-    observaciones:string;
+    observaciones: string;
 
-    @ManyToOne(()=> Estacion, (estacion) => estacion.contactos)
-    estacion:Estacion;
+    @ManyToOne(() => Estacion, (estacion) => estacion.contactos)
+    estacion: Estacion;
 
-    @ManyToOne(()=> Proveedor, (proveedor) => proveedor.contactos)
-    proveedor:Proveedor;
+    @ManyToOne(() => Proveedor, (proveedor) => proveedor.contactos)
+    proveedor: Proveedor;
 
     @CreateDateColumn({
-        name:'creado_en'
+        name: 'creado_en'
     })
-    creadoEn:Date;
+    creadoEn: Date;
 
     @UpdateDateColumn({
-        name:'actualizado_en'
+        name: 'actualizado_en'
     })
-    actualizadoEn:Date;
+    actualizadoEn: Date;
 }

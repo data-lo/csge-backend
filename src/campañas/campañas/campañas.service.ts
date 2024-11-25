@@ -11,12 +11,17 @@ import { ActivacionService } from '../activacion/activacion.service';
 import { PartidaService } from '../partida/partida.service';
 import { EstatusCampaña } from './interfaces/estatus-campaña.enum';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CampaniaEvent } from './interfaces/campaña-evento';
 
 
 @Injectable()
 export class CampañasService {
 
   constructor(
+
+    private eventEmitter:EventEmitter2,
+
     @InjectRepository(Campaña)
     private campañaRepository:Repository<Campaña>,
     
@@ -63,6 +68,28 @@ export class CampañasService {
       const campañas = await this.campañaRepository.find({
         take:paginationSetter.castPaginationLimit(),
         skip:paginationSetter.getSkipElements(pagina),
+        relations:{
+          dependencias:true,
+          activaciones:true
+        },select:{
+          activaciones:{
+            fechaDeAprobacion:true,
+            fechaDeCierre:true,
+            fechaDeCreacion:true,
+            fechaDeInicio:true
+          }
+        },
+      });
+      return campañas;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+
+  async findAllBusuqueda() {
+    try{
+      const campañas = await this.campañaRepository.find({
         relations:{
           dependencias:true,
           activaciones:true
@@ -130,6 +157,9 @@ export class CampañasService {
     try{
       const estatus = (await this.verificarEstatus(id)).estatus;
       if((estatus === EstatusCampaña.CREADA) || (estatus === EstatusCampaña.COTIZANDO)){
+        const campaña = await this.findOne(id);
+        await this.emisor(campaña,'eliminada');
+        
         await this.campañaRepository.delete(id);
         return {message:'Campaña eliminada existosamente'};
       }
@@ -197,6 +227,13 @@ export class CampañasService {
     }catch(error){
       handleExeptions(error);
     }
+  }
+
+  async emisor(campaña:Campaña,evento:string){
+    this.eventEmitter.emit(
+      `campania.${evento}`,
+      new CampaniaEvent({campaña}),
+    )
   }
 
 }

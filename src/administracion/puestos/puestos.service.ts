@@ -27,13 +27,9 @@ export class PuestosService {
   }
   
   
-  async findAll(pagina:number) {
-    const paginationSetter = new PaginationSetter()
+  async findAll(){ 
     try{
-      return await this.puestoRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit(),
-      });
+      return await this.puestoRepository.find();
     }catch(error){
       handleExeptions(error);
     }

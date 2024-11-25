@@ -5,18 +5,20 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const { httpAdapter } = app.get(HttpAdapterHost)
+  const { httpAdapter } = app.get(HttpAdapterHost);
   app.enableCors({
-    origin:["*"],
-    methods:['GET','POST','PATCH','DELETE','OPTIONS'],
-    allowedHeaders:['Content-Type','Authorization'],
-    credentials:false
-  })
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-  }));
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
+    origin: ['*'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+  });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
   await app.listen(process.env.SERVER_PORT);
 }
 bootstrap();

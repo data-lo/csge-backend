@@ -4,17 +4,32 @@ import { Transform } from "class-transformer";
 
 export class CreateContratoModificatorioDto {
     
+    @IsUUID()
+    @IsString()
+    contratoId:string
+    
     @IsEnum(EstatusDeContrato)
     @IsOptional()
     estatusDeContrato:EstatusDeContrato;
 
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
-    montoContratado:number;
+    @IsString()
+    numeroDeContrato:string;
 
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    ivaMontoContratado:number;
+    montoMinimoContratado:number;
+
+    @IsNumber({maxDecimalPlaces:2})
+    @Min(0.01)
+    ivaMontoMinimoContratado:number;
+
+    @IsNumber({maxDecimalPlaces:2})
+    @Min(0.01)
+    montoMaximoContratado:number;
+
+    @IsNumber({maxDecimalPlaces:2})
+    @Min(0.01)
+    ivaMontoMaximoContratado:number;
 
     @IsOptional()
     @IsBoolean()
@@ -23,26 +38,18 @@ export class CreateContratoModificatorioDto {
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    montoEjecido:number;
+    montoEjercido:number;
 
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
     montoPagado:number;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaInicial:string;
+    @IsOptional()
+    fechaInicial:Date;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaFinal:string;
+    @IsOptional()
+    fechaFinal:Date;
 
     @IsString()
     @IsOptional()

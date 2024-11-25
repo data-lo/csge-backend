@@ -19,8 +19,8 @@ import {
           const currentYear = new Date().getFullYear();
   
           // Filtrar según permisos
-          if (user.permisos?.includes('soloActivos')) {
-            data = data.filter((item) => item.estatus === true);
+          if (user.permisos?.includes('HISTORICO')) {
+            data = data.filter((item) => item.estatus === false);
           }
   
           // Filtrar por año anterior
@@ -38,7 +38,6 @@ import {
               return fecha >= fechaInicio && fecha <= fechaFin;
             });
           }
-  
           return data;
         }),
       );

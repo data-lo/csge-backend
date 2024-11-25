@@ -51,13 +51,18 @@ export class UsuariosController {
   //obtener todos los usuarios
   @Get()
   findAll(
-    @Query('pagina') pagina:string) {
+    @Query('pagina') pagina: string) {
     return this.usuariosService.findAll(+pagina);
+  }
+
+  @Get('busqueda')
+  findAllBusqueda() {
+    return this.usuariosService.findAllBusqueda();
   }
 
   //obtener un usuario
   @Get(':id')
-  findOne(@Param('id',ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.findOne(id);
   }
 
@@ -70,13 +75,13 @@ export class UsuariosController {
 
   //obtener el estatus de un usuario
   @Get('/obtener-estatus/:id')
-  obtenerEstatus(@Param('id',ParseUUIDPipe) id: string) {
+  obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.obtenerEstatus(id);
   }
 
   //actualizar un usuario
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(id, updateUsuarioDto);
   }
 

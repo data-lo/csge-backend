@@ -5,7 +5,6 @@ import { UpdateFirmaDto } from './dto/update-firma.dto';
 @Injectable()
 export class FirmaService {
   create(createFirmaDto: CreateFirmaDto) {
-    return 'This action adds a new firma';
   }
 
   findAll() {
