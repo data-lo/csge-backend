@@ -79,7 +79,7 @@ export class ContratoModificatorio {
     scale: 2,
     nullable: false,
   })
-  montoEjecido: number;
+  montoEjercido: number;
 
   @Column({
     name: 'monto_pagado',
