@@ -38,7 +38,7 @@ export class CreateContratoModificatorioDto {
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
     @Min(0.01)
-    montoEjecido:number;
+    montoEjercido:number;
 
     @IsOptional()
     @IsNumber({maxDecimalPlaces:2})
