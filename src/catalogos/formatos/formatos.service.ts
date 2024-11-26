@@ -25,13 +25,9 @@ export class FormatosService {
     };
   }
 
-  async findAll(pagina:number){
+  async findAll(){
     try{
-      const paginationSetter = new PaginationSetter();
-      const formatos = await  this.formatoRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
-      });
+      const formatos = await  this.formatoRepository.find();
       return formatos;
     }catch(error:any){
       handleExeptions(error);

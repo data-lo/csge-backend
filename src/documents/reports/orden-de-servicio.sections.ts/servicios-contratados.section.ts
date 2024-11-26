@@ -3,14 +3,12 @@ import { Content } from 'pdfmake/interfaces';
 export const serviciosContratadosSection = (serviciosContratados:ServiciosContratados):Content => {
     
     const serviciosDeOrden = serviciosContratados.serviciosContratados;
-    
-
     const serviciosContratadosC:Content = {
 
         marginTop:10,
         alignment:'center',
         font:'Poppins',
-        fontSize:10,
+        fontSize:8,
         layout:'lightHorizontalLines',
         table:{
             headerRows:1,
@@ -18,10 +16,10 @@ export const serviciosContratadosSection = (serviciosContratados:ServiciosContra
             body:[
                 [{text:'SERVICIO',bold:true,fillColor:'#caddfa'},
                  {text:'DESCRIPCIÓN',bold:true,fillColor:'#caddfa'},
-                 {text:'TARIFA UNITARIA',bold:true,fillColor:'#caddfa'},
+                 {text:'TARIFA UNITARIA s/I.V.A',bold:true,fillColor:'#caddfa',fontSize:8},
                  {text:'CANTIDAD',bold:true,fillColor:'#caddfa'},
                  {text:'INICIO DEL SERVICIO',bold:true,fillColor:'#caddfa'},
-                 {text:'FINALIZACION DEL SERVICIO',bold:true,fillColor:'#caddfa'}
+                 {text:'FINALIZACIÓN DEL SERVICIO',bold:true,fillColor:'#caddfa'}
                 ],
                 ...serviciosDeOrden.map((servicioContratado) => [
                     servicioContratado.servicio.nombreDeServicio.toString(),
@@ -32,7 +30,7 @@ export const serviciosContratadosSection = (serviciosContratados:ServiciosContra
                     servicioContratado.fechaFinal.toString(),
                 ])              
             ]
-        }
+        },
     }
     return serviciosContratadosC
 }

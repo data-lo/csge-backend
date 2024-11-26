@@ -5,8 +5,8 @@ import { FirmamexServices } from './firmamexSDK';
 export class FirmamexService {
     firmamexServices() {
         const services = FirmamexServices(
-            process.env.WEB_ID,
-            process.env.API_KEY
+            process.env.WEB_ID_FIRMAMEX,
+            process.env.API_KEY_FIRMAMEX
         );
         return services;
     }

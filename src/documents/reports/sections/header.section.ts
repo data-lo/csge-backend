@@ -53,7 +53,7 @@ export const headerSection = async (options:HeaderOptions):Promise<Content> => {
         const imagePath = refreshRoute();
         const {width, height} = await getImageDimensions(imagePath);
 
-        const maxWidth = 100;
+        const maxWidth = 150;
         const maxheight  = 100;
         const scale = Math.min(maxWidth/width, maxheight/height);
 
