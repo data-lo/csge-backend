@@ -1,3 +1,4 @@
+import { log } from 'console';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { Content } from 'pdfmake/interfaces';
@@ -16,10 +17,9 @@ const refreshRoute = () => {
     const rutaDeCarga = join(__dirname, '../../../../static/uploads/imagen');
     const imagen = readdirSync(rutaDeCarga);
     const path = join(rutaDeCarga, imagen[0]);
-    if (!path) return null;
     return path;
   } catch (error) {
-    handleExeptions(error);
+    return null;
   }
 };
 
@@ -73,9 +73,11 @@ export const headerSection = async (
         alignment: 'left',
         margin: [30, 20, 10, 10],
       };
+    } else {
+      logo = {text:''}
     }
   }
-
+  
   const headerText: Content = {
     text: `${dividirTextoPorEspacios(textoEncabezado, 50)}\n${folio}`,
     alignment: 'center',
