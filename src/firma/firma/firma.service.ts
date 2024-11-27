@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
 import { FirmamexService } from '../firmamex/firmamex.service';
@@ -19,34 +19,33 @@ export class FirmaService {
   constructor(
 
     @InjectRepository(Usuario)
-    private usuarioRepository:Repository<Usuario>,
+    private usuarioRepository: Repository<Usuario>,
     @InjectRepository(Factura)
-    private facturaRepository:Repository<Factura>,
+    private facturaRepository: Repository<Factura>,
     @InjectRepository(Orden)
-    private ordenRepository:Repository<Orden>,
+    private ordenRepository: Repository<Orden>,
     private readonly firmamexService: FirmamexService
-  ) {}
-
+  ) { }
 
   async create(createFirmaDto: CreateFirmaDto) {
-    try{
+    try {
       const {
-        documentoEnPdf, 
+        documentoEnPdf,
         ordenOFacturaId,
         tipoDeDocumento,
         ...rest
       } = createFirmaDto;
 
-      let response:FirmamexResponse = null;
-      
+      let response: FirmamexResponse = null;
+
       const nombreDocumento = documentoEnPdf.info.Title;
       const documentoEnbase64 = await this.crearArchivoEnBase64(documentoEnPdf);
-      
-      //const usuarios = await this.obtenerUsuariosFirmantes(ordenOFacturaId,tipoDeDocumento);
-      response = await this.enviarDocumentoAFirmamexSDK(documentoEnbase64,nombreDocumento);
-      return response;
 
-    }catch(error){
+      const usuarios = await this.obtenerUsuariosFirmantes(ordenOFacturaId,tipoDeDocumento);
+      //response = await this.enviarDocumentoAFirmamexSDK(documentoEnbase64, nombreDocumento);
+      return usuarios;
+
+    } catch (error) {
       handleExeptions(error);
     }
 
@@ -68,8 +67,8 @@ export class FirmaService {
     return `This action removes a #${id} firma`;
   }
 
-  async deBase64aPdf(base64:string,nombreArchivo:string) {
-    const pdfBuffer = Buffer.from(base64,'base64');
+  async deBase64aPdf(base64: string, nombreArchivo: string) {
+    const pdfBuffer = Buffer.from(base64, 'base64');
     const writeStream = createWriteStream(nombreArchivo);
     writeStream.write(pdfBuffer);
     writeStream.end();
@@ -94,7 +93,51 @@ export class FirmaService {
     });
   }
 
-  async enviarDocumentoAFirmamexSDK(docBase64, docNombre:string):Promise<FirmamexResponse>{
+  async obtenerUsuariosFirmantes(documentoId: string, tipoDeDocumento: TipoDeDocumento): Promise<Usuario[]> {
+    try {
+      let documentoDb: Orden | Factura = null;
+      let usuarios: Usuario[] = []
+
+      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+        documentoDb = await this.ordenRepository.findOne({
+          where: { id: documentoId }
+        });
+
+        if(!documentoDb) throw new NotFoundException('No se encuentra la orden  de servicio');
+        console.log(documentoDb);
+
+        usuarios = await this.usuarioRepository.find({
+          where: {
+            permisos: ValidPermises.FIRMA,
+            estatus: true,
+            documentosDeFirma: tipoDeDocumento,
+            tipoOrdenDeServicio: documentoDb.tipoDeServicio,
+          }
+        });
+      }
+
+      else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        documentoDb = await this.facturaRepository.findOne({
+          where: { id: documentoId }
+        });
+        if(!documentoDb) throw new NotFoundException('No se encuentra la factura');
+
+        usuarios = await this.usuarioRepository.find({
+          where:{
+            permisos:ValidPermises.FIRMA,
+            estatus:true,
+            documentosDeFirma:tipoDeDocumento
+          }
+        })
+      }
+      return usuarios;
+
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async enviarDocumentoAFirmamexSDK(docBase64, docNombre: string): Promise<FirmamexResponse> {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
       const response = await serviciosFirmamex.request({
@@ -102,7 +145,7 @@ export class FirmaService {
           data: docBase64,
           name: docNombre,
         },
-        qr:[QR]
+        qr: [QR]
       });
       return response;
     } catch (error) {
@@ -111,34 +154,32 @@ export class FirmaService {
     }
   }
 
-
-  async obtenerUsuariosFirmantes(documentoId:string,tipoDeDocumento:TipoDeDocumento):Promise<Usuario[]>{
+  async eliminarDocumentoDeFimrmamex(ticket:string){
+    const serviciosFirmamex = await this.firmamexService.getServices();
+    const response = await serviciosFirmamex.docs({
+      ticket:ticket,
+      action:'delete'
+    });
+    return response;
+  }
+  
+  async obtenerDocumentosDeFrimamex(){
     try{
-      let documentoDb: Orden | Factura = null;
-      let usuarios:Usuario[] = []
-      
-      if(tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO){
-        documentoDb = await this.ordenRepository.findOne({
-          where:{id:documentoId}
-        })
-      
-        usuarios = await this.usuarioRepository.find({
-          where:{
-            permisos:ValidPermises.FIRMA,
-            estatus:true,
-            tipoOrdenDeServicio:documentoDb.tipoDeServicio,
-            documentosDeFirma:tipoDeDocumento
-          }
-        });
+      const from = new Date('2024-11-27').getTime();
+      const to = new Date('2024-11-27').getTime();
+      const serviciosFirmamex = await this.firmamexService.getServices();
+      let documentos = await serviciosFirmamex.listDocuments(
+        from,
+        to
+      )
+      while(documentos.nextToken){
+        documentos = await serviciosFirmamex.listDocuments(
+          from,
+          to,
+          documentos.nextTocken
+        )
       }
-      
-      if(tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
-        documentoDb = await this.facturaRepository.findOne({
-          where:{id:documentoId}
-        })
-      }
-      return usuarios;
-
+      return documentos;
     }catch(error){
       handleExeptions(error);
     }

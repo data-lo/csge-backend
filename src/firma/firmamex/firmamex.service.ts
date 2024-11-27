@@ -10,7 +10,6 @@ export class FirmamexService {
       process.env.WEB_ID_FIRMAMEX,
       process.env.API_KEY_FIRMAMEX,
     );
-    console.log(process.env.WEB_ID_FIRMAMEX, process.env.API_KEY_FIRMAMEX);
     return;
   }
 

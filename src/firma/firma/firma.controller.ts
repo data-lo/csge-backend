@@ -17,6 +17,11 @@ export class FirmaController {
     return this.firmaService.findAll();
   }
 
+  @Get('documentos-firmamex')
+  findAllDocumentosFirmamex() {
+    return this.firmaService.obtenerDocumentosDeFrimamex();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.firmaService.findOne(+id);
@@ -30,5 +35,10 @@ export class FirmaController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.firmaService.remove(+id);
+  }
+
+  @Delete(':id')
+  removeDocumentoFirmamex(@Param('id') id: string) {
+    return this.firmaService.eliminarDocumentoDeFimrmamex(id);
   }
 }

@@ -25,14 +25,7 @@ export class Firma {
         enum:EstatusDeFirma,
         default:EstatusDeFirma.APROBADA
     })
-    estatusDeFirma:EstatusDeFirma
-
-    @Column({
-        type:'bytea',
-        name:'documento_en_bytes',
-        nullable:true
-    })
-    docBase64:string;
+    estatusDeFirma:EstatusDeFirma;
 
     @Column({
         name:'url_de_documento_en_firmamex',
