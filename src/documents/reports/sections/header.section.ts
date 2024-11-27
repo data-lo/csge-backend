@@ -1,9 +1,7 @@
-import { log } from 'console';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { Content } from 'pdfmake/interfaces';
 import sharp from 'sharp';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 interface HeaderOptions {
   showTitle: boolean;

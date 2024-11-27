@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const FormData = require('form-data');
 
-const baseUrl = 'https://firmamex.com';
+const baseUrl = 'https://gestorescpd.chihuahua.gob.mx';
 
 function FirmamexServices(webId, apiKey) {
   function hashAndGet(path) {

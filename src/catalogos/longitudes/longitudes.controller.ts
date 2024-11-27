@@ -13,8 +13,8 @@ export class LongitudesController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:number) {
-    return this.longitudesService.findAll(pagina);
+  findAll() {
+    return this.longitudesService.findAll();
   }
 
   @Get(':id')

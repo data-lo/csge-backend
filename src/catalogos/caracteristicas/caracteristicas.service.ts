@@ -81,13 +81,9 @@ export class CaracteristicasService {
       }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
-      const caracteristicas = await this.caracteristicasRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
-      });
+      const caracteristicas = await this.caracteristicasRepository.find({});
       return caracteristicas;
     }catch(error:any){
       handleExeptions(error);

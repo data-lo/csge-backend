@@ -1,21 +1,59 @@
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
-import { Factura } from "src/ordenes/factura/entities/factura.entity";
-import { Orden } from "src/ordenes/orden/entities/orden.entity";
-import { Entity, Generated, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, ManyToMany, PrimaryColumn } from "typeorm";
+import { EstatusDeFirma } from "../interfaces/estatus-de-firma.enum";
 
 @Entity('documentos_firma')
 export class Firma {
 
-    @Generated('uuid')
-    @PrimaryColumn('uuid')
-    id:string;
+    @PrimaryColumn({
+        type:'uuid',
+        name:'orden_o_factura_id',
+        nullable:false
+    })
+    ordenOFacturaId:string;
 
-    @ManyToOne(()=>Orden, (orden)=> orden.id)    
-    ordenesDeServicio:Orden[];
+    @Column({
+        type:'boolean',
+        name:'esta_firmado',
+        nullable:false,
+        default:false
+    })
+    estaFirmado:boolean;
 
-    @ManyToOne(()=>Factura,(factura)=> factura.id)
-    facturas:Factura[]
+    @Column({
+        type:'enum',
+        enum:EstatusDeFirma,
+        default:EstatusDeFirma.APROBADA
+    })
+    estatusDeFirma:EstatusDeFirma
 
-    @ManyToOne(()=>Usuario,(usuario) => usuario.id)
-    usuarios:Usuario[]
+    @Column({
+        type:'bytea',
+        name:'documento_en_bytes',
+        nullable:true
+    })
+    docBase64:string;
+
+    @Column({
+        name:'url_de_documento_en_firmamex',
+        nullable:false,
+        default:'sin_url'
+    })
+    documentoUrlFirmamex:string
+    
+    @Column({
+        name:'ticket_de_documento_firmamex',
+        type:'uuid',
+        nullable:false,
+    })
+    ticket:string;
+
+    @ManyToMany(
+        () => Usuario, 
+        (usuario) => usuario.documentosParaFirmar
+    )
+    usuariosFirmadores:Usuario;
+
+
+    
 }

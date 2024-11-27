@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { ImpresionesService } from './impresiones.service';
 import { CreateImpresionDto } from './dto/create-impresion.dto';
 import { UpdateImpresionDto } from './dto/update-impresion.dto';
@@ -13,8 +13,8 @@ export class ImpresionesController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.impresionesService.findAll(+pagina);
+  findAll() {
+    return this.impresionesService.findAll();
   }
 
   @Get(':id')

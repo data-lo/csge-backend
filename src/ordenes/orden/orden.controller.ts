@@ -14,6 +14,14 @@ export class OrdenController {
     return this.ordenService.create(createOrdenDto);
   }
 
+  @Post('aprobar-orden/:id')
+  aprobarOrdern(
+    @Param('id',ParseUUIDPipe) id:string,
+    @Body('estatusDeFirma') estatusDeFirma:string
+  ) {
+    return this.ordenService.mandarOrdenAFirmar(id,estatusDeFirma);
+  }
+
   @Get()
   findAll(@Query('pagina') pagina:string ) {
     return this.ordenService.findAll(+pagina);

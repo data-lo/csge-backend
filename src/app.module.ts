@@ -37,6 +37,7 @@ import { CarteleraGobiernoModule } from './ordenes/cartelera_gobierno/cartelera_
 import { LoggerModule } from './logger/logger.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FirmamexModule } from './firma/firmamex/firmamex.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -88,7 +89,8 @@ import { FirmamexModule } from './firma/firmamex/firmamex.module';
     CarteleraGobiernoModule,
     LoggerModule,
     DocumentsModule,
-    FirmamexModule
+    FirmamexModule,
+    WebhooksModule
   ],
 })
 export class AppModule {}

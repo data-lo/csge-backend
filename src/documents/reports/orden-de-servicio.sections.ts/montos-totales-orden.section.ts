@@ -1,8 +1,4 @@
 import { Content } from "pdfmake/interfaces"
-
-
-
-
 export const montosTotalesOrdenSection= (totales:Totales):Content => {
     const style = {
         font:'Poppins',

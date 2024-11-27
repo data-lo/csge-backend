@@ -20,8 +20,6 @@ interface OrdenDeServicioOptions {
 }
 
 export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
-  console.log(orden);
-
   const {
     campaña,
     proveedor,
@@ -36,7 +34,6 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     total,
   } = orden.ordenDeServicio;
 
-  console.log(serviciosContratados);
   const textoEncabezado = orden.textoEncabezado;
   const textoPieDePagina = orden.textoPieDePagina;
   const presupuestoText = 'PRESUPUESTO 2025';
@@ -51,6 +48,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
         'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
       title: `ORDEN DE SERVICIO ${folio}`,
     },
+    
     pageSize: 'LETTER',
     pageMargins: [30, 120, 30, 60],
     footer: function (currentPage, pageCount) {

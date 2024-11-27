@@ -21,6 +21,8 @@ import { plainToClass } from 'class-transformer';
 import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 import { DocumentsService } from 'src/documents/documents.service';
 import { FirmaService } from '../../firma/firma/firma.service';
+import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
+import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 
 @Injectable()
 export class OrdenService {
@@ -365,11 +367,20 @@ export class OrdenService {
     }
   }
 
-  async aprobarOrden() {}
+  async mandarOrdenAFirmar(ordenId:string,estatusDeFirma){
+    const documentoEnPdf  = await this.crearOrdenEnPdf(ordenId);
+    const documentoFirmaDto:CreateFirmaDto = {
+      ordenOFacturaId:ordenId,
+      tipoDeDocumento:TipoDeDocumento.ORDEN_DE_SERVICIO,
+      estaFirmado:false,
+      estatusDeFirma:estatusDeFirma,
+      documentoEnPdf:documentoEnPdf
+    }
+    return await this.firmaService.create(documentoFirmaDto);
+  }
 
   async crearOrdenEnPdf(id:string) {
     const documento = await this.documentsService.construirOrdenDeServicio(id);
-    //const variable = await this.firmaService.enviarDocumentoAFirmamex(documento);
     return documento;
   }
 }
