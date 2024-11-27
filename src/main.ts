@@ -18,7 +18,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
   await app.listen(process.env.SERVER_PORT);
 }
 bootstrap();

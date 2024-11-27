@@ -9,6 +9,7 @@ import { ContratosModule } from 'src/contratos/contratos/contratos.module';
 import { PartidaModule } from 'src/campañas/partida/partida.module';
 import { ServicioContratadoModule } from '../servicio_contratado/servicio_contratado.module';
 import { DocumentsModule } from 'src/documents/documents.module';
+import { FirmaModule } from 'src/firma/firma/firma.module';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Orden]),
@@ -17,7 +18,8 @@ import { DocumentsModule } from 'src/documents/documents.module';
     ContratosModule,
     PartidaModule,
     ServicioContratadoModule,
-    DocumentsModule
+    DocumentsModule,
+    FirmaModule
   ],
   controllers: [OrdenController],
   providers: [OrdenService],
