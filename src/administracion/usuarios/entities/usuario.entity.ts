@@ -76,6 +76,14 @@ export class Usuario {
     numeroDeEmpleado:string;
 
     @Column({
+        name:'rfc',
+        unique:true,
+        length:13,
+        nullable:true
+    })
+    rfc:string;
+
+    @Column({
         type:"enum",
         enum:ValidRoles,
         default:ValidRoles.AGENTE

@@ -9,7 +9,7 @@ import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { ArrayContains, Repository } from 'typeorm';
 import { Factura } from 'src/ordenes/factura/entities/factura.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
-import { FirmamexResponse } from './interfaces/firmamex-responde.interface';
+import { FirmamexResponse, Sticker } from './interfaces/firmamex-responde.interface';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { QR } from './interfaces/qr.c';
@@ -39,7 +39,7 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { ordenOFacturaId, tipoDeDocumento, ...rest } = createFirmaDto;
+      const { ordenOFacturaId, tipoDeDocumento} = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         ordenOFacturaId,
@@ -47,6 +47,7 @@ export class FirmaService {
       );
       
       const documentoParaFirmar = this.firmaRepository.create({
+        tipoDeDocumento:tipoDeDocumento,
         ordenOFacturaId:ordenOFacturaId,
         estaFirmado:false,
         usuariosFirmadores:usuarios
@@ -62,8 +63,26 @@ export class FirmaService {
     }
   }
 
-  findAll() {
-    return `This action returns all firma`;
+  async findAll(usuarioId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id: usuarioId },
+        relations: ['documentosParaFirmar']
+      });
+  
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      
+      const documentosPorFirmar = await this.firmaRepository
+        .createQueryBuilder('documentosPorFirmar')
+        .innerJoin('documentosPorFirmar.usuariosFirmadores', 'usuario', 'usuario.id = :usuarioId', { usuarioId })
+        .where('documentosPorFirmar.estaFirmado = :estaFirmado', { estaFirmado: false })
+        .getMany();
+  
+      return documentosPorFirmar;
+
+    } catch (error) {
+      handleExeptions(error);
+    }
   }
 
   findOne(id: number) {
@@ -126,12 +145,17 @@ export class FirmaService {
     }
   }
 
-  //CONSTRUCCIÓN DE DOCUMENTOS EN PDF
-
-  async construir_pdf(
-    documentoId,
-    tipoDeDocumento: TipoDeDocumento,
-  ): Promise<PDFKit.PDFDocument> {
+  async firmarDocumento(usuarioId,documentoId){
+    try{
+      const usuario = await this.usuarioRepository.findOneBy({id:usuarioId});
+      //const documento = 
+      const stickers = this.crearStickers([usuario]);
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+  
+  async construir_pdf(documentoId,tipoDeDocumento: TipoDeDocumento,): Promise<PDFKit.PDFDocument> {
     let documento = null;
     if ((tipoDeDocumento = TipoDeDocumento.ORDEN_DE_SERVICIO)) {
       documento =
@@ -144,11 +168,34 @@ export class FirmaService {
     }
   }
 
+  async crearStickers(usuarios:Usuario[]){
+    try{
+      const stickers = []
+      for(const usuario of usuarios){
+        const sticker = {
+          authority:'chihuahua',
+          stickerType:'rect',
+          dataType:'rfc',
+          data:usuario.rfc,
+          imageType:'hash'
+        }
+        stickers.push(sticker)
+      }
+
+      return stickers;
+
+    }catch(error){
+      handleExeptions(error);
+    }
+
+  }
+
   //SERVICIOS_FIRMAMEX
 
   async enviarDocumentoAFirmamexSDK(
     docBase64,
     docNombre: string,
+    stickers:Sticker[]
   ): Promise<FirmamexResponse> {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
@@ -158,6 +205,10 @@ export class FirmaService {
           name: docNombre,
         },
         qr: [QR],
+        stickers:stickers,
+        owner:{
+          email:'bmsaenz@chihuahua.gob.mx'
+        }
       });
       return response;
     } catch (error) {

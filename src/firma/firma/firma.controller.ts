@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { FirmaService } from './firma.service';
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
@@ -12,9 +12,9 @@ export class FirmaController {
     return this.firmaService.create(createFirmaDto);
   }
 
-  @Get()
-  findAll() {
-    return this.firmaService.findAll();
+  @Get(':id')
+  findAll(@Param('id',ParseUUIDPipe) usuarioId:string) {
+    return this.firmaService.findAll(usuarioId);
   }
 
   @Get('documentos-firmamex')
