@@ -17,6 +17,14 @@ export class FirmaController {
     return this.firmaService.findAll(usuarioId);
   }
 
+  @Get('firmar-documento/:documentoId/:usuarioId/:estatusFirma')
+  firmarDocumento(
+    @Param() params:{documentoId,usuarioId,estatusFirma}
+  ) {
+    const {documentoId,usuarioId,estatusFirma} = params;
+    return this.firmaService.firmarDocumento(usuarioId,documentoId,estatusFirma);
+  }
+
   @Get('documentos-firmamex')
   findAllDocumentosFirmamex() {
     return this.firmaService.obtenerDocumentosDeFrimamex();
@@ -37,7 +45,7 @@ export class FirmaController {
     return this.firmaService.remove(+id);
   }
 
-  @Delete(':id')
+  @Delete('eliminar-de-firmamex:id')
   removeDocumentoFirmamex(@Param('id') id: string) {
     return this.firmaService.eliminarDocumentoDeFimrmamex(id);
   }
