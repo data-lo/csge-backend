@@ -22,12 +22,8 @@ export class CreateRenovacionDto {
     @IsBoolean()
     ivaFrontera:boolean;
 
-    @IsDate()
+    
     @IsOptional()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
     fechaDeCreacion:Date;
 
     @IsBoolean()

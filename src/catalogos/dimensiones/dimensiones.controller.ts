@@ -13,8 +13,8 @@ export class DimensionesController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:string ) {
-    return this.dimensionesService.findAll(+pagina);
+  findAll() {
+    return this.dimensionesService.findAll();
   }
 
   @Get(':id')

@@ -1,21 +1,16 @@
-import { IsArray, IsOptional } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { EstatusDeFirma } from "../interfaces/estatus-de-firma.enum";
+import { TipoDeDocumento } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 
 export class CreateFirmaDto {
 
-    @IsArray({
-        each:true
-    })
-    ordenesDeServicioIds:string[];
+    @IsUUID()
+    ordenOFacturaId:string;
 
-    @IsArray({
-        each:true
-    })
-    facturasIds:string[];
-
+    @IsBoolean()
     @IsOptional()
-    usuariosIds:string[];
+    estaFirmado:boolean;
 
-    @IsOptional()
-    documento:string;
-
+    @IsEnum(TipoDeDocumento)
+    tipoDeDocumento:TipoDeDocumento
 }

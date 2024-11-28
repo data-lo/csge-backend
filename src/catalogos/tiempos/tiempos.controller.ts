@@ -13,8 +13,8 @@ export class TiemposController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:number) {
-    return this.tiemposService.findAll(pagina);
+  findAll() {
+    return this.tiemposService.findAll();
   }
 
   @Get(':id')

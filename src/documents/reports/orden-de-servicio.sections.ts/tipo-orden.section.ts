@@ -5,19 +5,13 @@ export const tipoOrdenSection = (
   tipoDeServicio: TipoDeServicio,
 ): Content[] => {
   
-    const title: Content = {
-    text: 'ORDEN DE SERVICIO',
-    alignment: 'center',
-    bold: true,
-    fontSize: 22,
-  };
-
   const tipoDeOrdenContent: Content = {
-    text: `${tipoDeServicio}`,
+    text: `ORDEN DE SERVICIO: ${tipoDeServicio}`,
     alignment: 'center',
-    fontSize: 18,
-    marginBottom: 10,
+    font:'Poppins',
+    fontSize: 14,
+    bold:true
   };
 
-  return [title, tipoDeOrdenContent];
+  return [tipoDeOrdenContent];
 };

@@ -20,13 +20,17 @@ import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
 import { plainToClass } from 'class-transformer';
 import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 import { DocumentsService } from 'src/documents/documents.service';
+import { FirmaService } from '../../firma/firma/firma.service';
+import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
+import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 
 @Injectable()
 export class OrdenService {
   constructor(
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
-
+    
+    private readonly firmaService:FirmaService,
     private readonly campañaService: CampañasService,
     private readonly proveedorService: ProveedorService,
     private readonly contratoService: ContratosService,
@@ -363,9 +367,19 @@ export class OrdenService {
     }
   }
 
-  async aprobarOrden() {}
-
-  async crearOrdenEnPdf(id:string) {
-    return this.documentsService.construirOrdenDeServicio(id);
+  async mandarOrdenAFirmar(ordenId:string){
+    
+    const documentoFirmaDto:CreateFirmaDto = {
+      ordenOFacturaId:ordenId,
+      tipoDeDocumento:TipoDeDocumento.ORDEN_DE_SERVICIO,
+      estaFirmado:false,
+    }
+    return await this.firmaService.create(documentoFirmaDto);
   }
+
+  async obtenerOrdenEnPdf(id:string) {
+    const documento = await this.firmaService.construir_pdf(id,TipoDeDocumento.ORDEN_DE_SERVICIO);
+    return documento;
+  }
+
 }

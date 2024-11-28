@@ -16,6 +16,10 @@ export class CreateUsuarioDto {
     nombres:string;
 
     @IsString()
+    @MaxLength(13)
+    rfc:string;
+
+    @IsString()
     @MaxLength(50)
     primerApellido:string;
     

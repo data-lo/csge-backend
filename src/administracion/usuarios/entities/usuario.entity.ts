@@ -1,11 +1,11 @@
-import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
 import { Puesto } from "src/administracion/puestos/entities/puesto.entity";
 import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
 import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
-import { Factura } from "src/ordenes/factura/entities/factura.entity";
+import { Firma } from "src/firma/firma/entities/firma.entity";
 
 @Entity('usuarios')
 export class Usuario {
@@ -76,6 +76,14 @@ export class Usuario {
     numeroDeEmpleado:string;
 
     @Column({
+        name:'rfc',
+        unique:true,
+        length:13,
+        nullable:true
+    })
+    rfc:string;
+
+    @Column({
         type:"enum",
         enum:ValidRoles,
         default:ValidRoles.AGENTE
@@ -116,4 +124,11 @@ export class Usuario {
         name:'actualizado_en'
     })
     actualizadoEn:Date;
+
+    @ManyToMany(
+        () => Firma,
+        (firma) => firma.usuariosFirmadores
+    )
+    documentosParaFirmar:Firma[]
+    
 }

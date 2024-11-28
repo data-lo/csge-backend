@@ -6,100 +6,95 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Impresion } from './entities/impresion.entity';
 import { Repository } from 'typeorm';
 import { DimensionesService } from '../dimensiones/dimensiones.service';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
 export class ImpresionesService {
-  
   constructor(
     @InjectRepository(Impresion)
-    private impresionRepository:Repository<Impresion>,
-    private dimensionService:DimensionesService
-  ){}
-  
+    private impresionRepository: Repository<Impresion>,
+    private dimensionService: DimensionesService,
+  ) { }
+
   async create(createImpresioneDto: CreateImpresionDto) {
-    try{
+    try {
       let dimension = null;
-      const {dimensionesId, ...rest} = createImpresioneDto;
-      if(dimensionesId){
+      const { dimensionesId, ...rest } = createImpresioneDto;
+      if (dimensionesId) {
         dimension = await this.dimensionService.findOne(dimensionesId);
       }
-      
+
       const impresion = this.impresionRepository.create({
-        dimensionId:dimension,
-        ...rest
-      })
+        dimensionId: dimension,
+        ...rest,
+      });
 
       await this.impresionRepository.save(impresion);
       return impresion;
-    
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async findAll(pagina: number) {
-    try{
-      const paginationSetter = new PaginationSetter()
+  async findAll() {
+    try {
       const impresiones = await this.impresionRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit(),
-        relations:{
-          dimensionId:true
-        }
-      })
+        relations: {
+          dimensionId: true,
+        },
+      });
       return impresiones;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async findOne(id: string) {
-    try{
+    try {
       const impresion = await this.impresionRepository.findOne({
-        where:{id:id},
-        relations:{
-          dimensionId:true
-        }
+        where: { id: id },
+        relations: {
+          dimensionId: true,
+        },
       });
-      if(!impresion) throw new NotFoundException('No se encuentra la medida de impresion');
+      if (!impresion)
+        throw new NotFoundException('No se encuentra la medida de impresion');
       return impresion;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async update(id: string, updateImpresionDto: UpdateImpresionDto) {
-    try{
+    try {
       let dimension = null;
-      const {dimensionesId, ...rest} = updateImpresionDto;
-      
+      const { dimensionesId, ...rest } = updateImpresionDto;
+
       const impresionDb = await this.findOne(id);
-      
-      if(dimensionesId){
+
+      if (dimensionesId) {
         dimension = await this.dimensionService.findOne(dimensionesId);
       }
-      
-      if(impresionDb){
-        await this.impresionRepository.update(id,{
-            dimensionId:dimension,
-            ...rest
-          })
+
+      if (impresionDb) {
+        await this.impresionRepository.update(id, {
+          dimensionId: dimension,
+          ...rest,
+        });
         return await this.findOne(id);
-      }      
-    }catch(error){
+      }
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async remove(id: string) {
-    try{
+    try {
       const impresion = await this.findOne(id);
-      if(impresion){
-        await this.impresionRepository.delete({id:id});
-        return {message:'medida de impresion eliminada correctamente'};
+      if (impresion) {
+        await this.impresionRepository.delete({ id: id });
+        return { message: 'medida de impresion eliminada correctamente' };
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }

@@ -5,15 +5,21 @@ import { tipoOrdenSection } from './orden-de-servicio.sections.ts/tipo-orden.sec
 import {
   campañaOrdenSection,
   informacionOrdenSection,
+  montosTotalesOrdenSection,
   proveedorOrdenSection,
 } from './orden-de-servicio.sections.ts';
+import { footerSection } from './sections/footer.section';
+import { facturarAOrdenSection } from './orden-de-servicio.sections.ts/facturar-a.-ordensection';
+import { serviciosContratadosSection } from './orden-de-servicio.sections.ts/servicios-contratados.section';
+import { TextoPlazoPagoSection } from './orden-de-servicio.sections.ts/texto-plazo-pago.section';
 
 interface OrdenDeServicioOptions {
   ordenDeServicio: Orden;
+  textoEncabezado: string;
+  textoPieDePagina: string;
 }
 
 export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
-  console.log(orden);
   const {
     campaña,
     proveedor,
@@ -23,32 +29,92 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     contrato,
     fechaDeAprobacion,
     fechaDeEmision,
-    ...rest
+    subtotal,
+    iva,
+    total,
   } = orden.ordenDeServicio;
 
+  const textoEncabezado = orden.textoEncabezado;
+  const textoPieDePagina = orden.textoPieDePagina;
+  const presupuestoText = 'PRESUPUESTO 2025';
+
+
+  const {footerTextPieDePaginaC,presupuestoTextC} = footerSection({textoPieDePagina,presupuestoText});
+
   const docDefinition: TDocumentDefinitions = {
-    info:{
-        creationDate:new Date(),
-        author:'COORDINACIÓN DE COMUNICACIÓN SOCIAL DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
-        title:`ORDEN DE SERVICIO ${folio}`,
+    info: {
+      creationDate: new Date(),
+      author:
+        'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
+      title: `ORDEN DE SERVICIO ${folio}`,
     },
     
     pageSize: 'LETTER',
-    pageMargins: [40, 120, 40, 40],
+    pageMargins: [30, 120, 30, 60],
+    footer: function (currentPage, pageCount) {
+      return {
+        columns: [
+          { 
+            width:'*',
+            stack:[presupuestoTextC]
+          },
+          {
+            width:'*',
+            stack:[footerTextPieDePaginaC]
+          },
+          {
+            stack: [
+              {
+                width:'auto',
+                font: 'Poppins',
+                alignment: 'right',
+                marginRight: 30,
+                bold: true,
+                stack: [currentPage.toString() + ' de ' + pageCount],
+              },
+            ]
+          },
+        ]
+      };
+    },
 
     header: await headerSection({
       showLogo: true,
       showTitle: true,
+      textoEncabezado: textoEncabezado,
+      folio: folio,
     }),
 
     content: [
-        campañaOrdenSection(campaña),
-        tipoOrdenSection(tipoDeServicio),
-        proveedorOrdenSection(proveedor),
-        informacionOrdenSection({folio,fechaDeEmision,fechaDeAprobacion}),
+      tipoOrdenSection(tipoDeServicio),
+      campañaOrdenSection(campaña),
+      {
+        columns: [
+          [proveedorOrdenSection(proveedor)],
+          [
+            informacionOrdenSection({
+              folio,
+              fechaDeEmision,
+              fechaDeAprobacion,
+            }),
+            facturarAOrdenSection(),
+          ],
+        ],
+      },
+      {
+        marginBottom: 5,
+        stack: [serviciosContratadosSection({ serviciosContratados })],
+      },
+      {
+        columns: [
+          { width: '*', alignment: 'left', stack: [TextoPlazoPagoSection(10)] },
+          {
+            width: 'auto',
+            stack: [montosTotalesOrdenSection({ subtotal, iva, total })],
+          },
+        ],
+      },
     ],
-
-    footer: [],
   };
   return docDefinition;
 };

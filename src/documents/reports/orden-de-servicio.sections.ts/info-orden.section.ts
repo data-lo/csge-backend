@@ -1,6 +1,4 @@
-import { date } from "joi";
 import { Content } from "pdfmake/interfaces";
-import { DateFormatter } from "src/helpers/dateFormatter";
 
 interface informacionOrdenData {
     folio:string,
@@ -11,21 +9,27 @@ interface informacionOrdenData {
 
 export const informacionOrdenSection = (ordenInfo:informacionOrdenData):Content[] => {
 
+    const title:Content = {
+        text:'INFORMACIÓN DE LA ORDEN',
+        bold:true,
+        fontSize:12,
+        marginBottom:5,
+        font:'Poppins'
+    }
+
     const folio:Content = {
-        text:ordenInfo.folio
+        text:`FOLIO: ${ordenInfo.folio}`,
+        font:'Poppins',
     }
 
     const fechaDeEmision:Content = {
-        text:`FECHA DE EMISIÓN DE LA ORDEN:${ordenInfo.fechaDeEmision}`
-    }
-
-    const fechaDeAprobacion:Content = {
-        text: `FECHA DE APROBACIÓN DE LA ORDEN:${ordenInfo.fechaDeAprobacion}`
+        text:`FECHA DE EMISIÓN: ${ordenInfo.fechaDeEmision}`,
+        font:'Poppins',
     }
 
     return [
+        title,
         folio,
         fechaDeEmision,
-        fechaDeAprobacion
     ]
 }

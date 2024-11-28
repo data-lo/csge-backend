@@ -13,8 +13,8 @@ export class FormatosController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina: string) {
-    return this.formatosService.findAll(+pagina);
+  findAll() {
+    return this.formatosService.findAll();
   }
 
   @Get(':id')

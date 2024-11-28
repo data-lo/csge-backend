@@ -13,8 +13,8 @@ export class CaracteristicasController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.caracteristicasService.findAll(+pagina);
+  findAll() {
+    return this.caracteristicasService.findAll();
   }
 
   @Get(':id')

@@ -8,6 +8,11 @@ const fonts = {
       bold:'fonts/Roboto-Medium.ttf',
       italics:'fonts/Roboto-Italic.ttf',
       bolditalics: 'fonts/Roboto-MediumItalic.ttf'
+    },
+    Poppins:{
+        normal:'fonts/Poppins/Poppins-Regular.ttf',
+        bold:'fonts/Poppins/Poppins-Bold.ttf',
+        italics:'fonts/Poppins/Poppins-Italic.ttf',
     }
 }
 
