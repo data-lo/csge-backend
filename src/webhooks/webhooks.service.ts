@@ -1,26 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWebhookDto } from './dto/create-webhook.dto';
-import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import { DocumentCompleted } from './interfaces/document-completed.webhook.notification';
+import { DocumentRejected } from './interfaces/document-rejected.webhook.notification';
+import { OriginalSigned } from './interfaces/original-signed.webhook.notification';
+import { UniversalSigned } from './interfaces/universal_signed.webhook.notification';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Firma } from 'src/firma/firma/entities/firma.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class WebhooksService {
-  create(createWebhookDto: CreateWebhookDto) {
-    return 'This action adds a new webhook';
+  constructor(
+    @InjectRepository(Firma)
+    private readonly firmaRepository: Repository<Firma>,
+  ) {}
+
+  recibirWebHook(
+    firmamexWebhook:
+      | DocumentCompleted
+      | DocumentRejected
+      | OriginalSigned
+      | UniversalSigned
+      | any,
+  ) {
+    switch (firmamexWebhook.notification_type) {
+      case 'document_completed':
+        this.handleDocumentCompleted(firmamexWebhook);
+        break;
+      case 'document_rejected':
+        this.handleDocumentRejected(firmamexWebhook);
+        break;
+      case 'original_signed':
+        this.handleOriginalSigned(firmamexWebhook);
+        break;
+      case 'universal_signed':
+        this.handleUniversalSigned(firmamexWebhook);
+        break;
+      default:
+        console.log('Unhandled notification type:', firmamexWebhook);
+    }
   }
 
-  findAll() {
-    return `This action returns all webhooks`;
+  private handleDocumentCompleted(webhook: DocumentCompleted) {
+    console.log('Handling DocumentCompleted:', webhook);
+    // Tu lógica aquí
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} webhook`;
+  private handleDocumentRejected(webhook: DocumentRejected) {
+    console.log('Handling DocumentRejected:', webhook);
+    // Tu lógica aquí
   }
 
-  update(id: number, updateWebhookDto: UpdateWebhookDto) {
-    return `This action updates a #${id} webhook`;
+  private handleOriginalSigned(webhook: OriginalSigned) {
+    console.log('Handling OriginalSigned:', webhook);
+    // Tu lógica aquí
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} webhook`;
+  private handleUniversalSigned(webhook: UniversalSigned) {
+    console.log('Handling UniversalSigned:', webhook);
+    // Tu lógica aquí
   }
 }
