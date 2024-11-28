@@ -367,22 +367,19 @@ export class OrdenService {
     }
   }
 
-  async mandarOrdenAFirmar(ordenId:string,estatusDeFirma){
-    const documentoEnPdf  = await this.crearOrdenEnPdf(ordenId);
+  async mandarOrdenAFirmar(ordenId:string){
+    
     const documentoFirmaDto:CreateFirmaDto = {
       ordenOFacturaId:ordenId,
       tipoDeDocumento:TipoDeDocumento.ORDEN_DE_SERVICIO,
       estaFirmado:false,
-      estatusDeFirma:estatusDeFirma,
-      documentoEnPdf:documentoEnPdf
     }
     return await this.firmaService.create(documentoFirmaDto);
   }
 
-  async crearOrdenEnPdf(id:string) {
-    const documento = await this.documentsService.construirOrdenDeServicio(id);
+  async obtenerOrdenEnPdf(id:string) {
+    const documento = await this.firmaService.construir_pdf(id,TipoDeDocumento.ORDEN_DE_SERVICIO);
     return documento;
   }
-
 
 }

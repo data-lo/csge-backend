@@ -11,11 +11,6 @@ export class CreateFirmaDto {
     @IsOptional()
     estaFirmado:boolean;
 
-    @IsEnum(EstatusDeFirma)
-    estatusDeFirma:EstatusDeFirma
-
     @IsEnum(TipoDeDocumento)
     tipoDeDocumento:TipoDeDocumento
-
-    documentoEnPdf:PDFKit.PDFDocument;
 }

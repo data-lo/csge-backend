@@ -12,7 +12,6 @@ import { TiemposService } from '../tiempos/tiempos.service';
 import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { TipoUnidad } from './interfaces/tipo-unidad.interface';
 import { flattenCaracteristica } from '../../helpers/flattenCaracterisitcas.function';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 
 @Injectable()

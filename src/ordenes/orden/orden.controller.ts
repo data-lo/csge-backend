@@ -13,13 +13,12 @@ export class OrdenController {
   create(@Body() createOrdenDto: CreateOrdenDto) {
     return this.ordenService.create(createOrdenDto);
   }
-
-  @Post('aprobar-orden/:id')
+  
+  @Post('mandar-aprobar/:id')
   aprobarOrdern(
     @Param('id',ParseUUIDPipe) id:string,
-    @Body('estatusDeFirma') estatusDeFirma:string
   ) {
-    return this.ordenService.mandarOrdenAFirmar(id,estatusDeFirma);
+    return this.ordenService.mandarOrdenAFirmar(id);
   }
 
   @Get()
@@ -38,11 +37,11 @@ export class OrdenController {
   }
 
   @Get('pdf/:id')
-  async crearOrdenEnPdf(
+  async obtenerOrdenEnPdf(
     @Res() res:Response,
     @Param('id',ParseUUIDPipe) id:string
   ) {
-    const pdfDoc = await this.ordenService.crearOrdenEnPdf(id);
+    const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
     res.setHeader('Content-Type','application/pdf');
     pdfDoc.pipe(res);
     pdfDoc.end();

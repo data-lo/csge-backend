@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import { ValidRoles } from "../interfaces/usuarios.roles";
 import { Departamento } from "src/administracion/departamentos/entities/departamento.entity";
@@ -121,5 +121,6 @@ export class Usuario {
         () => Firma,
         (firma) => firma.usuariosFirmadores
     )
-    documentosParaFirmar:Firma
+    documentosParaFirmar:Firma[]
+    
 }
