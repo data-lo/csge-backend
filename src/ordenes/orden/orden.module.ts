@@ -10,6 +10,7 @@ import { PartidaModule } from 'src/campañas/partida/partida.module';
 import { ServicioContratadoModule } from '../servicio_contratado/servicio_contratado.module';
 import { DocumentsModule } from 'src/documents/documents.module';
 import { FirmaModule } from 'src/firma/firma/firma.module';
+import { OrdenEventosService } from './orden.events.service';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Orden]),
@@ -22,6 +23,6 @@ import { FirmaModule } from 'src/firma/firma/firma.module';
     FirmaModule
   ],
   controllers: [OrdenController],
-  providers: [OrdenService],
+  providers: [OrdenService,OrdenEventosService],
 })
 export class OrdenModule {}

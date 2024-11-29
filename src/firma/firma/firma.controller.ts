@@ -13,7 +13,6 @@ export class FirmaController {
     return this.firmaService.create(createFirmaDto);
   }
 
-
   @Get('firmar-documento/:documentoId/:usuarioId/:estatusFirma')
   firmarDocumento(
     @Param('documentoId') documentoId: string,
@@ -33,11 +32,6 @@ export class FirmaController {
     @Param('id',ParseUUIDPipe) id:string
   ) {
     return this.firmaService.descargarDocumentoFirmamex(id);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.firmaService.findOne(+id);
   }
 
   @Get(':id')

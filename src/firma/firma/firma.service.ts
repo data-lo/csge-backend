@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
 import { FirmamexService } from '../firmamex/firmamex.service';
@@ -20,6 +25,7 @@ import { DocumentsService } from '../../documents/documents.service';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from './entities/firma.entity';
 import { EstatusDeFirma } from './interfaces/estatus-de-firma.enum';
+import { EstatusOrdenDeServicio } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 
 @Injectable()
 export class FirmaService {
@@ -59,7 +65,7 @@ export class FirmaService {
       await this.firmaRepository.save(documentoParaFirmar);
       return {
         message: 'Documento en espera de ser firmado',
-        data: documentoParaFirmar,
+        documentoAFirmar: documentoParaFirmar,
       };
     } catch (error) {
       handleExeptions(error);
@@ -119,6 +125,11 @@ export class FirmaService {
           where: { id: documentoId },
         });
 
+        if (documentoDb.estatus !== EstatusOrdenDeServicio.PENDIENTE)
+          throw new BadRequestException(
+            'Solo se pueden mandar a aprobar ordenes con estatus de pendiente',
+          );
+
         if (!documentoDb)
           throw new NotFoundException('No se encuentra la orden  de servicio');
 
@@ -169,18 +180,18 @@ export class FirmaService {
     estatusDeFirma: EstatusDeFirma,
   ) {
     try {
-
       const usuario = await this.usuarioRepository.findOneBy({ id: usuarioId });
-      const documento = await this.firmaRepository.findOneBy({ id: documentoId});
-      if(!usuario) throw new NotFoundException('No se encontró el usuario');
-      if(!documento) throw new NotFoundException('No se encontró el documento');
+      const documento = await this.firmaRepository.findOneBy({
+        id: documentoId,
+      });
+      if (!usuario) throw new NotFoundException('No se encontró el usuario');
+      if (!documento)
+        throw new NotFoundException('No se encontró el documento');
       const documentoEnPdf = await this.construir_pdf(
         documento.ordenOFacturaId,
         documento.tipoDeDocumento,
       );
-      const stickers = await this.crearStickers(
-        [usuario],
-      );
+      const stickers = await this.crearStickers([usuario]);
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
       const response = await this.enviarDocumentoAFirmamexSDK(
         documentoEnBase64,
@@ -192,7 +203,6 @@ export class FirmaService {
       documento.estatusDeFirma = estatusDeFirma;
       await this.firmaRepository.save(documento);
       return documento.documentoUrlFirmamex;
-
     } catch (error) {
       handleExeptions(error);
     }
@@ -223,7 +233,6 @@ export class FirmaService {
     try {
       const stickers = [];
       for (const usuario of usuarios) {
-        console.log(usuario);
         const sticker = {
           authority: 'chihuahua',
           stickerType: 'rect',
@@ -255,7 +264,6 @@ export class FirmaService {
     stickers: Sticker[],
   ): Promise<FirmamexResponse> {
     try {
-      console.log(stickers);
       const serviciosFirmamex = await this.firmamexService.getServices();
       const response = await serviciosFirmamex.request({
         b64_doc: {
@@ -267,7 +275,7 @@ export class FirmaService {
       });
       return response;
     } catch (error) {
-      console.log('error en firmamex')
+      console.log('error en firmamex');
       console.log(error.response.data || error.message);
       handleExeptions(error);
     }
@@ -294,10 +302,14 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumentoFirmamex(documentTicket:string){
+  async descargarDocumentoFirmamex(documentTicket: string) {
     const serviciosFirmamex = await this.firmamexService.getServices();
-    const response = await serviciosFirmamex.getDocument('original',documentTicket);
+    const response = await serviciosFirmamex.getDocument(
+      'original',
+      documentTicket,
+    );
   }
+
   //CONVERSIÓN DE BASE_64 A PDF
 
   async deBase64aPdf(base64: string, nombreArchivo: string) {
