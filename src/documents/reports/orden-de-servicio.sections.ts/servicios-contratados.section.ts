@@ -55,7 +55,6 @@ export const serviciosContratadosSection = (
         font: 'Poppins',
         fontSize: '8',
         widths: ['auto', '*'],
-        layout: 'lightHorizontalLines',
         body: [
           [
             {
@@ -64,7 +63,8 @@ export const serviciosContratadosSection = (
               colSpan: 2,
               font: 'Poppins',
               fontSize: 8,
-            }
+            },
+            {},
           ],
           [...obtenerEspecificaciones(servicioContratado)],
         ],
