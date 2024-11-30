@@ -1,5 +1,6 @@
 import { Content } from 'pdfmake/interfaces';
 import { generarSVGCalendario } from '../sections/calendar.generator.section';
+import { text } from 'stream/consumers';
 
 export const serviciosContratadosSection = (
   serviciosContratados: ServiciosContratados,
@@ -15,7 +16,6 @@ export const serviciosContratadosSection = (
     table: {
       headerRows: 1,
       widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
-      heights: ['auto'],
       body: [
         [
           { text: 'SERVICIO', bold: true, fillColor: '#caddfa' },
@@ -38,7 +38,7 @@ export const serviciosContratadosSection = (
           servicioContratado.servicio.nombreDeServicio?.toString() || '',
           servicioContratado.servicio.descripcionDelServicio?.toString() || '',
           {
-            text: `$${servicioContratado.servicio.tarifaUnitaria?.toString() || ''}`,
+            text:`${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(servicioContratado.servicio.tarifaUnitaria)}`
           },
           servicioContratado.cantidad?.toString() || '',
           servicioContratado.fechaInicio?.toString() || '',
@@ -122,8 +122,8 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
     const svgCalendario = generarSVGCalendario(diasMarcados, mes, anio);
 
     especificaciones.push([
-      { text: 'CALENDARIZACIÓN:', bold: true, font: 'Poppins', fontSize: 8, padding:10},
-      { svg: svgCalendario },
+      { text: 'CALENDARIZACIÓN:', bold: true, font: 'Poppins', fontSize: 8},
+      { svg: svgCalendario, aligment:'center'},
     ]);
   }
   if (versionesSpot) {
@@ -172,7 +172,7 @@ interface Cartelera {
 interface Servicio {
   nombreDeServicio?: string;
   descripcionDelServicio?: string;
-  tarifaUnitaria?: string;
+  tarifaUnitaria?: number;
   iva?: string;
 }
 
