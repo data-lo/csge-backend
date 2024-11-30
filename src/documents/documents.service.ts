@@ -6,6 +6,7 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { PrinterService } from './printer.service';
 import { ordenDeServicioPdf } from './reports/orden-de-servicio.report';
 import { TextosService } from 'src/configuracion/textos/textos.service';
+import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
 
 @Injectable()
 export class DocumentsService {
@@ -42,8 +43,18 @@ export class DocumentsService {
   }
 
   async construirAprobacionDeFactura(id:string){
-    const factura = await this.facturRepository.findOne({
+    const facturaDb = await this.facturRepository.findOne({
       where:{id:id}
-    })
+    });
+    const textoEncabezado = await this.textosService.obtenerEncabezado();
+    const textoPieDePagina = await this.textosService.obtenerPieDePagina();
+    const definicionDeFactura = await aprobacionDeFacturaPdf({
+      facturaDb:facturaDb,
+      textoEncabezado:textoEncabezado.texto,
+      textoPieDePagina:textoPieDePagina.texto
+
+    });
+    const document = this.printerService.createPdf(definicionDeFactura);
+    return document;
   }
 }

@@ -26,7 +26,6 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     serviciosContratados,
     tipoDeServicio,
     folio,
-    contrato,
     fechaDeAprobacion,
     fechaDeEmision,
     subtotal,

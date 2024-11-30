@@ -1,5 +1,5 @@
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
+import { Column, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
 import { EstatusFactura } from "../interfaces/estatus-factura";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 import { Orden } from "src/ordenes/orden/entities/orden.entity";
@@ -8,13 +8,16 @@ import { Orden } from "src/ordenes/orden/entities/orden.entity";
 export class Factura {
     
     @PrimaryColumn('uuid')
+    @Generated('uuid')
     id:string;
 
-    concepto:string;
+    @Column({
+        name:'folio_factura',
+        nullable:false,
+    })
+    folio:string;
 
-    @ManyToOne(()=>Proveedor, (proveedor)=>proveedor.id )
-    @JoinColumn({name:"proveedorId"})
-    proveedor:Proveedor;
+    concepto:string;
 
     @Column({
         name:'subtotal_factura',
@@ -112,6 +115,10 @@ export class Factura {
         default:null
     })
     motivoCancelacion:string;
+
+    @ManyToOne(()=>Proveedor, (proveedor)=>proveedor.id )
+    @JoinColumn({name:"proveedorId"})
+    proveedor:Proveedor;
 
     @ManyToOne(()=> Usuario, (usuario) => usuario.id)
     usuarioTestigo:Usuario;
