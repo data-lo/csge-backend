@@ -4,6 +4,8 @@ import { footerSection } from "./sections/footer.section";
 import { headerSection } from "./sections/header.section";
 import { textoDeRecepcionSection } from "./aprobacion-de-factura-sections/texto-de-recepcion-section";
 import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-de-proveedor-section";
+import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
+import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
 
 
 interface AprobacionDeFacturaOptions {
@@ -23,6 +25,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
     const textoDeRecepcion = `RECIBÍ DE LA OFICINA DE SERVICIOS ADMINISTRATIVOS DE LA COORDINACIÓN DE COMUNICACIÓN
     FACTURAS ORIGINALES PARA SU REVISIÓN Y AUTORIZACIÓN
     (ANEXAR OFICIOS DE DEPENDENCIAS DESCENTRALIZADAS A LAS FACTURAS QUE CORRESPONDAN)`;
+    const notaDeRecepcion = `LOS TESTIGOS DE LAS PRESENTE(S) FACTURA(S) SERÁN ENTREGADOS Y REVISADOS DE MANERA DIGITAL`;
     const textoEncabezado = factura.textoEncabezado;
     const textoPieDePagina = factura.textoPieDePagina;
     const presupuestoText = 'PRESUPUESTO 2025';
@@ -71,7 +74,9 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
         }),
         content: [
             textoDeRecepcionSection(textoDeRecepcion),
-            tablaDeProveedorSection(proveedor.razonSocial,folio,total),      
+            tablaDeProveedorSection(proveedor.razonSocial,folio,total),
+            firmasDeRecepcionSection(),
+            notaDeFacturaSection(notaDeRecepcion)      
         ],
     };
     return docDefinition;
