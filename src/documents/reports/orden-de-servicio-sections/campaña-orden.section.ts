@@ -1,5 +1,4 @@
 import { Content } from "pdfmake/interfaces";
-import { styleText } from "util";
 
 interface CampañaOptions {
     nombre:string

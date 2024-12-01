@@ -1,17 +1,17 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { headerSection } from './sections/header.section';
-import { tipoOrdenSection } from './orden-de-servicio.sections.ts/tipo-orden.section';
+import { tipoOrdenSection } from './orden-de-servicio-sections/tipo-orden.section';
 import {
   campañaOrdenSection,
   informacionOrdenSection,
   montosTotalesOrdenSection,
   proveedorOrdenSection,
-} from './orden-de-servicio.sections.ts';
+} from './orden-de-servicio-sections';
 import { footerSection } from './sections/footer.section';
-import { facturarAOrdenSection } from './orden-de-servicio.sections.ts/facturar-a.-ordensection';
-import { serviciosContratadosSection } from './orden-de-servicio.sections.ts/servicios-contratados.section';
-import { TextoPlazoPagoSection } from './orden-de-servicio.sections.ts/texto-plazo-pago.section';
+import { facturarAOrdenSection } from './orden-de-servicio-sections/facturar-a.-ordensection';
+import { serviciosContratadosSection } from './orden-de-servicio-sections/servicios-contratados.section';
+import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-pago.section';
 
 interface OrdenDeServicioOptions {
   ordenDeServicio: Orden;
