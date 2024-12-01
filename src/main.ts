@@ -23,11 +23,9 @@ async function bootstrap() {
     new AllExceptionsFilter(httpAdapter),
   );
 
-  //habilitar cuando haga el formateo de la fecha
-
-  //app.useGlobalInterceptors(
-  //  new DateFormatterInterceptor()
-  //);
+  app.useGlobalInterceptors(
+    new DateFormatterInterceptor()
+  );
 
   await app.listen(process.env.SERVER_PORT);
 }
