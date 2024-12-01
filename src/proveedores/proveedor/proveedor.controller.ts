@@ -3,6 +3,7 @@ import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
+import { query } from 'express';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
@@ -23,7 +24,6 @@ export class ProveedorController {
     return this.proveedorService.activarProveedor(proveedorId);
   }
 
-  
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.proveedorService.findAll(+pagina);
@@ -32,6 +32,13 @@ export class ProveedorController {
   @Get('busqueda')
   findAllBusqueda() {
     return this.proveedorService.findAllBusqueda();
+  }
+
+  @Get('rfc')
+  findByRfc(
+    @Query('rfc') rfc:string
+  ) {
+    return this.proveedorService.findByRfc(rfc);
   }
 
   @Get('estatus/:id')

@@ -25,6 +25,7 @@ export class Contrato {
 
   @Column({
     name: 'numero_de_contrato',
+    unique:true
   })
   numeroDeContrato: string;
 

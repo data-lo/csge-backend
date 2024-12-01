@@ -28,6 +28,10 @@ export class CreateFacturaDto {
 
     @IsString()
     @IsOptional()
+    folio:string;
+
+    @IsString()
+    @IsOptional()
     validacionTestigo:string;
 
     @IsDate()

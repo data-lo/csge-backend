@@ -13,7 +13,7 @@ export class ServiciosParaFolio {
     "EO": TipoDeServicio.ESTUDIOS_DE_OPINION,
     "IMP": TipoDeServicio.IMPRESIONES,
     "IMP_P": TipoDeServicio.IMPRESION_PRENSA,
-    "REV": TipoDeServicio.IMPRESION,
+    "REV": TipoDeServicio.REVISTA,
     "LOC": TipoDeServicio.LOCUCION,
     "MON": TipoDeServicio.MONITOREO,
     "PD": TipoDeServicio.PANTALLAS_DIGITALES,

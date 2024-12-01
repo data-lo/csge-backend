@@ -10,6 +10,11 @@ export class SeedController {
     return this.seedService.seedDb();
   }
   
+  @Get('contratos')
+  seedContratos(){
+    return this.seedService.seedContratos();
+  }
+
   @Get('administracion')
   seedAdministracion(){
     return this.seedService.seedAdministracion();

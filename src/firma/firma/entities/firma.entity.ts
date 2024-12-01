@@ -14,7 +14,8 @@ export class Firma {
     @Column({
         type:'uuid',
         name:'orden_o_factura_id',
-        nullable:false
+        nullable:false,
+        //unique:true
     })
     ordenOFacturaId:string;
 
