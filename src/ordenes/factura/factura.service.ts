@@ -34,30 +34,39 @@ export class FacturaService {
   async create(createFacturaDto: CreateFacturaDto) {
     try {
 
-      const { ordenesDeServicioIds, proveedorId, validacionTestigo, xml, ...rest } = createFacturaDto;
+      const { ordenesDeServicioIds, proveedorId, validacionTestigo, xml, id, ...rest } = createFacturaDto;
       const validacionBool = Boolean(validacionTestigo);
-      if (!validacionBool) throw new BadRequestException('Validar testigo');
+      if (!validacionBool) throw new BadRequestException({message:'Validar testigo',id:id});
 
       let ordenes: Orden[] = [];
-      let totalDeOrdenes: number;
+      let totalDeOrdenes: number = 0.00;
 
       const ordenesIds = [ordenesDeServicioIds]
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
-        if (!orden) throw new NotFoundException(`La orden con el Id ${ordenId} no se encuentra`);
-        totalDeOrdenes += orden.total;
+        if (!orden) throw new NotFoundException({message:`La orden con el Id ${ordenId} no se encuentra`,id:id});
+        totalDeOrdenes = (orden.total + totalDeOrdenes);
+        console.log(totalDeOrdenes);
         ordenes.push(orden);
       }
-
+      
       const proveedor = await this.proveedrRepository.findOneBy({ id: proveedorId })
-      if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
+      if (!proveedor) throw new NotFoundException({message:'No se encuentra el proveedor',id:id});
 
       const facturaXmlData = await this.obtenerDatosDeArchivoXML(xml);
 
-      if (proveedor.rfc !== facturaXmlData.rfc) throw new BadRequestException('RFC de la factura y RFC del proveedor no coinciden');
-      if (totalDeOrdenes !== parseFloat(facturaXmlData.total)) throw new BadRequestException('El monto total de las ordenes y el total de la factura no coinciden');
+      if (proveedor.rfc !== facturaXmlData.rfc) throw new BadRequestException(
+        {message:'RFC de la factura y RFC del proveedor no coinciden',
+          id:id
+        });
+      if (parseFloat(totalDeOrdenes.toFixed(2)) !== parseFloat(facturaXmlData.total)) 
+        throw new BadRequestException({
+          message:`El monto total de las ordenes y el total de la factura no coinciden monto total de ordenes: ${totalDeOrdenes}, total de factura ${facturaXmlData.total}`,
+          id:id
+        });
 
       const factura = this.facturaRepository.create({
+        id:id,
         ordenesDeServicio: ordenes,
         proveedor: proveedor,
         xml: xml,
@@ -73,7 +82,8 @@ export class FacturaService {
       await this.facturaRepository.save(factura);
       return factura;
 
-    } catch (error: any) {
+    } catch (error) {
+      await this.eliminarArchivoDeFactura(error.id);
       handleExeptions(error);
     }
   }
