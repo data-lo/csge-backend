@@ -241,10 +241,10 @@ export class FirmaService {
           imageType: 'hash',
           page: 0,
           rect: {
-            lx: 388,
-            ly: 400,
-            tx: 496,
-            ty: 480,
+            lx: 120,
+            ly: 80,
+            tx: 420,
+            ty: 180,
           },
         };
         stickers.push(sticker);

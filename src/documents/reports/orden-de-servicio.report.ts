@@ -12,6 +12,7 @@ import { footerSection } from './sections/footer.section';
 import { facturarAOrdenSection } from './orden-de-servicio-sections/facturar-a.-ordensection';
 import { serviciosContratadosSection } from './orden-de-servicio-sections/servicios-contratados.section';
 import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-pago.section';
+import { firmasDeRecepcionSection } from './aprobacion-de-factura-sections/firmas-de-recepcion-section';
 
 interface OrdenDeServicioOptions {
   ordenDeServicio: Orden;
@@ -113,6 +114,14 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
           },
         ],
       },
+      {
+        absolutePosition:{x:120, y:710
+        },
+        columns:[
+          {width:'auto',alignment:'left',stack:[firmasDeRecepcionSection()]}
+        ]
+      }
+      
     ],
   };
   return docDefinition;

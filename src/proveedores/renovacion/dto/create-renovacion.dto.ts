@@ -22,10 +22,6 @@ export class CreateRenovacionDto {
     @IsBoolean()
     ivaFrontera:boolean;
 
-    
-    @IsOptional()
-    fechaDeCreacion:Date;
-
     @IsBoolean()
     @IsOptional()
     estatus:boolean;
