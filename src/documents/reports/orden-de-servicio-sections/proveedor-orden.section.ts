@@ -29,17 +29,9 @@ export const proveedorOrdenSection = (proveedor:Proveedor):Content[] => {
         text:`TIPO DE PROVEEDOR: ${proveedor.tipoProveedor}`,
         style
     }
-    const numeroPorveedor:Content = {
-        text:`NUMERO DE PADRÓN: ${proveedor.numeroProveedor}`,
-        style
-    }
+
     const domicilioFiscal:Content = {   
         text:`DOMICILIO FISCAL: ${proveedor.domicilioFiscal}`,
-        style
-    }
-
-    const observaciones:Content = {   
-        text:`OBSERVACIONES: ${proveedor.observacionesProveedor}`,
         style
     }
 
@@ -48,8 +40,6 @@ export const proveedorOrdenSection = (proveedor:Proveedor):Content[] => {
         razonSocial,
         rfc,
         tipoPorveedor,
-        numeroPorveedor,
         domicilioFiscal,
-        observaciones
     ];
 }
