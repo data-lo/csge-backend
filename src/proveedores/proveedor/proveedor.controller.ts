@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query, ParseEnumPipe } from '@nestjs/common';
 import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { query } from 'express';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
@@ -27,6 +28,13 @@ export class ProveedorController {
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.proveedorService.findAll(+pagina);
+  }
+
+  @Get('servicios')
+  findManyByServices(
+    @Query('tipoDeServicio') tipoDeServicio:string
+  ) {
+    return this.proveedorService.findByService(tipoDeServicio);
   }
 
   @Get('busqueda')

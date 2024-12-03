@@ -9,6 +9,8 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
+import { Estacion } from '../estacion/entities/estacion.entity';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Injectable()
 export class ProveedorService {
@@ -88,6 +90,22 @@ export class ProveedorService {
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
       return proveedor;
     } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async findByService(tipoDeServicio:string){
+    try{
+      const proveedores = this.proveedorRepository
+      .createQueryBuilder('proveedor')
+      .leftJoinAndSelect('proveedor.estaciones','estacion')
+      .leftJoinAndSelect('estacion.servicios','servicio')
+      .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .getMany();
+      
+      return proveedores;
+
+    }catch(error){
       handleExeptions(error);
     }
   }
