@@ -19,9 +19,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.useGlobalFilters(
-    new AllExceptionsFilter(httpAdapter),
-  );
+  //app.useGlobalFilters(
+  //  new AllExceptionsFilter(httpAdapter),
+  //);
 
   app.useGlobalInterceptors(
     new DateFormatterInterceptor()

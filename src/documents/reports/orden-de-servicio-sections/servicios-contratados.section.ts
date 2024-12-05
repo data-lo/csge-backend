@@ -1,10 +1,12 @@
 import { Content } from 'pdfmake/interfaces';
 import { generarSVGCalendario } from '../sections/calendar.generator.section';
-import { text } from 'stream/consumers';
+import { Formato } from 'src/catalogos/formatos/entities/formato.entity';
+
 
 export const serviciosContratadosSection = (
   serviciosContratados: ServiciosContratados,
 ): Content => {
+
   const serviciosDeOrden = serviciosContratados.serviciosContratados;
 
   const serviciosContratadosC: Content = {
@@ -50,11 +52,12 @@ export const serviciosContratadosSection = (
 
   const especificaciones: Content[] = serviciosDeOrden
     .filter((servicioContratado) => tieneEspecificaciones(servicioContratado))
-    .map((servicioContratado) => ({
+    .map((servicioContratado) => (
+      {
       table: {
         font: 'Poppins',
         fontSize: '8',
-        widths: ['auto', '*'],
+        widths: ['auto','*'],
         body: [
           [
             {
@@ -64,9 +67,11 @@ export const serviciosContratadosSection = (
               font: 'Poppins',
               fontSize: 8,
             },
-            {},
+            {
+
+            }
           ],
-          [...obtenerEspecificaciones(servicioContratado)],
+          ...obtenerEspecificaciones(servicioContratado)
         ],
       },
       margin: [0, 10, 0, 10],
@@ -85,14 +90,18 @@ const tieneEspecificaciones = (servicioContratado: ServicioContratado) => {
     impactosVersionSpot,
     numeroDiasSpot,
     cartelera,
+    servicio
   } = servicioContratado;
+  
   return (
     calendarizacion?.length > 0 ||
     observacion ||
     versionesSpot ||
     impactosVersionSpot ||
     numeroDiasSpot ||
-    cartelera
+    cartelera ||
+    servicio.tipoFormato ||
+    servicio.nombreFormato
   );
 };
 
@@ -104,16 +113,54 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
     impactosVersionSpot,
     numeroDiasSpot,
     cartelera,
+    servicio
   } = servicioContratado;
 
   const especificaciones: Array<any[]> = [];
 
-  if (observacion) {
+  if (versionesSpot) {
     especificaciones.push([
-      { text: 'OBSERVACIÓN:', bold: true, font: 'Poppins', fontSize: 8 },
-      { text: observacion, font: 'Poppins', fontSize: 8 },
+      { text: 'VERSIONES SPOTS:', bold: true, font: 'Poppins', fontSize: 8 },
+      versionesSpot.toString(),
     ]);
   }
+
+  if (impactosVersionSpot) {
+    especificaciones.push([
+      {
+        text: 'IMPACTOS POR VERSION:',
+        bold: true,
+        font: 'Poppins',
+        fontSize: 8,
+      },
+      impactosVersionSpot.toString(),
+    ]);
+  }
+  
+  if (numeroDiasSpot) {
+    especificaciones.push([
+      {
+        text: 'NÚMERO DE DÍAS DEL SPOT:',
+        bold: true,
+        font: 'Poppins',
+        fontSize: 8,
+      },
+      numeroDiasSpot.toString(),
+    ]);
+  }
+  
+  if(servicio.tipoFormato){
+    especificaciones.push([
+      {
+        text:'FORMATO',
+        bold:true,
+        font:'Poppins',
+        fontSize:8
+      },
+      servicio.tipoFormato
+    ])
+  }
+
   if (calendarizacion?.length) {
     const diasMarcados = calendarizacion.map((fecha) => fecha.getDate());
     const mes = calendarizacion[0].getMonth();
@@ -126,40 +173,21 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
       { svg: svgCalendario, aligment:'center'},
     ]);
   }
-  if (versionesSpot) {
+
+  if (observacion) {
     especificaciones.push([
-      { text: 'VERSIONES SPOTS:', bold: true, font: 'Poppins', fontSize: 8 },
-      versionesSpot.toString(),
+      { text: 'OBSERVACIÓN:', bold: true, font: 'Poppins', fontSize: 8, width:'auto'},
+      { text: observacion, font: 'Poppins', fontSize: 8, width:'*' },
     ]);
   }
-  if (impactosVersionSpot) {
-    especificaciones.push([
-      {
-        text: 'IMPACTOS POR VERSION:',
-        bold: true,
-        font: 'Poppins',
-        fontSize: 8,
-      },
-      impactosVersionSpot.toString(),
-    ]);
-  }
-  if (numeroDiasSpot) {
-    especificaciones.push([
-      {
-        text: 'NÚMERO DE DÍAS DEL SPOT:',
-        bold: true,
-        font: 'Poppins',
-        fontSize: 8,
-      },
-      numeroDiasSpot.toString(),
-    ]);
-  }
+
   if (cartelera) {
     especificaciones.push([
       { text: 'CARTELERA:', bold: true, font: 'Poppins', fontSize: 8 },
       `UBICACIÓN: ${cartelera.ubicacion || ''}, ID CARTELERA: ${cartelera.idCartelera || ''}`,
     ]);
   }
+  console.log(especificaciones.length)
   return especificaciones;
 };
 
@@ -174,6 +202,8 @@ interface Servicio {
   descripcionDelServicio?: string;
   tarifaUnitaria?: number;
   iva?: string;
+  nombreFormato?:string;
+  tipoFormato?:string;
 }
 
 interface ServicioContratado {

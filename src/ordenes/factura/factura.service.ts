@@ -13,6 +13,7 @@ import * as xmls2js from 'xml-js'
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
+import { DocumentsService } from 'src/documents/documents.service';
 
 @Injectable()
 export class FacturaService {
@@ -22,12 +23,12 @@ export class FacturaService {
   constructor(
     @InjectRepository(Factura)
     private facturaRepository: Repository<Factura>,
-
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
-
     @InjectRepository(Proveedor)
     private proveedrRepository: Repository<Proveedor>,
+
+    private readonly documentsService:DocumentsService,
 
   ) { }
 
@@ -290,6 +291,19 @@ export class FacturaService {
     } catch (error) {
       handleExeptions(error);
     }
+  }
+
+
+  async obtenerDocumentoDeFacturaPdf(id:string){
+    try{
+      const aprobacionFacturaPdf = await this.documentsService.construirAprobacionDeFactura(id);
+      return aprobacionFacturaPdf;
+    }catch(error){
+      handleExeptions(error);
+    }
+    
+
+
   }
 
 

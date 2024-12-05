@@ -63,6 +63,18 @@ export class FacturaController {
   findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
+
+  @Get('pdf:id')
+  async obtenerDocumentoEnPdf(
+    @Res() res:Response,
+    @Param('id', ParseUUIDPipe) id:string
+  ){
+    const pdfDoc = await this.facturaService.obtenerDocumentoDeFacturaPdf(id);
+    res.setHeader('Content-Type','application/pdf');
+    pdfDoc.pipe(res);
+    pdfDoc.end();
+  } 
+  
   
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
