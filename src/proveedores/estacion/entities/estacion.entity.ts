@@ -10,6 +10,10 @@ export class Estacion {
     @PrimaryColumn('uuid')
     id:string;
 
+    @Generated('increment')
+    @Column()
+    indice:number;
+
     @Column({
         name:'nombre_estacion',
         nullable:false

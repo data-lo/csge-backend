@@ -10,6 +10,10 @@ export class Servicio {
     @PrimaryColumn('uuid')
     id:string;
 
+    @Generated('increment')
+    @Column()
+    indice:number;
+
     @Column({
         name:'nombre_de_servicio',
         nullable:false

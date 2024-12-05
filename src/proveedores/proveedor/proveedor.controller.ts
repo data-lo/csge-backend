@@ -3,8 +3,6 @@ import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
-import { query } from 'express';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
@@ -34,8 +32,10 @@ export class ProveedorController {
   findManyByServices(
     @Query('tipoDeServicio') tipoDeServicio:string
   ) {
+    console.log(tipoDeServicio);
     return this.proveedorService.findByService(tipoDeServicio);
   }
+
 
   @Get('busqueda')
   findAllBusqueda() {
