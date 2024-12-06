@@ -101,11 +101,10 @@ export class ProveedorService {
       .createQueryBuilder('proveedor')
       .leftJoinAndSelect('proveedor.estaciones','estacion')
       .leftJoinAndSelect('estacion.servicios','servicio')
-      .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
       .leftJoinAndSelect('servicio.renovaciones','renovaciones')
-      .where('renovaciones.estatus = :estatus',{estatus})
+      .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .andWhere('renovaciones.estatus = :estatus',{estatus})
       .getMany();
-      
       return proveedores;
 
     }catch(error){
