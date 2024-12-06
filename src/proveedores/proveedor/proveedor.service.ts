@@ -96,11 +96,14 @@ export class ProveedorService {
 
   async findByService(tipoDeServicio:string){
     try{
+      const estatus:boolean = true;
       const proveedores = this.proveedorRepository
       .createQueryBuilder('proveedor')
       .leftJoinAndSelect('proveedor.estaciones','estacion')
       .leftJoinAndSelect('estacion.servicios','servicio')
       .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .leftJoinAndSelect('servicio.renovaciones','renovaciones')
+      .where('renovaciones.estatus = :estatus',{estatus})
       .getMany();
       
       return proveedores;

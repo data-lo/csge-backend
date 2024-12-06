@@ -32,7 +32,6 @@ export class ProveedorController {
   findManyByServices(
     @Query('tipoDeServicio') tipoDeServicio:string
   ) {
-    console.log(tipoDeServicio);
     return this.proveedorService.findByService(tipoDeServicio);
   }
 

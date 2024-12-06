@@ -117,7 +117,8 @@ export class OrdenService {
           },
           proveedor: {
             nombreComercial: true,
-          },
+            razonSocial:true,
+          }
         },
         order: {
           fechaDeEmision: 'ASC',
