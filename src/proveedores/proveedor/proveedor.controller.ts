@@ -3,6 +3,7 @@ import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
@@ -26,6 +27,13 @@ export class ProveedorController {
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.proveedorService.findAll(+pagina);
+  }
+
+  @Get('contratos/:id')
+  obtenerTipoDeContrato(
+    @Param('id',ParseUUIDPipe) id:string,
+    @Query('tipoDeServicio', new ParseEnumPipe(TipoDeServicio)) tipoDeServicio:TipoDeServicio){
+    return this.proveedorService.obtenerContatoDelProveedor(id,tipoDeServicio);
   }
 
   @Get('servicios')

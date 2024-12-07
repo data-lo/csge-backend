@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ParseEnumPipe } from '@nestjs/common';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { Proveedor } from './entities/proveedor.entity';
@@ -9,7 +9,7 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
-import { Estacion } from '../estacion/entities/estacion.entity';
+import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Injectable()
@@ -19,7 +19,9 @@ export class ProveedorService {
     private eventEmitter: EventEmitter2,
 
     @InjectRepository(Proveedor)
-    private proveedorRepository: Repository<Proveedor>
+    private proveedorRepository: Repository<Proveedor>,
+    @InjectRepository(Contrato)
+    private contratoRepository: Repository<Contrato>
   ) { }
 
 
@@ -82,6 +84,7 @@ export class ProveedorService {
         where: { id: id },
         relations: {
           contactos: true,
+          contratos:true,
           estaciones: {
             municipios: true
           },
@@ -163,6 +166,22 @@ export class ProveedorService {
         return { message: 'Proveedor activado exitosamente' };
       }
     } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async obtenerContatoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
+    try{
+      const estatusDeContrato = 'LIBERADO';
+      const contrato = await this.contratoRepository
+      .createQueryBuilder('contratos')
+      .where('contratos.proveedorId = :proveedorId', { proveedorId })
+      .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
+      .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
+      .getOne();
+      return contrato;
+
+    }catch(error){
       handleExeptions(error);
     }
   }
