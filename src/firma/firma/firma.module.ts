@@ -8,12 +8,16 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { Factura } from 'src/ordenes/factura/entities/factura.entity';
 import { FirmamexModule } from '../firmamex/firmamex.module';
 import { DocumentsModule } from 'src/documents/documents.module';
+import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Firma, Usuario, Orden, Factura]),
     FirmamexModule,
-    DocumentsModule
+    DocumentsModule,
+    PassportModule,
+    AuthModule
   ],
   exports:[FirmaService],
   controllers: [FirmaController],

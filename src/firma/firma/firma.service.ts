@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -44,7 +43,7 @@ export class FirmaService {
 
     private readonly firmamexService: FirmamexService,
     private readonly documentsService: DocumentsService,
-  ) {}
+  ) { }
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {

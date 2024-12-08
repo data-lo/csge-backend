@@ -3,9 +3,14 @@ import { TiemposService } from './tiempos.service';
 import { TiemposController } from './tiempos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tiempo } from './entities/tiempo.entity';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tiempo])],
+  imports: [TypeOrmModule.forFeature([Tiempo]),
+    AuthModule,
+    PassportModule
+  ],
   exports:[TiemposService],
   controllers: [TiemposController],
   providers: [TiemposService],

@@ -4,13 +4,17 @@ import { DepartamentosService } from './departamentos.service';
 import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { LoggerService } from 'src/logger/logger.service';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ValidRoles } from '../usuarios/interfaces/usuarios.roles';
+import { rolesAdministraccion } from '../valid-administracion-roles.ob';
 
+@Auth(...rolesAdministraccion)
 @Controller('administracion/departamentos')
 export class DepartamentosController {
+  
   constructor(
     private readonly departamentosService: DepartamentosService,
   ) {}
-
   private readonly logger = new LoggerService(DepartamentosController.name);
 
   @Post()
