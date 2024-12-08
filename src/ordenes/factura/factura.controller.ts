@@ -7,12 +7,16 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer } from 'src/helpers/fileNamer';
 import { Response } from 'express';
+import { LoggerService } from 'src/logger/logger.service';
+import { rolesFactura } from './valid-facturas-roles.ob';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
   constructor(private readonly facturaService: FacturaService) {}
+  private readonly logger = new LoggerService(FacturaController.name);
 
-
+  @Auth(...rolesFactura)
   @Post()
   @UseInterceptors( 
     FilesInterceptor('archivosFactura',2,{
@@ -49,21 +53,25 @@ export class FacturaController {
       return this.facturaService.create(createFacturaDto);
   }
 
+  @Auth(...rolesFactura)
   @Get()
   findAll(@Query('pagina') pagina:string){
     return this.facturaService.findAll(+pagina);
   }
 
+  @Auth(...rolesFactura)
   @Get('busqueda')
   findAllBusqueda(){
     return this.facturaService.findAllBusqueda();
   }
 
+  @Auth(...rolesFactura)
   @Get('estatus/:id')
   findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
 
+  @Auth(...rolesFactura)
   @Get('pdf:id')
   async obtenerDocumentoEnPdf(
     @Res() res:Response,
@@ -75,12 +83,13 @@ export class FacturaController {
     pdfDoc.end();
   } 
   
-  
+  @Auth(...rolesFactura)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.findOne(id);
   }
 
+  @Auth(...rolesFactura)
   @Get('descargar/:id/:type')
   async descargarArchivo(
     @Param( ) params,
@@ -96,6 +105,7 @@ export class FacturaController {
       }
   }
 
+  @Auth(...rolesFactura)
   @Patch(':id')
   cancelarFactura(@Param('id',ParseUUIDPipe) id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);

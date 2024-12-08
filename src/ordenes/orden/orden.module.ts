@@ -11,6 +11,8 @@ import { ServicioContratadoModule } from '../servicio_contratado/servicio_contra
 import { DocumentsModule } from 'src/documents/documents.module';
 import { FirmaModule } from 'src/firma/firma/firma.module';
 import { OrdenEventosService } from './orden.events.service';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Orden]),
@@ -20,7 +22,9 @@ import { OrdenEventosService } from './orden.events.service';
     PartidaModule,
     ServicioContratadoModule,
     DocumentsModule,
-    FirmaModule
+    FirmaModule,
+    AuthModule,
+    PassportModule
   ],
   controllers: [OrdenController],
   providers: [OrdenService,OrdenEventosService],
