@@ -17,7 +17,6 @@ export class ColoresController {
     return this.coloresService.create(createColoreDto);
   }
 
-  @Auth(...rolesColores)
   @Get()
   findAll() {
     return this.coloresService.findAll();
