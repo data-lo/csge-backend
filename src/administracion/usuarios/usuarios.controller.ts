@@ -7,12 +7,13 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from './interfaces/usuarios.roles';
+import { rolesAdministraccion } from '../valid-modules-roles.ob';
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
 
-  //crear usuario
+  @Auth(...rolesAdministraccion)
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
@@ -31,12 +32,14 @@ export class UsuariosController {
   }
 
   //remover permisos
+  @Auth(...rolesAdministraccion)
   @Post('remover-permisos')
   removerPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     return this.usuariosService.removerPermisos(actualizarPermisosDto);
   }
 
   //agregar permisos
+  @Auth(...rolesAdministraccion)
   @Post('agregar-permisos')
   agregarPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     return this.usuariosService.agregarPermisos(actualizarPermisosDto);
@@ -49,12 +52,14 @@ export class UsuariosController {
     return this.usuariosService.findAll(+pagina);
   }
 
+  @Auth(...rolesAdministraccion)
   @Get('busqueda')
   findAllBusqueda() {
     return this.usuariosService.findAllBusqueda();
   }
 
   //obtener un usuario
+  @Auth(...rolesAdministraccion)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.findOne(id);
@@ -67,18 +72,21 @@ export class UsuariosController {
   }
 
   //obtener el estatus de un usuario
+  @Auth(...rolesAdministraccion)
   @Get('/obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.obtenerEstatus(id);
   }
 
   //actualizar un usuario
+  @Auth(...rolesAdministraccion)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(id, updateUsuarioDto);
   }
 
   //desactivar un usuario
+  @Auth(...rolesAdministraccion)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usuariosService.deactivate(id);

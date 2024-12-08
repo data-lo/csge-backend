@@ -159,7 +159,7 @@ export class UsuariosService {
   async login(loginUserDto: LoginUserDto) {
     try {
       const { password, correo } = loginUserDto;
-      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo }));
+      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo.toUpperCase() }));
 
       if (!dbUser) {
         throw new UnauthorizedException('Usuario no encontrado')
