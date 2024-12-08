@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contacto } from './entities/contacto.entity';
 import { EstacionModule } from '../estacion/estacion.module';
 import { ProveedorModule } from '../proveedor/proveedor.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   controllers: [ContactoController],
@@ -13,6 +15,8 @@ import { ProveedorModule } from '../proveedor/proveedor.module';
     TypeOrmModule.forFeature([Contacto]),
     EstacionModule,
     ProveedorModule,
+    AuthModule,
+    PassportModule
   ],
   exports: [ContactoService],
 })
