@@ -7,16 +7,20 @@ import { DependenciaModule } from '../dependencia/dependencia.module';
 import { Dependencia } from '../dependencia/entities/dependencia.entity';
 import { ActivacionModule } from '../activacion/activacion.module';
 import { PartidaModule } from '../partida/partida.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports:[
+  imports: [
     TypeOrmModule.forFeature([Campaña, Dependencia]),
     DependenciaModule,
     ActivacionModule,
-    PartidaModule
+    PartidaModule,
+    AuthModule,
+    PassportModule,
   ],
   controllers: [CampañasController],
   providers: [CampañasService],
-  exports: [CampañasService]
+  exports: [CampañasService],
 })
 export class CampañasModule {}

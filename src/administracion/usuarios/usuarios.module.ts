@@ -6,18 +6,20 @@ import { Usuario } from './entities/usuario.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Usuario]),
     AuthModule,
-  JwtModule.registerAsync({
+    PassportModule,
+    JwtModule.registerAsync({
     imports: [ConfigModule],
     inject: [ConfigService],
     useFactory: (configService: ConfigService) => {
       return {
         secret: configService.get('JWT_SECRET'),
         signOptions: {
-          expiresIn: '2h'
+          expiresIn: '8h'
         }
       }
     }

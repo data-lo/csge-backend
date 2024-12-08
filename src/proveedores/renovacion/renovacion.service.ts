@@ -39,10 +39,15 @@ export class RenovacionService {
           tarifaUnitaria = ivaDesglosado.tarifa,
           iva = ivaDesglosado.iva
         }
+
+        if(!createRenovacionDto.ivaIncluido){
+          iva = Number((tarifaUnitaria * 0.16).toFixed(2));
+        }
         
         const renovacion = this.renovacionRepository.create({
           servicio:servicioDb,
           tarifaUnitaria:tarifaUnitaria,
+          fechaDeCreacion: new Date(),
           iva:iva,
           ...rest
         });
@@ -87,7 +92,6 @@ export class RenovacionService {
           ivaIncluido,
           ivaFrontera,
           iva,
-          fechaDeCreacion,
           estatus,
           caracteristicasDelServicio,
           servicioId,
@@ -95,7 +99,7 @@ export class RenovacionService {
 
         const renovacion = await this.findOne(id);
         
-        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || fechaDeCreacion || servicioId){
+        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || servicioId){
           throw new BadRequestException('Campos relacionados a estatus, tarifas ,iva o relación con el servicio no pueden ser actualizados, crear nueva renovación');
         }
         
@@ -111,6 +115,7 @@ export class RenovacionService {
           await this.renovacionRepository.update(id,{
             caracteristicasDelServicio:caracteristicasDelServicioDb,
             estatus:estatus,
+            fechaDeCreacion: new Date(),
             ...rest
           }); 
           return await this.findOne(id);
@@ -118,7 +123,7 @@ export class RenovacionService {
     } catch (error: any) {
         handleExeptions(error);
     }
-}
+  }
 
 
   async remove(id: string) {

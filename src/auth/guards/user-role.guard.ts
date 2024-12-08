@@ -13,12 +13,11 @@ import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    //obtener los roles permitidos por el controlador
     const validRoles: string[] = this.reflector.get(
       META_ROLES,
       context.getHandler(),
@@ -26,8 +25,6 @@ export class UserRoleGuard implements CanActivate {
 
     if (!validRoles) return true;
     if (validRoles.length === 0) return true;
-
-    //obtener los roles del usuario
     const req = context.switchToHttp().getRequest();
     const usuario = req.user as Usuario;
 

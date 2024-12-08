@@ -23,6 +23,7 @@ import { DocumentsService } from 'src/documents/documents.service';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { IvaGetter } from 'src/helpers/iva.getter';
 
 @Injectable()
 export class OrdenService {
@@ -116,7 +117,8 @@ export class OrdenService {
           },
           proveedor: {
             nombreComercial: true,
-          },
+            razonSocial:true,
+          }
         },
         order: {
           fechaDeEmision: 'ASC',
@@ -327,12 +329,14 @@ export class OrdenService {
     try {
       const orden = await this.findOne(ordenId);
       const { serviciosContratados } = orden;
-
+    
       let iva = 0;
       let subtotal = 0;
       let total = 0.0;
 
+
       serviciosContratados.forEach((servicioContratado) => {
+        
         const servicio = plainToClass(ServicioDto, servicioContratado.servicio);
         const cantidad = servicioContratado.cantidad;
         const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);

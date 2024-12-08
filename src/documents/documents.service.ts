@@ -52,7 +52,6 @@ export class DocumentsService {
       facturaDb:facturaDb,
       textoEncabezado:textoEncabezado.texto,
       textoPieDePagina:textoPieDePagina.texto
-
     });
     const document = this.printerService.createPdf(definicionDeFactura);
     return document;

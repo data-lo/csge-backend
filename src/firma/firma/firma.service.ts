@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -44,7 +43,7 @@ export class FirmaService {
 
     private readonly firmamexService: FirmamexService,
     private readonly documentsService: DocumentsService,
-  ) {}
+  ) { }
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
@@ -241,10 +240,10 @@ export class FirmaService {
           imageType: 'hash',
           page: 0,
           rect: {
-            lx: 388,
-            ly: 400,
-            tx: 496,
-            ty: 480,
+            lx: 120,
+            ly: 80,
+            tx: 420,
+            ty: 180,
           },
         };
         stickers.push(sticker);

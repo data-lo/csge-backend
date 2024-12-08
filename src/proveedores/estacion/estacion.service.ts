@@ -85,7 +85,7 @@ export class EstacionService {
       const estaciones = await this.estacionRepository.find({
         relations:{
           municipios:true,
-          servicios:true
+          servicios:true,
         }
       });
       const estacionesFiltradas = estaciones.filter(estacion =>

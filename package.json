@@ -1,8 +1,8 @@
 {
   "name": "csge-backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "1.0.0",
+  "description": "SOFTWARE DE ADMINISTRACIÓN DE PUBLICIDAD Y ORDENES DE SERVICIO DE GOBIERNO DEL ESTADO DE CHIHUAHUA",
+  "author": "REGISTROS AUTOMATIZADOS DE MÉXICO S.A. DE C.V.",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

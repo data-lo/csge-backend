@@ -13,6 +13,8 @@ import { ImpresionesModule } from '../impresiones/impresiones.module';
 import { FormatosModule } from '../formatos/formatos.module';
 import { LongitudesModule } from '../longitudes/longitudes.module';
 import { TiemposModule } from '../tiempos/tiempos.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports:[TypeOrmModule.forFeature([
@@ -27,7 +29,9 @@ import { TiemposModule } from '../tiempos/tiempos.module';
   ImpresionesModule,
   FormatosModule,
   LongitudesModule,
-  TiemposModule
+  TiemposModule,
+  AuthModule,
+  PassportModule
 ],
   exports:[CaracteristicasService],
   controllers: [CaracteristicasController],

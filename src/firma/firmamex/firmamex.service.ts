@@ -6,6 +6,9 @@ export class FirmamexService {
 
   firmamexServicesFunc() {
     const FirmamexServices = require('./firmamexSDK');
+    if (!process.env.WEB_ID_FIRMAMEX || !process.env.API_KEY_FIRMAMEX) {
+      throw new Error('Las API keys no están configuradas correctamente.');
+    }
     this.services = FirmamexServices(
       process.env.WEB_ID_FIRMAMEX,
       process.env.API_KEY_FIRMAMEX,
