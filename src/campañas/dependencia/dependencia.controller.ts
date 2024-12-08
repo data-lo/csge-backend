@@ -3,7 +3,7 @@ import { DependenciaService } from './dependencia.service';
 import { CreateDependenciaDto } from './dto/create-dependencia.dto';
 import { UpdateDependenciaDto } from './dto/update-dependencia.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesCampanias } from '../valid-modules-roles.ob';
+import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 
 @Controller('campanias/dependencias')
 export class DependenciaController {

@@ -5,7 +5,7 @@ import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { EstatusCampaña } from './interfaces/estatus-campaña.enum';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesCampanias } from '../valid-modules-roles.ob';
+import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 
 @Controller('campanias/campanias')
 export class CampañasController {

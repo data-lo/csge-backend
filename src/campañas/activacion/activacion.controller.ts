@@ -5,7 +5,7 @@ import { UpdateActivacionDto } from './dto/update-activacion.dto';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesCampanias } from '../valid-modules-roles.ob';
+import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 
 @Controller('campanias/activaciones')
 export class ActivacionController {

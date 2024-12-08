@@ -3,7 +3,7 @@ import { PartidaService } from './partida.service';
 import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesCampanias } from '../valid-modules-roles.ob';
+import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 
 @Controller('campanias/partidas')
 export class PartidaController {

@@ -277,7 +277,7 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-
+      if(!usuario) throw new NotFoundException('Usuario no encontrado');
       return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
       handleExeptions(error);
