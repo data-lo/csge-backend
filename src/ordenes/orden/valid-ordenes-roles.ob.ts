@@ -1,6 +1,5 @@
 import { ValidRoles } from "src/administracion/usuarios/interfaces/usuarios.roles";
 
-
 export const rolesOrdenes = [
     ValidRoles.AGENTE,
     ValidRoles.DIRECCION,
