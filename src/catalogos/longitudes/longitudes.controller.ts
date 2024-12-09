@@ -11,31 +11,31 @@ export class LongitudesController {
   constructor(private readonly longitudesService: LongitudesService) {}
   private readonly logger = new LoggerService(LongitudesController.name);
 
-  @Auth(...rolesImpresiones)
+  //@Auth(...rolesImpresiones)
   @Post()
   create(@Body() createLongitudeDto: CreateLongitudDto) {
     return this.longitudesService.create(createLongitudeDto);
   }
 
-  @Auth(...rolesImpresiones)
+  //@Auth(...rolesImpresiones)
   @Get()
   findAll() {
     return this.longitudesService.findAll();
   }
 
-  @Auth(...rolesImpresiones)
+  //@Auth(...rolesImpresiones)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.longitudesService.findOne(id);
   }
 
-  @Auth(...rolesImpresiones)
+  //@Auth(...rolesImpresiones)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateLongitudeDto: UpdateLongitudDto) {
     return this.longitudesService.update(id, updateLongitudeDto);
   }
 
-  @Auth(...rolesImpresiones)
+  //@Auth(...rolesImpresiones)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.longitudesService.remove(id);

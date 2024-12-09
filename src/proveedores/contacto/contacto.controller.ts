@@ -11,31 +11,31 @@ export class ContactoController {
   constructor(private readonly contactoService: ContactoService) {}
   private readonly logger = new LoggerService(ContactoController.name);
 
-  @Auth(...rolesContactos)
+  //@Auth(...rolesContactos)
   @Post()
   create(@Body() createContactoDto: CreateContactoDto) {
     return this.contactoService.create(createContactoDto);
   }
 
-  @Auth(...rolesContactos)
+  //@Auth(...rolesContactos)
   @Get()
   findAll(@Query('pagina') pagina:string ) {
     return this.contactoService.findAll(+pagina);
   }
 
-  @Auth(...rolesContactos)
+  //@Auth(...rolesContactos)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.contactoService.findOne(id);
   }
 
-  @Auth(...rolesContactos)
+  //@Auth(...rolesContactos)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateContactoDto: UpdateContactoDto) {
     return this.contactoService.update(id, updateContactoDto);
   }
 
-  @Auth(...rolesContactos)
+  //@Auth(...rolesContactos)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.contactoService.remove(id);

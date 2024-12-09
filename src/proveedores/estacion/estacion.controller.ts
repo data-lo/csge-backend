@@ -13,43 +13,43 @@ export class EstacionController {
   {}
   private readonly logger = new LoggerService(EstacionController.name);
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Post()
   create(@Body() createEstacionDto: CreateEstacionDto) {
     return this.estacionService.create(createEstacionDto);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Patch('desactivar')
   desactivarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
     return this.estacionService.desactivarEstacion(estacionId);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Patch('activar')
   activarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
     return this.estacionService.activarEstacion(estacionId);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.estacionService.findAll(+pagina);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.estacionService.findOne(id);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateEstacionDto: UpdateEstacionDto) {
     return this.estacionService.update(id, updateEstacionDto);
   }
 
-  @Auth(...rolesEstacion)
+  //@Auth(...rolesEstacion)
   @Delete(':id')
   delete(@Param('id',ParseUUIDPipe) id: string){
     return this.estacionService.delete(id);
