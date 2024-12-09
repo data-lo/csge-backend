@@ -23,8 +23,8 @@ export class Renovacion {
     @Column({
         name:'tarifa_unitaria',
         type:'decimal',
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     tarifaUnitaria:number;
@@ -32,8 +32,8 @@ export class Renovacion {
     @Column({
         name:'iva',
         type:'decimal',
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     iva:number;
