@@ -39,4 +39,10 @@ export class SeedController {
   seedCampanias(){
     return this.seedService.seedCampañas();
   }
+
+  @Get('carteleras')
+  seedCarteleras(){
+    return this.seedService.seedCarteleras();
+  }
+
 };

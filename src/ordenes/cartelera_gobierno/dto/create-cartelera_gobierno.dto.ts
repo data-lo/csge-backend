@@ -7,7 +7,19 @@ export class CreateCarteleraGobiernoDto {
     ubicacion:string;
 
     @IsString()
-    idCartelera:string;
+    numeroDeInventario:string;
+
+    @IsString()
+    clave:string;
+
+    @IsString()
+    ruta:string;
+
+    @IsString()
+    medida:string;
+
+    @IsString()
+    metrosCuadrados:string;
 
     @CreateDateColumn({
         name:'creado_en'
