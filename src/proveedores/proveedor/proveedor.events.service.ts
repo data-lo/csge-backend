@@ -16,5 +16,5 @@ export class ProveedorEventosService {
         await this.proveedorService.activarProveedor(proveedorId);
         return;
     }
-
+    
 }
