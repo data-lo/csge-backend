@@ -10,6 +10,7 @@ import { ValidRoles } from './interfaces/usuarios.roles';
 import { rolesAdministraccion } from '../valid-administracion-roles.ob';
 import { LoggerService } from 'src/logger/logger.service';
 
+
 @Controller('administracion/usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
@@ -76,6 +77,7 @@ export class UsuariosController {
   }
 
   //reestablecer contraseña
+  //@Auth(...rolesAdministracion)
   @Get('/reestablecer/:id')
   reestablecer(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log('Reestablecer contraseña');
