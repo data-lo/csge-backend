@@ -2,6 +2,7 @@ import { Catch, ArgumentsHost, HttpStatus, HttpException } from "@nestjs/common"
 import { BaseExceptionFilter } from "@nestjs/core";
 import { Request, Response } from 'express';
 import { LoggerService } from "../logger/logger.service";
+import { errorMonitor } from "events";
 
 type MyResponseObj = {
     statusCode: number,
@@ -19,10 +20,13 @@ export class AllExceptionsFilter extends BaseExceptionFilter{
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
 
-        const internalServererrrorResponse = {
-            message:"Inernal Server Error",
-            error:'Error',
-            statusCode:500
+        const internalServererrrorResponse = (error) => {
+            console.log(error);
+            return {
+                message:"Inernal Server Error",
+                error:error.mesagge,
+                statusCode:500
+            }
         }
 
         const myResponseObj: MyResponseObj = {
@@ -38,7 +42,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter{
         
         }else{
             myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-            myResponseObj.response = internalServererrrorResponse
+            myResponseObj.response = internalServererrrorResponse(exception)
         };
 
         response.status(myResponseObj.statusCode)
