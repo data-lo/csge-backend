@@ -9,28 +9,38 @@ export class IvaGetter {
     ){}
 
     async desglosarIva(tarifa:number,esIvaFrontera:boolean){
-        let iva:number = 0.00
+        
+        let ivaPorcentaje:number = 0.0000;
+
         if(esIvaFrontera){
-            iva = (tarifa * await this.obtenerIvaFrontera());
+            ivaPorcentaje =  await this.obtenerIvaFrontera();
         }else{
-            iva = (tarifa * await this.obtenerIvaNacional());
+            ivaPorcentaje = await this.obtenerIvaNacional();
         }
-        const tarifaSinIva = tarifa - iva;
+        
+        const razonDeIva = 1.0000 + ivaPorcentaje;
+        console.log(razonDeIva);
+        
+        const tarifaUnitariaSinIva = ( tarifa / razonDeIva);
+        const ivaDesglosado = (tarifa - tarifaUnitariaSinIva);
+        
+        console.log('tarifa unitaria sin iva ',tarifaUnitariaSinIva)
+
+        console.log('iva ',ivaDesglosado)
         return {
-            tarifa:parseFloat(tarifaSinIva.toFixed(2)),
-            iva:parseFloat(iva.toFixed(2))
+            tarifa:parseFloat(tarifaUnitariaSinIva.toFixed(4)),
+            iva:parseFloat(ivaDesglosado.toFixed(4))
         }   
     }
 
     async obtenerIvaNacional(){
         const ivaNacional = await this.ivaService.obtenerIvaNacional()
-        return ivaNacional.porcentaje/100;
+        return (ivaNacional.porcentaje/100);
     }
 
     async obtenerIvaFrontera(){
         const ivaFrontera = await this.ivaService.obtenerIvaFrontera()
-        return ivaFrontera.porcentaje/100;
+        return (ivaFrontera.porcentaje/100);
     }
-
 
 };
