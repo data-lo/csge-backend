@@ -197,6 +197,7 @@ export class FirmaService {
         documentoEnPdf.info.Title,
         stickers,
       );
+      console.log(response);
       documento.ticket = response.document_ticket;
       documento.documentoUrlFirmamex = response.document_url;
       documento.estatusDeFirma = estatusDeFirma;
@@ -241,9 +242,9 @@ export class FirmaService {
           page: 0,
           rect: {
             lx: 120,
-            ly: 80,
-            tx: 420,
-            ty: 180,
+            ly: 650,
+            tx: 590,
+            ty: 700,
           },
         };
         stickers.push(sticker);
