@@ -8,6 +8,22 @@ export class IvaGetter {
         private readonly ivaService:IvaService,
     ){}
 
+
+
+    async obtenerIva(tarifa:number,esIvaFrontera:boolean){
+
+        let ivaPorcentaje:number = 0.0000;
+
+        if(esIvaFrontera){
+            ivaPorcentaje =  await this.obtenerIvaFrontera();
+        }else{
+            ivaPorcentaje = await this.obtenerIvaNacional();
+        }
+        
+        const iva = tarifa * ivaPorcentaje;
+        return parseFloat(iva.toFixed(4))
+    }
+
     async desglosarIva(tarifa:number,esIvaFrontera:boolean){
         
         let ivaPorcentaje:number = 0.0000;
