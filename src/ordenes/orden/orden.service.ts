@@ -255,8 +255,11 @@ export class OrdenService {
       const orden = await this.findOne(id);
       const estatus = orden.estatus;
       if (estatus === EstatusOrdenDeServicio.PENDIENTE) {
-        await this.ordenRepository.delete(id);
-        return { message: 'Orden eliminada exitosamente' };
+        for(const servicioContratado of orden.serviciosContratados){
+          await this.servicioContratadoService.remove(servicioContratado.id);
+        }
+        await this.ordenRepository.remove(orden);
+        return { message: 'Orden eliminada exitosamente'};
       }
       throw new BadRequestException(
         'No es posible eliminar la orden debido a su estatus, cancelar orden',
