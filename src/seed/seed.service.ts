@@ -447,7 +447,7 @@ export class SeedService {
         
         try{
           const contratoDto = plainToClass(CreateContratoDto,{
-            proveedorId:proveedorId.id,
+            //proveedorId:proveedorId.id,
             montoMaximoContratado: Number(montoMaximoContratado),
             ivaMontoMaximoContratado:Number(ivaMontoMaximoContratado),
             montoMinimoContratado:Number(montoMinimoContratado),
