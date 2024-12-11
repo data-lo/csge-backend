@@ -20,12 +20,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  //app.useGlobalFilters(
-  //  new AllExceptionsFilter(httpAdapter),
-  //);
-  app.useGlobalInterceptors(
-    new DateFormatterInterceptor()
+  app.useGlobalFilters(
+    new AllExceptionsFilter(httpAdapter),
   );
+  //app.useGlobalInterceptors(
+  //  new DateFormatterInterceptor()
+  //);
 
   await app.listen(process.env.SERVER_PORT);
 }
