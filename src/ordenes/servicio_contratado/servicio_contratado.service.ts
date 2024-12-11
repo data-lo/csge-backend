@@ -27,7 +27,7 @@ export class ServicioContratadoService {
     try {
 
       let cartelera = null;
-      const { carteleraId, ordenId, ...rest } = createServicioContratadoDto;
+      const { carteleraId, ordenId, cantidad, ...rest } = createServicioContratadoDto;
       if (carteleraId) {
         cartelera = await this.carteleraGobiernoRepository.findOneBy({ id: carteleraId });
         if (!cartelera) throw new NotFoundException('No se encuentra la cartelera');
@@ -37,6 +37,7 @@ export class ServicioContratadoService {
       if (!orden) throw new NotFoundException('No se encuentra la orden');
 
       const servicioContratado = this.servicioContratadoRepository.create({
+        cantidad: Number(cantidad),
         cartelera: cartelera,
         ordenDeServicio: orden,
         ...rest
@@ -95,7 +96,7 @@ export class ServicioContratadoService {
     try {
       const servicioContratado = await this.findOne(id);
       if (servicioContratado) {
-        const { servicio, carteleraId, ...rest } = updateServicioContratadoDto;
+        const { servicio, carteleraId, cantidad, ...rest } = updateServicioContratadoDto;
         let cartelera = null;
 
         if (carteleraId) {
@@ -103,6 +104,7 @@ export class ServicioContratadoService {
           if (!cartelera) throw new NotFoundException('No se encuentra la cartelerea');
         }
         await this.servicioContratadoRepository.update(id, {
+          cantidad: Number(cantidad),
           servicio: Object(servicio),
           cartelera: cartelera,
           ...rest

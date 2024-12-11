@@ -5,27 +5,27 @@ import { CreateServicioContratadoDto } from "src/ordenes/servicio_contratado/dto
 
 export class CreateOrdenDto {
     
+    @IsOptional()
     @IsEnum(TipoDeServicio)
     tipoDeServicio:TipoDeServicio
 
+    @IsOptional()
     @IsString()
     @IsUUID()
     proveedorId:string;
 
+    @IsOptional()
     @IsString()
     @IsUUID()
-    campañaId:string;
+    campaniaId:string;
 
+    @IsOptional()
     @IsString()
     @IsUUID()
     contratoId:string;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaDeEmision:string;
+    @IsOptional()
+    fechaDeEmision:Date;
 
     @IsString()
     @IsOptional()
@@ -35,6 +35,7 @@ export class CreateOrdenDto {
     @IsOptional()
     ordenAnteriorCancelada:string;
 
+    @IsOptional()
     @IsArray()
     @ValidateNested({each:true})
     @Type(() => CreateServicioContratadoDto)

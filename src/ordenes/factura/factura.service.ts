@@ -27,7 +27,6 @@ export class FacturaService {
     private ordenRepository: Repository<Orden>,
     @InjectRepository(Proveedor)
     private proveedrRepository: Repository<Proveedor>,
-
     private readonly documentsService:DocumentsService,
 
   ) { }
@@ -40,14 +39,13 @@ export class FacturaService {
       if (!validacionBool) throw new BadRequestException({message:'Validar testigo',id:id});
 
       let ordenes: Orden[] = [];
-      let totalDeOrdenes: number = 0.00;
+      let subtotalDeOrdenes: number = 0.00;
 
       const ordenesIds = [ordenesDeServicioIds]
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
         if (!orden) throw new NotFoundException({message:`La orden con el Id ${ordenId} no se encuentra`,id:id});
-        totalDeOrdenes = (orden.total + totalDeOrdenes);
-        console.log(totalDeOrdenes);
+        subtotalDeOrdenes = (orden.subtotal + subtotalDeOrdenes);
         ordenes.push(orden);
       }
       
@@ -60,9 +58,9 @@ export class FacturaService {
         {message:'RFC de la factura y RFC del proveedor no coinciden',
           id:id
         });
-      if (parseFloat(totalDeOrdenes.toFixed(2)) !== parseFloat(facturaXmlData.total)) 
+      if (parseFloat(subtotalDeOrdenes.toFixed(2)) !== parseFloat(facturaXmlData.subtotal)) 
         throw new BadRequestException({
-          message:`El monto total de las ordenes y el total de la factura no coinciden monto total de ordenes: ${totalDeOrdenes}, total de factura ${facturaXmlData.total}`,
+          message:`El monto de las ordenes y el subtotal de la factura no coinciden monto total de ordenes: ${subtotalDeOrdenes}, total de factura ${facturaXmlData.subtotal}`,
           id:id
         });
 
@@ -88,6 +86,7 @@ export class FacturaService {
       handleExeptions(error);
     }
   }
+  
 
   async findAllBusqueda() {
     try {
@@ -214,6 +213,7 @@ export class FacturaService {
     }
   }
 
+  //Funcion Para descargar los archivos xml y pdf  de filesystem
   async obtenerArchivosDescarga(id: string, tipoArchivo: string) {
     try {
       const factura = await this.facturaRepository.findOneBy({ id: id })
@@ -229,6 +229,7 @@ export class FacturaService {
     }
   }
 
+  //Elimina los archivos de la factura en filesystem
   async eliminarArchivoDeFactura(id: string) {
     try {
       const pdf = path.join(this.rutaDeCarga, 'static/uploads/pdf/', `${id}.pdf`);
@@ -248,6 +249,7 @@ export class FacturaService {
     }
   }
 
+  //Canela la factura ingresada
   async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
     try {
       const { motivoDeCancelacion } = updateFacturaDto;
@@ -301,11 +303,6 @@ export class FacturaService {
     }catch(error){
       handleExeptions(error);
     }
-    
-
-
   }
-
-
-  //aprobar factura
+    //aprobar factura
 }
