@@ -17,13 +17,10 @@ export class RenovacionService {
   constructor(
     @InjectRepository(Renovacion)
     private readonly renovacionRepository:Repository<Renovacion>,
-
     @Inject(IvaGetter)
-    private readonly ivaGetter:IvaGetter,
-    
+    private readonly ivaGetter:IvaGetter,  
     @InjectRepository(Servicio)
     private readonly servicioRepository:Repository<Servicio>
-    
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {

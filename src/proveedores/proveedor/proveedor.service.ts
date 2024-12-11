@@ -68,9 +68,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.findOne({
-        where: { rfc: rfc }
-      });
+      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
+      .getMany();
+
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
       return proveedor;
     } catch (error) {
