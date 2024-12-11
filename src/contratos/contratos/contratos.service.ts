@@ -77,7 +77,7 @@ export class ContratosService {
         'contrato.montoDisponible',
         'contrato.estatusDeContrato',
         'proveedor.id',
-        'proveedor.nombreComercial',
+        'proveedor.razonSocial',
       ])
       .skip(paginationSetter.getSkipElements(pagina))
       .take(paginationSetter.castPaginationLimit())
