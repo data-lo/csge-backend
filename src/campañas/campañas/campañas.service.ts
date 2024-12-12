@@ -187,16 +187,12 @@ export class CampañasService {
       }
       const activaciones = (await this.findOne(id)).activaciones;
       const index = activaciones.length;
-    
       const ultimaActivacion = activaciones[index-1];
-
       await this.activacionService.desactivar(ultimaActivacion.id);
       const {partida, ...rest} = createActivacionDto;
-
       const partidaDb = await this.partidaService.create(partida);
       rest.campañaId = id;
       rest.partidaId = partidaDb.id;
-      
       const activacionDb = await this.activacionService.create({
         partida:partidaDb,
         ...rest

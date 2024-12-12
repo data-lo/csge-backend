@@ -18,6 +18,7 @@ import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
 import { DocumentsService } from 'src/documents/documents.service';
+import { EstatusOrdenDeServicio } from '../orden/interfaces/estatus-orden-de-servicio';
 
 @Injectable()
 export class FacturaService {
@@ -58,6 +59,7 @@ export class FacturaService {
             message: `La orden con el Id ${ordenId} no se encuentra`,
             id: id,
           });
+        if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('Solo de pueden agregar ') 
         subtotalDeOrdenes = orden.subtotal + subtotalDeOrdenes;
         ordenes.push(orden);
       }
