@@ -44,7 +44,10 @@ export class DocumentsService {
 
   async construirAprobacionDeFactura(id:string){
     const facturaDb = await this.facturRepository.findOne({
-      where:{id:id}
+      where:{id:id},
+      relations:{
+        proveedor:true
+      }
     });
     const textoEncabezado = await this.textosService.obtenerEncabezado();
     const textoPieDePagina = await this.textosService.obtenerPieDePagina();
