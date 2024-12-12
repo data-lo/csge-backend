@@ -17,8 +17,6 @@ export class Factura {
     })
     folio:string;
 
-    concepto:string;
-
     @Column({
         name:'subtotal_factura',
         type:"decimal",
@@ -124,7 +122,7 @@ export class Factura {
     usuarioTestigo:Usuario;
 
     @ManyToMany(() => Orden,{
-        eager:false
+        eager:false,
     })     
     @JoinTable()
     ordenesDeServicio:Orden[]

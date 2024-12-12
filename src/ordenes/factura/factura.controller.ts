@@ -97,7 +97,7 @@ export class FacturaController {
   }
 
   //@Auth(...rolesFactura)
-  @Get('pdf:id')
+  @Get('pdf/:id')
   async obtenerDocumentoEnPdf(
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string,
