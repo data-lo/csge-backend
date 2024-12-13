@@ -19,7 +19,7 @@ import {
 } from './interfaces/firmamex-responde.interface';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
-import { QR } from './interfaces/qr.c';
+import { QROrden,QRAprobacionFactura,QRCotejo } from './interfaces/qr.c';
 import { DocumentsService } from '../../documents/documents.service';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from './entities/firma.entity';
@@ -149,7 +149,9 @@ export class FirmaService {
             },
           )
           .getMany();
-      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      
+        } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        console.log(documentoId);
         documentoDb = await this.facturaRepository.findOne({
           where: { id: documentoId },
         });
@@ -190,14 +192,14 @@ export class FirmaService {
         documento.ordenOFacturaId,
         documento.tipoDeDocumento,
       );
-      const stickers = await this.crearStickers([usuario]);
+      const stickers = await this.crearStickers([usuario],documento.tipoDeDocumento);
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
       const response = await this.enviarDocumentoAFirmamexSDK(
         documentoEnBase64,
         documentoEnPdf.info.Title,
         stickers,
+        documento.tipoDeDocumento
       );
-      console.log(response);
       documento.ticket = response.document_ticket;
       documento.documentoUrlFirmamex = response.document_url;
       documento.estatusDeFirma = estatusDeFirma;
@@ -214,11 +216,11 @@ export class FirmaService {
   ): Promise<PDFKit.PDFDocument> {
     try {
       let documento = null;
-      if ((tipoDeDocumento = TipoDeDocumento.ORDEN_DE_SERVICIO)) {
+      if ((tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO)) {
         documento =
           await this.documentsService.construirOrdenDeServicio(documentoId);
         return documento;
-      } else if ((tipoDeDocumento = TipoDeDocumento.APROBACION_DE_FACTURA)) {
+      } else if ((tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA)) {
         documento =
           await this.documentsService.construirAprobacionDeFactura(documentoId);
         return documento;
@@ -229,7 +231,7 @@ export class FirmaService {
     }
   }
 
-  async crearStickers(usuarios: Usuario[]) {
+  async crearStickers(usuarios: Usuario[],tipoDeDocumento:TipoDeDocumento) {
     try {
       const stickers = [];
       for (const usuario of usuarios) {
@@ -262,9 +264,20 @@ export class FirmaService {
     docBase64,
     docNombre: string,
     stickers: Sticker[],
+    tipoDeDocumento:TipoDeDocumento
   ): Promise<FirmamexResponse> {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
+      let QR = {};
+
+      if(tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO){
+        QR = QROrden;
+      }
+
+      if(tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
+        QR = QRCotejo
+      }
+
       const response = await serviciosFirmamex.request({
         b64_doc: {
           data: docBase64,
@@ -336,4 +349,6 @@ export class FirmaService {
       documento.end();
     });
   }
+
+
 }
