@@ -55,14 +55,13 @@ export class WebhooksService {
         ticket:firmamex_id
       });
 
-      documentoDeFirma.estatusDeFirma = EstatusDeFirma.APROBADA;
-      
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
-
       if(tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO){
+
         documentoDeFirma.estaFirmado = true;
+        documentoDeFirma.estatusDeFirma = EstatusDeFirma.APROBADA;
         this.emitter(documentoId,'orden');
       
       }else if(tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
