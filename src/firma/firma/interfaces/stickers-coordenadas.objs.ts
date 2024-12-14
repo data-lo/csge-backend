@@ -13,8 +13,8 @@ export  const coordenadasCotejador = {
 }
 
 export  const coordenadasAprobacionFactura = {
-    lx:120,
+    lx:350,
     ly:80,
-    tx:320,
+    tx:550,
     ty:180,
 }

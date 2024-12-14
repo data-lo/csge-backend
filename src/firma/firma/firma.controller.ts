@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Parse
 import { FirmaService } from './firma.service';
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
-import { EstatusDeFirma } from './interfaces/estatus-de-firma.enum';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesFirma } from './valid-firma-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -21,13 +20,12 @@ export class FirmaController {
   }
 
   @Auth(...rolesFirma)
-  @Get('firmar-documento/:documentoId/:estatusFirma')
+  @Get('firmar-documento/:documentoId')
   firmarDocumento(
     @Param('documentoId',ParseUUIDPipe) documentoId: string,
-    @Param('estatusFirma', new ParseEnumPipe(EstatusDeFirma)) estatusFirma: EstatusDeFirma,
     @GetUser() usuario:Usuario
   ) {
-    return this.firmaService.firmarDocumento(usuario.id,documentoId,estatusFirma);
+    return this.firmaService.firmarDocumento(usuario.id,documentoId);
   }
 
   @Auth(...rolesFirma)
