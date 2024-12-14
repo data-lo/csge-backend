@@ -78,7 +78,8 @@ export class Factura {
     @Column({
         name:'fecha_de_validacion',
         type:'date',
-        nullable:false,
+        nullable:true,
+        default:null
     })
     fechaValidacion:Date;
 

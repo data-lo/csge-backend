@@ -25,6 +25,8 @@ import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesFactura } from './valid-facturas-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -138,4 +140,15 @@ export class FacturaController {
   ) {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);
   }
+
+  @Auth(...rolesFactura)
+  @Post('cotejar/:id')
+  async aprobarFactura(
+    @Param('id',ParseUUIDPipe) facturaId: string,
+    @GetUser() usuario:Usuario
+  ){
+    return await this.facturaService.cotejarFactura(usuario,facturaId);
+  }
+
+
 }
