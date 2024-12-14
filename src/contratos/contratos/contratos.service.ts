@@ -15,17 +15,21 @@ import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ContratoEvent } from '../interfaces/contrato-evento';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class ContratosService {
   constructor(
     private eventEmitter: EventEmitter2,
+    
 
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
 
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
+
+    private readonly logger = new LoggerService(ContratosService.name)
   ) {}
 
   async create(createContratoDto: CreateContratoDto) {
@@ -234,7 +238,8 @@ export class ContratosService {
         case 'factura.cancelada':
       }
 
-      await this.contratoRepository.save(contratoDb);
+      await this.contratoRepository.save(contratoDb)
+      this.logger.log(`${eventType}:${contratoId},MONTO ACTUALIZADO:${subtotal}`);
       return;
 
     }catch(error){
