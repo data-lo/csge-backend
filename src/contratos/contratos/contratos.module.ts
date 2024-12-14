@@ -7,6 +7,7 @@ import { ContratoModificatorio } from '../contratos_modificatorios/entities/cont
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { ContratosEventosService } from './contratos.events.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { PassportModule } from '@nestjs/passport';
     PassportModule
   ],
   controllers: [ContratosController],
-  providers: [ContratosService],
+  providers: [ContratosService,ContratosEventosService],
   exports: [ContratosService],
 })
 export class ContratosModule {}

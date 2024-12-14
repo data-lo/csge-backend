@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Controller,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -213,12 +214,41 @@ export class ContratosService {
     }
   }
 
+  async actualizarMontosDelContrato(contratoId:string,subtotal:number,eventType){
+    try{
+      //CONSIDERAR CUANDO SE CANCELA UNA ORDEN FACTURADA
+      //EMITIR FACTURA CANCELADA
+      const contratoDb = await this.findOne(contratoId);
+      switch(eventType){
+        case 'orden.aprobada':
+          contratoDb.montoEjercido = contratoDb.montoEjercido + subtotal;
+          contratoDb.montoDisponible = contratoDb.montoDisponible - subtotal;
+          break;
+        case 'orden.cancelada':
+          contratoDb.montoEjercido = contratoDb.montoEjercido - subtotal;
+          contratoDb.montoDisponible = contratoDb.montoDisponible = subtotal;
+          break;
+        case 'factura.pagada':
+          contratoDb.montoPagado = contratoDb.montoPagado + subtotal;
+          break;
+        case 'factura.cancelada':
+      }
+
+      await this.contratoRepository.save(contratoDb);
+      return;
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async descargarReporte() {}
 
   async emiter(contrato: Contrato, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
-      new ContratoEvent({ contrato }),
+      new ContratoEvent({contrato}),
     );
   }
+
 }
