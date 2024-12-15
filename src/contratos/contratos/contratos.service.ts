@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Controller,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -137,7 +136,7 @@ export class ContratosService {
         estatusDeContrato: estatusDeContrato,
       });
       const contrato = await this.findOne(id);
-      this.emiter(contrato,contrato.estatusDeContrato.toLowerCase())
+      this.emitter(contrato,contrato.estatusDeContrato.toLowerCase())
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -200,7 +199,7 @@ export class ContratosService {
       const estatusDeContratoDb = await this.obtenerEstatus(id);
       if (estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO) {
         const contrato = await this.findOne(id);
-        await this.emiter(contrato, 'desactivado');
+        await this.emitter(contrato, 'desactivado');
         await this.contratoRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
           motivoCancelacion: motivoCancelacion,
@@ -245,7 +244,7 @@ export class ContratosService {
 
   async descargarReporte() {}
 
-  async emiter(contrato: Contrato, evento: string) {
+  async emitter(contrato: Contrato, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
       new ContratoEvent(contrato),
