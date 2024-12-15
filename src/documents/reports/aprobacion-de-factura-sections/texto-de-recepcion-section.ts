@@ -10,7 +10,7 @@ export const textoDeRecepcionSection = (textoDeRecepcion:string):Content => {
     
     const textoDeRecepcionC:Content = {
         text:textoDeRecepcion,
-        marginBottom:10,
+        marginBottom:20,
         alignment:'center',
         style
     }

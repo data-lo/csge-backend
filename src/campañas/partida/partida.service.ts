@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,14 +6,15 @@ import { Partida } from './entities/partida.entity';
 import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { Campaña } from '../campañas/entities/campaña.entity';
 
 @Injectable()
 export class PartidaService {
-  
-
   constructor(
     @InjectRepository(Partida)
-    private partidaRepository:Repository<Partida>
+    private partidaRepository:Repository<Partida>,
+    @InjectRepository(Campaña)
+    private campañaRepository:Repository<Campaña>
   ){}
   
   
@@ -110,9 +111,48 @@ export class PartidaService {
     }
   }
 
-  async actualizarMontos(){
+  async actualizarMontos(campañaId:string,total:number,evento:string){
     try{
-//utilizar las ordenes de servicio
+      const campania = await this.campañaRepository.findOne({
+        where:{id:campañaId},
+        relations:{
+          activaciones:{
+            partida:true
+          }
+        }
+      });
+      if(!campania) throw new NotFoundException('No se encuentra la campaña para actualizr los montos');
+      const partidaDb = campania.activaciones.at(-1).partida;
+      if(!partidaDb.estatus)throw new BadRequestException('Error, se esta tratando de actualizar una partida desactivada');
+      
+      // monto activo, orden aprobada
+      // monto ejercido, cuando se coteja,
+      // monto pagado, cuando se paga
+
+      switch(evento){
+        case 'orden.aprobada':
+          partidaDb.montoActivo = partidaDb.montoActivo + total;
+          break;
+        case 'orden.canelada':   
+          partidaDb.montoActivo = partidaDb.montoActivo - total;
+          break;
+        
+        case 'orden.cotejada':
+          partidaDb.montoActivo = partidaDb.montoActivo - total;
+          partidaDb.montoEjercido = partidaDb.montoEjercido + total;
+          break;
+        
+        case 'factura.pagada':
+          partidaDb.montoPagado = partidaDb.montoPagado = total;
+          break;
+        
+        case 'factura.cancelada':
+          partidaDb.montoPagado = partidaDb.montoPagado - total;
+          partidaDb.montoEjercido = partidaDb.montoEjercido - total;
+      }
+      await this.partidaRepository.save(partidaDb);
+      return;
+
     }catch(error){
       handleExeptions(error);
     }

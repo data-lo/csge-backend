@@ -12,31 +12,31 @@ export class FormatosController {
   private readonly logger = new LoggerService(FormatosController.name);
 
 
-  @Auth(...rolesFormatos)
+  //@Auth(...rolesFormatos)
   @Post()
   create(@Body() createFormatoDto: CreateFormatoDto) {
     return this.formatosService.create(createFormatoDto);
   }
 
-  @Auth(...rolesFormatos)
+  //@Auth(...rolesFormatos)
   @Get()
   findAll() {
     return this.formatosService.findAll();
   }
 
-  @Auth(...rolesFormatos)
+  //@Auth(...rolesFormatos)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.formatosService.findOne(id);
   }
 
-  @Auth(...rolesFormatos)
+  //@Auth(...rolesFormatos)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateFormatoDto: UpdateFormatoDto) {
     return this.formatosService.update(id, updateFormatoDto);
   }
 
-  @Auth(...rolesFormatos)
+  //@Auth(...rolesFormatos)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.formatosService.remove(id);

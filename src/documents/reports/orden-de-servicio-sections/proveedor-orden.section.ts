@@ -1,8 +1,9 @@
 import { Content } from "pdfmake/interfaces"
-import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity"
+import { Contrato } from "src/contratos/contratos/entities/contrato.entity"
+import { TipoProveedor } from "src/proveedores/proveedor/interfaces/tipo-proveedor.interface"
 
 
-export const proveedorOrdenSection = (proveedor:Proveedor):Content[] => {
+export const proveedorOrdenSection = (proveedor:interfaceProveedorI):Content[] => {
 
     const style = {
         font:'Poppins',
@@ -25,21 +26,33 @@ export const proveedorOrdenSection = (proveedor:Proveedor):Content[] => {
         text:`RAZÓN SOCIAL: ${proveedor.razonSocial}`,
         style
     }
-    const tipoPorveedor:Content = {
+    const tipoProveedor:Content = {
         text:`TIPO DE PROVEEDOR: ${proveedor.tipoProveedor}`,
         style
     }
 
-    const domicilioFiscal:Content = {   
-        text:`DOMICILIO FISCAL: ${proveedor.domicilioFiscal}`,
-        style
+    const numeroContrato:Content = {
+        text:`CONTRATO: ${proveedor.contrato.numeroDeContrato}`
+    }
+
+    const domicilioFiscal:Content = {
+        text: `DOMICILIO FISCAL: ${proveedor.domicilioFiscal}`
     }
 
     return [
         titulo,
         razonSocial,
         rfc,
-        tipoPorveedor,
+        tipoProveedor,
+        numeroContrato,
         domicilioFiscal,
     ];
+}
+
+interface interfaceProveedorI {
+    rfc:string,
+    razonSocial:string,
+    tipoProveedor:TipoProveedor,
+    domicilioFiscal:string,
+    contrato:Contrato
 }

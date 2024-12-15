@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { CampaniaEvent } from "../campañas/interfaces/campaña-evento";
 import { PartidaService } from './partida.service';
+import { OrdenEvent } from "src/ordenes/interfaces/orden-event";
 
 @Injectable()
 export class PartidaEventosService {
@@ -16,4 +17,11 @@ export class PartidaEventosService {
         await this.activacionService.delete(partidaId);
         return;
     }
+
+    @OnEvent('orden.aprobada')
+    async ordenAprbada(orden:OrdenEvent){
+        const {campaña,total} = orden.orden;
+        await this.activacionService.actualizarMontos(campaña.id,total,'orden.aprobada');
+    }
+
 }

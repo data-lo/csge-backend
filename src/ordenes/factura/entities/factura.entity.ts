@@ -17,13 +17,11 @@ export class Factura {
     })
     folio:string;
 
-    concepto:string;
-
     @Column({
         name:'subtotal_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     subtotal:number;
@@ -31,8 +29,8 @@ export class Factura {
     @Column({
         name:'iva_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     iva:number;
@@ -40,8 +38,8 @@ export class Factura {
     @Column({
         name:'total_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     total:number;
@@ -80,7 +78,8 @@ export class Factura {
     @Column({
         name:'fecha_de_validacion',
         type:'date',
-        nullable:false,
+        nullable:true,
+        default:null
     })
     fechaValidacion:Date;
 
@@ -124,7 +123,7 @@ export class Factura {
     usuarioTestigo:Usuario;
 
     @ManyToMany(() => Orden,{
-        eager:false
+        eager:false,
     })     
     @JoinTable()
     ordenesDeServicio:Orden[]

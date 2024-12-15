@@ -11,13 +11,12 @@ export class ColoresController {
   constructor(private readonly coloresService: ColoresService) {}
   private readonly logger = new LoggerService(ColoresController.name);
 
-  @Auth(...rolesColores)
+  //@Auth(...rolesColores)
   @Post()
   create(@Body() createColoreDto: CreateColorDto) {
     return this.coloresService.create(createColoreDto);
   }
 
-  @Auth(...rolesColores)
   @Get()
   findAll() {
     return this.coloresService.findAll();
@@ -28,7 +27,7 @@ export class ColoresController {
     return this.coloresService.findColorPrimario();
   }
 
-  @Auth(...rolesColores)
+  //@Auth(...rolesColores)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateColoreDto: UpdateColorDto) {
     return this.coloresService.update(id, updateColoreDto);

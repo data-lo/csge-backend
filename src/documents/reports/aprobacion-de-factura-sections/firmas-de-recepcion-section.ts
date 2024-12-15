@@ -10,18 +10,19 @@ export const firmasDeRecepcionSection = ():Content => {
     
     const firmasDeRecepcionC:Content = {
         style,
-        alignment:'left',
+        alignment:'center',
         layout:'lightHorizontalLines',
         table:{
-            widths:['auto'],
+            widths:['*'],
+            heights:[30],
             body:[
-                [
-                    {text:''}
-                ],
-                [
-                    {text:'FIRMA DE APROBACIÓN', style}
+                    [
+                        {text:''}
+                    ],
+                    [
+                        {text:'', style}
+                    ]
                 ]
-            ]
         }
     }
     

@@ -13,61 +13,61 @@ export class CampañasController {
     private readonly campañasService: CampañasService
   ){}
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Post()
   create(@Body() createCampañaDto: CreateCampañaDto) {
     return this.campañasService.create(createCampañaDto);
   }
 
-  @Auth(...rolesCampanias)
+  //Auth(...rolesCampanias)
   @Get()
   findAll( @Query('pagina') pagina:string) {
     return this.campañasService.findAll(+pagina);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get('busqueda')
   findAllBusqueda() {
     return this.campañasService.findAllBusuqueda();
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get('estatus/:id')
   estatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.campañasService.verificarEstatus(id);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.campañasService.findOne(id);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Patch('actualizar-estatus/:id')
   actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusCampaña) {
     return this.campañasService.actualizarEstatus(id,estatus);
   }
   
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Patch('activar/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
     return this.campañasService.agregarActivacion(id,createActivacionDto);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Patch('cancelar')
   cancelar(@Body('campañaId', ParseUUIDPipe) id:string) {
     return this.campañasService.cancelarCampaña(id);
   }
   
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCampañaDto: UpdateCampañaDto) {
     return this.campañasService.update(id, updateCampañaDto);
   }  
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.campañasService.remove(id);

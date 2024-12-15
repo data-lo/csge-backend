@@ -13,6 +13,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { userInfo } from 'os';
 
 @Injectable()
 export class UsuariosService {
@@ -181,9 +182,10 @@ export class UsuariosService {
       }
 
       delete dbUser.password;
+      
       return {
         user: {
-          ...dbUser
+          id:dbUser.id
         },
         token: {
           token: this.getJwtToken({ id: dbUser.id })

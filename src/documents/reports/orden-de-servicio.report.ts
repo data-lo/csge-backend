@@ -32,7 +32,16 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     subtotal,
     iva,
     total,
+    contrato
   } = orden.ordenDeServicio;
+
+
+  const {
+    razonSocial,
+    rfc,
+    tipoProveedor,
+    domicilioFiscal,
+  } = proveedor;
 
   const textoEncabezado = orden.textoEncabezado;
   const textoPieDePagina = orden.textoPieDePagina;
@@ -86,11 +95,22 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     }),
 
     content: [
+      {
+        columns:[ 
+          {width:'*',alignment:'right',stack:[firmasDeRecepcionSection()]}
+        ]
+      },
       tipoOrdenSection(tipoDeServicio),
       campañaOrdenSection(campaña),
       {
         columns: [
-          [proveedorOrdenSection(proveedor)],
+          [proveedorOrdenSection({
+              razonSocial,
+              rfc,
+              tipoProveedor,
+              domicilioFiscal,
+              contrato
+            })],
           [
             informacionOrdenSection({
               folio,
@@ -114,14 +134,6 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
           },
         ],
       },
-      {
-        absolutePosition:{x:120, y:710
-        },
-        columns:[
-          {width:'auto',alignment:'left',stack:[firmasDeRecepcionSection()]}
-        ]
-      }
-      
     ],
   };
   return docDefinition;

@@ -56,6 +56,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
                         stack:[
                             {
                                 width:'auto',
+                                alignment:'right',
                                 font:'Poppins',
                                 marginRight:30,
                                 bold:true,

@@ -17,13 +17,10 @@ export class RenovacionService {
   constructor(
     @InjectRepository(Renovacion)
     private readonly renovacionRepository:Repository<Renovacion>,
-
     @Inject(IvaGetter)
-    private readonly ivaGetter:IvaGetter,
-    
+    private readonly ivaGetter:IvaGetter,  
     @InjectRepository(Servicio)
     private readonly servicioRepository:Repository<Servicio>
-    
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {
@@ -33,7 +30,6 @@ export class RenovacionService {
 
       if(servicioId){
         const servicioDb = await this.servicioRepository.findOneBy({id:servicioId});
-                
         if(createRenovacionDto.ivaIncluido){
           const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
           tarifaUnitaria = ivaDesglosado.tarifa,
@@ -41,7 +37,7 @@ export class RenovacionService {
         }
 
         if(!createRenovacionDto.ivaIncluido){
-          iva = Number((tarifaUnitaria * 0.16).toFixed(2));
+          iva = await this.ivaGetter.obtenerIva(tarifaUnitaria,ivaFrontera);
         }
         
         const renovacion = this.renovacionRepository.create({

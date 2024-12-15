@@ -49,7 +49,7 @@ export class Proveedor {
     @Column({
         name:'rfc',
         length:'13',
-        nullable:true,
+        nullable:false,
         unique:true,
     })
     rfc:string;

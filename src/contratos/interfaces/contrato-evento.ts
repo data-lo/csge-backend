@@ -1,10 +1,10 @@
 import { Contrato } from "../contratos/entities/contrato.entity";
 
 export class ContratoEvent {
-    payload:Contrato;
+    contrato:Contrato;
     constructor(
-        payload:{contrato:Contrato}
+        contrato:Contrato
     ){
-        this.payload = payload.contrato;
+        this.contrato = contrato;
     }
 }
