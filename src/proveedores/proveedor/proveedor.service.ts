@@ -146,7 +146,7 @@ export class ProveedorService {
       const estatusProveedor = await this.obtenerEstatus(id);
       if (estatusProveedor) {
         const proveedor = await this.findOne(id);
-        await this.emisor(proveedor,'desactivado');
+        await this.emitter(proveedor,'desactivado');
         await this.proveedorRepository.update(id, {
           estatus: false
         });
@@ -199,7 +199,7 @@ export class ProveedorService {
     }
   }
 
-  async emisor(proveedor: Proveedor, evento: string) {
+  async emitter(proveedor: Proveedor, evento: string) {
     this.eventEmitter.emit(
       `proveedor.${evento}`,
       new ProveedorEvent({ proveedor }),

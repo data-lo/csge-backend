@@ -13,12 +13,7 @@ export class ProveedorEventosService {
     async activarProveedor(event:ContratoEvent){
         const proveedor = event.contrato.proveedor;
         await this.proveedorService.activarProveedor(proveedor.id);
+        this.proveedorService.emitter(proveedor,'activado')
     }
-
-
-
-
-
     
-
 }
