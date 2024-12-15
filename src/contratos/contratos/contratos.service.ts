@@ -21,14 +21,10 @@ import { LoggerService } from 'src/logger/logger.service';
 export class ContratosService {
   constructor(
     private eventEmitter: EventEmitter2,
-    
-
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
-
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
-
     private readonly logger = new LoggerService(ContratosService.name)
   ) {}
 
@@ -136,10 +132,12 @@ export class ContratosService {
 
   async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
     try {
-      const { estatusDeContrato, ...rest } = updateContratoDto;
+      const {estatusDeContrato} = updateContratoDto;
       await this.contratoRepository.update(id, {
         estatusDeContrato: estatusDeContrato,
       });
+      const contrato = await this.findOne(id);
+      this.emiter(contrato,contrato.estatusDeContrato.toLowerCase())
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -220,8 +218,6 @@ export class ContratosService {
 
   async actualizarMontosDelContrato(contratoId:string,subtotal:number,eventType){
     try{
-      //CONSIDERAR CUANDO SE CANCELA UNA ORDEN FACTURADA
-      //EMITIR FACTURA CANCELADA
       const contratoDb = await this.findOne(contratoId);
       switch(eventType){
         case 'orden.aprobada':
@@ -230,12 +226,12 @@ export class ContratosService {
           break;
         case 'orden.cancelada':
           contratoDb.montoEjercido = contratoDb.montoEjercido - subtotal;
-          contratoDb.montoDisponible = contratoDb.montoDisponible = subtotal;
+          contratoDb.montoDisponible = contratoDb.montoDisponible + subtotal;
           break;
         case 'factura.pagada':
+          contratoDb.montoEjercido = contratoDb.montoEjercido - subtotal;
           contratoDb.montoPagado = contratoDb.montoPagado + subtotal;
           break;
-        case 'factura.cancelada':
       }
 
       await this.contratoRepository.save(contratoDb)
@@ -252,7 +248,7 @@ export class ContratosService {
   async emiter(contrato: Contrato, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
-      new ContratoEvent({contrato}),
+      new ContratoEvent(contrato),
     );
   }
 
