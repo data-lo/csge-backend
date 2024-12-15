@@ -5,7 +5,9 @@ import { ContratosService } from './contratos.service';
 
 @Injectable()
 export class ContratosEventosService {
-  constructor(private readonly contratosService: ContratosService) {}
+  constructor(
+    private readonly contratosService: ContratosService
+  ) {}
 
   @OnEvent('orden.aprobada', { async: true })
   async ordenAprobada(orden: OrdenEvent) {

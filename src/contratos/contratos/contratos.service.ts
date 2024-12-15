@@ -18,13 +18,15 @@ import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class ContratosService {
+
+  private readonly logger = new LoggerService(ContratosService.name);
+
   constructor(
     private eventEmitter: EventEmitter2,
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
-    private readonly logger = new LoggerService(ContratosService.name)
   ) {}
 
   async create(createContratoDto: CreateContratoDto) {
