@@ -8,7 +8,6 @@ import { ordenDeServicioPdf } from './reports/orden-de-servicio.report';
 import { TextosService } from 'src/configuracion/textos/textos.service';
 import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class DocumentsService {
@@ -44,12 +43,13 @@ export class DocumentsService {
     return document;
   }
 
-  async construirAprobacionDeFactura(id:string,cotejador:Usuario){
+  async construirAprobacionDeFactura(id:string){
     try{
       const facturaDb = await this.facturRepository.findOne({
         where:{id:id},
         relations:{
-          proveedor:true
+          proveedor:true,
+          usuarioTestigo:true
         }
       });
       const textoEncabezado = await this.textosService.obtenerEncabezado();
@@ -58,8 +58,11 @@ export class DocumentsService {
         facturaDb:facturaDb,
         textoEncabezado:textoEncabezado.texto,
         textoPieDePagina:textoPieDePagina.texto,
-        cotejador:cotejador
+        cotejador:facturaDb.usuarioTestigo,
+        fechaDeCotejo:facturaDb.fechaValidacion
+
       });
+      
       const document = this.printerService.createPdf(definicionDeFactura);
       return document;
     }catch(error){
