@@ -6,12 +6,15 @@ import { textoDeRecepcionSection } from "./aprobacion-de-factura-sections/texto-
 import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-de-proveedor-section";
 import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
 import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
+import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
+import { cotejadorSection } from "./aprobacion-de-factura-sections/cotejador-section";
 
 
 interface AprobacionDeFacturaOptions {
     facturaDb:Factura,
     textoEncabezado:string,
     textoPieDePagina:string,
+    cotejador:Usuario
 }
 
 export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions) => {
@@ -22,12 +25,14 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
         folio,
     } = factura.facturaDb;
 
+    
+    const textoEncabezado = factura.textoEncabezado;
+    const textoPieDePagina = factura.textoPieDePagina;
+    const cotejador = factura.cotejador;
     const textoDeRecepcion = `RECIBÍ DE LA OFICINA DE SERVICIOS ADMINISTRATIVOS DE LA COORDINACIÓN DE COMUNICACIÓN
     FACTURAS ORIGINALES PARA SU REVISIÓN Y AUTORIZACIÓN
     (ANEXAR OFICIOS DE DEPENDENCIAS DESCENTRALIZADAS A LAS FACTURAS QUE CORRESPONDAN)`;
     const notaDeRecepcion = `LOS TESTIGOS DE LAS PRESENTE(S) FACTURA(S) SERÁN ENTREGADOS Y REVISADOS DE MANERA DIGITAL`;
-    const textoEncabezado = factura.textoEncabezado;
-    const textoPieDePagina = factura.textoPieDePagina;
     const presupuestoText = 'PRESUPUESTO 2025';
     
     const {footerTextPieDePaginaC, presupuestoTextC} = footerSection({textoPieDePagina, presupuestoText});
@@ -77,7 +82,8 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
             textoDeRecepcionSection(textoDeRecepcion),
             tablaDeProveedorSection(proveedor.razonSocial,folio,total),
             firmasDeRecepcionSection(),
-            notaDeFacturaSection(notaDeRecepcion)      
+            notaDeFacturaSection(notaDeRecepcion),
+            {marginTop:10,stack:[cotejadorSection(cotejador)]}
         ],
     };
     return docDefinition;

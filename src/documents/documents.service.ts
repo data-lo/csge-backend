@@ -8,6 +8,7 @@ import { ordenDeServicioPdf } from './reports/orden-de-servicio.report';
 import { TextosService } from 'src/configuracion/textos/textos.service';
 import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class DocumentsService {
@@ -43,7 +44,7 @@ export class DocumentsService {
     return document;
   }
 
-  async construirAprobacionDeFactura(id:string){
+  async construirAprobacionDeFactura(id:string,cotejador:Usuario){
     try{
       const facturaDb = await this.facturRepository.findOne({
         where:{id:id},
@@ -56,7 +57,8 @@ export class DocumentsService {
       const definicionDeFactura = await aprobacionDeFacturaPdf({
         facturaDb:facturaDb,
         textoEncabezado:textoEncabezado.texto,
-        textoPieDePagina:textoPieDePagina.texto
+        textoPieDePagina:textoPieDePagina.texto,
+        cotejador:cotejador
       });
       const document = this.printerService.createPdf(definicionDeFactura);
       return document;
