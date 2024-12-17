@@ -23,9 +23,9 @@ async function bootstrap() {
   app.useGlobalFilters(
     new AllExceptionsFilter(httpAdapter),
   );
-  //app.useGlobalInterceptors(
-  //  new DateFormatterInterceptor()
-  //);
+  app.useGlobalInterceptors(
+    new DateFormatterInterceptor()
+  );
 
   await app.listen(process.env.SERVER_PORT);
 }
