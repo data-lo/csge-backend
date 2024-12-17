@@ -11,10 +11,9 @@ export class CreateServicioContratadoDto {
     servicio:ServicioDto
 
     @IsOptional()
-    @IsArray({each:true})
+    @IsArray()
     calendarizacion:Date[];
 
-    
     @IsOptional()
     cantidad:number;
 
