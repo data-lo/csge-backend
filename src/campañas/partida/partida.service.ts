@@ -131,6 +131,7 @@ export class PartidaService {
 
       switch(evento){
         case 'orden.aprobada':
+          console.log(partidaDb.montoActivo, total, 'ok');
           partidaDb.montoActivo = partidaDb.montoActivo + total;
           break;
         case 'orden.canelada':   
