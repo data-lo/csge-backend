@@ -90,19 +90,19 @@ export class FacturaController {
       return this.facturaService.mandarFacturaAFirmar(id);
   } 
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get()
   findAll(@Query('pagina') pagina: string) {
     return this.facturaService.findAll(+pagina);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('busqueda')
   findAllBusqueda() {
     return this.facturaService.findAllBusqueda();
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('estatus/:id')
   findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.obtenerEstatusDeFactura(id);
@@ -120,13 +120,13 @@ export class FacturaController {
     pdfDoc.end();
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.findOne(id);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('descargar/:id/:type')
   async descargarArchivo(@Param() params, @Res() res: Response) {
     const id = params.id;
@@ -142,7 +142,7 @@ export class FacturaController {
     }
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Patch(':id')
   cancelarFactura(
     @Param('id', ParseUUIDPipe) id: string,
@@ -150,10 +150,6 @@ export class FacturaController {
   ) {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);
   }
-
-
-  @Auth(...rolesFactura)
-  mandarFacturaA
 
 
   //COTEJAR FACTURA MEDIANTE FIRMA, BAJO LA LOGICA DE 2 FIRMAS MEDIANTE FIRMAMEX

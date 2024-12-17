@@ -6,8 +6,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { ValidRoles } from './interfaces/usuarios.roles';
-import { rolesAdministraccion } from '../valid-administracion-roles.ob';
+import { rolesAdministracion } from '../valid-administracion-roles.ob';
 import { LoggerService } from 'src/logger/logger.service';
 
 
@@ -16,7 +15,7 @@ export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
   private readonly logger = new LoggerService(UsuariosController.name);
 
-  ///@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     this.logger.log('Crear Usuario');
@@ -38,7 +37,7 @@ export class UsuariosController {
   }
 
   //remover permisos
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Post('remover-permisos')
   removerPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     this.logger.log('remover permisos');
@@ -46,7 +45,7 @@ export class UsuariosController {
   }
 
   //agregar permisos
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Post('agregar-permisos')
   agregarPermisos(@Body() actualizarPermisosDto: ActualizarPermisosDto) {
     this.logger.log('Agregar permisos');
@@ -61,7 +60,7 @@ export class UsuariosController {
       return this.usuariosService.findAll(+pagina);
   }
 
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Get('busqueda')
   findAllBusqueda() {
     this.logger.log('Obtener todos los usuarios');
@@ -69,7 +68,7 @@ export class UsuariosController {
   }
 
   //obtener un usuario
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log('Obtener un usuario');
@@ -77,7 +76,7 @@ export class UsuariosController {
   }
 
   //reestablecer contraseña
-  //@Auth(...rolesAdministracion)
+  @Auth(...rolesAdministracion)
   @Get('/reestablecer/:id')
   reestablecer(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log('Reestablecer contraseña');
@@ -85,7 +84,7 @@ export class UsuariosController {
   }
 
   //obtener el estatus de un usuario
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Get('/obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log('Obtener estatus de usuario');
@@ -93,7 +92,7 @@ export class UsuariosController {
   }
 
   //actualizar un usuario
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     this.logger.log('Actualizar Usuario');
@@ -101,7 +100,7 @@ export class UsuariosController {
   }
 
   //desactivar un usuario
-  //@Auth(...rolesAdministraccion)
+  @Auth(...rolesAdministracion)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     this.logger.log('Desactivar Usuario');

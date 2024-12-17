@@ -5,10 +5,9 @@ import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { ValidRoles } from '../usuarios/interfaces/usuarios.roles';
-import { rolesAdministraccion } from '../valid-administracion-roles.ob';
+import { rolesAdministracion } from '../valid-administracion-roles.ob';
 
-//@Auth(...rolesAdministraccion)
+@Auth(...rolesAdministracion)
 @Controller('administracion/departamentos')
 export class DepartamentosController {
   

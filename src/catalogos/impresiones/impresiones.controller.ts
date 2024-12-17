@@ -11,31 +11,31 @@ export class ImpresionesController {
   constructor(private readonly impresionesService: ImpresionesService) {}
   private readonly logger = new LoggerService(ImpresionesController.name);
 
-  //@Auth(...rolesImpresiones)
+  @Auth(...rolesImpresiones)
   @Post()
   create(@Body() createImpresioneDto: CreateImpresionDto) {
     return this.impresionesService.create(createImpresioneDto);
   }
 
-  //@Auth(...rolesImpresiones)
+  @Auth(...rolesImpresiones)
   @Get()
   findAll() {
     return this.impresionesService.findAll();
   }
 
-  //@Auth(...rolesImpresiones)
+  @Auth(...rolesImpresiones)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id:string) {
     return this.impresionesService.findOne(id);
   }
 
-  //@Auth(...rolesImpresiones)
+  @Auth(...rolesImpresiones)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id:string, @Body() updateImpresioneDto: UpdateImpresionDto) {
     return this.impresionesService.update(id, updateImpresioneDto);
   }
 
-  //@Auth(...rolesImpresiones)
+  @Auth(...rolesImpresiones)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id:string) {
     return this.impresionesService.remove(id);

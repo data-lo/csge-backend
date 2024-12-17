@@ -11,31 +11,31 @@ export class ServicioContratadoController {
   constructor(private readonly servicioContratadoService: ServicioContratadoService) {}
   private readonly logger = new LoggerService(ServicioContratadoController.name);
 
-  //@Auth(...rolesServicioContratado)
+  @Auth(...rolesServicioContratado)
   @Post()
   create(@Body() createServicioContratadoDto: CreateServicioContratadoDto) {
     return this.servicioContratadoService.create(createServicioContratadoDto);
   }
 
-  //@Auth(...rolesServicioContratado)
+  @Auth(...rolesServicioContratado)
   @Get()
   findAll(@Query('pagina') pagina:string ) {
     return this.servicioContratadoService.findAll(+pagina);
   }
 
-  //@Auth(...rolesServicioContratado)
+  @Auth(...rolesServicioContratado)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.servicioContratadoService.findOne(id);
   }
 
-  //@Auth(...rolesServicioContratado)
+  @Auth(...rolesServicioContratado)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateServicioContratadoDto: UpdateServicioContratadoDto) {
     return this.servicioContratadoService.update(id, updateServicioContratadoDto);
   }
 
-  //@Auth(...rolesServicioContratado)
+  @Auth(...rolesServicioContratado)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.servicioContratadoService.remove(id);
