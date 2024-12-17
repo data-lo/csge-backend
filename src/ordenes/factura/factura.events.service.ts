@@ -18,10 +18,7 @@ export class FacturaEventosService {
     async facturaCotejada(event: DocumentoEvent) {
         const factura = await this.facturaRepository.findOneBy({ id: event.documentoId });
         if (factura) {
-            factura.fechaDeRecepcion = new Date();
-            factura.fechaValidacion = new Date();
-            factura.estatus = EstatusFactura.RECIBIDA;
-            //emitir factura cotejada, lo recibe la orden
+            factura.estatus = EstatusFactura.APROBADA;
             await this.facturaRepository.save(factura);
         }
     }

@@ -33,7 +33,7 @@ export class FacturaController {
   constructor(private readonly facturaService: FacturaService) {}
   private readonly logger = new LoggerService(FacturaController.name);
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Post()
   @UseInterceptors(
     FilesInterceptor('archivosFactura', 2, {
@@ -53,6 +53,7 @@ export class FacturaController {
   async create(
     @UploadedFiles() archivosFactura: Express.Multer.File[],
     @Body() createFacturaDto: CreateFacturaDto,
+    @GetUser() usuario:Usuario
   ) {
     const uuid = archivosFactura[0].filename.split('.')[0];
 
@@ -77,8 +78,17 @@ export class FacturaController {
     createFacturaDto.id = uuid;
     createFacturaDto.xml = xmlFile.path;
     createFacturaDto.pdf = pdfFile.path;
-    return this.facturaService.create(createFacturaDto);
+    return this.facturaService.create(createFacturaDto,usuario);
   }
+
+  @Auth(...rolesFactura) 
+  @Post('mandar-aprobar/:id')
+  aprobarFactura(
+    @Param('id',ParseUUIDPipe) id: string,
+  )
+    {
+      return this.facturaService.mandarFacturaAFirmar(id);
+  } 
 
   //@Auth(...rolesFactura)
   @Get()
@@ -98,7 +108,7 @@ export class FacturaController {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('pdf/:id')
   async obtenerDocumentoEnPdf(
     @Res() res: Response,
@@ -141,14 +151,20 @@ export class FacturaController {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);
   }
 
+
   @Auth(...rolesFactura)
-  @Post('cotejar/:id')
-  async aprobarFactura(
-    @Param('id',ParseUUIDPipe) facturaId: string,
-    @GetUser() usuario:Usuario
-  ){
-    return await this.facturaService.cotejarFactura(usuario,facturaId);
-  }
+  mandarFacturaA
+
+
+  //COTEJAR FACTURA MEDIANTE FIRMA, BAJO LA LOGICA DE 2 FIRMAS MEDIANTE FIRMAMEX
+  //@Auth(...rolesFactura)
+  //@Post('cotejar/:id')
+  //async aprobarFactura(
+  //  @Param('id',ParseUUIDPipe) facturaId: string,
+  //  @GetUser() usuario:Usuario
+  //){
+  //  return await this.facturaService.cotejarFactura(usuario,facturaId);
+  //}
 
 
 }
