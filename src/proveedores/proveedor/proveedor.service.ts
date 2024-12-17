@@ -82,7 +82,9 @@ export class ProveedorService {
   async findOne(id: string) {
     try {
       const proveedor = this.proveedorRepository.findOne({
-        where: { id: id },
+        where: { 
+          id: id ,
+        },
         relations: {
           contactos: true,
           contratos:true,
@@ -106,7 +108,8 @@ export class ProveedorService {
       .leftJoinAndSelect('proveedor.estaciones','estacion')
       .leftJoinAndSelect('estacion.servicios','servicio')
       .leftJoinAndSelect('servicio.renovaciones','renovaciones')
-      .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .where('proveedor.estatus = :estatus',{estatus})
+      .andWhere('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
       .andWhere('renovaciones.estatus = :estatus',{estatus})
       .getMany();
       return proveedores;
@@ -180,8 +183,11 @@ export class ProveedorService {
       .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
       .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
       .getOne();
-      return contrato;
+      
+      if(!contrato) throw new BadRequestException('No existe el contrato');
 
+      return contrato;
+      
     }catch(error){
       handleExeptions(error);
     }
