@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ParseEnumPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ParseEnumPipe, Query } from '@nestjs/common';
 import { FirmaService } from './firma.service';
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
@@ -7,6 +7,7 @@ import { rolesFirma } from './valid-firma-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
+import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 
 @Controller('firma')
 export class FirmaController {
@@ -37,9 +38,10 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
-    @Param('id',ParseUUIDPipe) id:string
+    @Param('id',ParseUUIDPipe) ordenOFacturaId:string,
+    @Query('tipo-de-documento',new ParseEnumPipe(TipoDeDocumento)) tipoDeDocumento:TipoDeDocumento
   ) {
-    return this.firmaService.descargarDocumentoFirmamex(id);
+    return this.firmaService.descargarDocumento(ordenOFacturaId,tipoDeDocumento);
   }
 
   @Auth(...rolesFirma)
