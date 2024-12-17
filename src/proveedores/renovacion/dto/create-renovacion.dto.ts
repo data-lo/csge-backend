@@ -7,13 +7,13 @@ export class CreateRenovacionDto {
     @IsString()
     descripcionDelServicio:string;
 
-    @IsNumber({maxDecimalPlaces:2})
-    @Min(0.01)
+    @IsNumber({maxDecimalPlaces:4})
+    @Min(0.0001)
     tarifaUnitaria:number;
 
-    @IsNumber({maxDecimalPlaces:2})
+    @IsNumber({maxDecimalPlaces:4})
     @IsOptional()
-    @Min(0.01)
+    @Min(0.0001)
     iva:number;
 
     @IsBoolean()

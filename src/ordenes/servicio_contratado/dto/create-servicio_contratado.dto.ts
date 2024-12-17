@@ -1,6 +1,6 @@
-import { IsArray, IsDate, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
 import { ServicioDto } from "./servicio-json.dto";
-import { Transform, Type } from "class-transformer";
+import { Type } from "class-transformer";
 
 export class CreateServicioContratadoDto {
     
@@ -12,35 +12,20 @@ export class CreateServicioContratadoDto {
 
     @IsOptional()
     @IsArray()
-    @Transform(({value}) => {
-        return value.map((dateString:string) => {
-            const [day, month, year] = dateString.split('-');
-            return new Date(`${year}-${month}-${day}`);
-        });
-    })
-    @IsDate({each:true})
     calendarizacion:Date[];
 
-    @IsNumber()
+    @IsOptional()
     cantidad:number;
 
     @IsString()
     @IsOptional()
     observacion:string;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaInicio:string;
+    @IsOptional()
+    fechaInicio:Date;
 
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaFinal:string;
+    @IsOptional()
+    fechaFinal:Date;
 
     @IsNumber()
     @IsPositive()

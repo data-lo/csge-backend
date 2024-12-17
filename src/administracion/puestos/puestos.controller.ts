@@ -15,7 +15,7 @@ import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { rolesAdministraccion } from '../valid-administracion-roles.ob';
 
-@Auth(...rolesAdministraccion)
+//@Auth(...rolesAdministraccion)
 @Controller('administracion/puestos')
 export class PuestosController {
   constructor(private readonly puestosService: PuestosService) {}

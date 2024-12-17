@@ -11,37 +11,37 @@ export class IvaController {
   constructor(private readonly ivaService: IvaService) {}
   private readonly logger = new LoggerService(IvaController.name);
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Post()
   create(@Body() createIvaDto: CreateIvaDto) {
     return this.ivaService.create(createIvaDto);
   }
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Get('nacional')
   findIvaNacional() {
     return this.ivaService.obtenerIvaNacional();
   }
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Get('frontera')
   findIvaFrontera() {
     return this.ivaService.obtenerIvaFrontera();
   }
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Get()
   findAll() {
     return this.ivaService.findAll();
   }
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.ivaService.findOne(id);
   }
 
-  @Auth(...rolesIva)
+  //@Auth(...rolesIva)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateIvaDto: UpdateIvaDto) {
     return this.ivaService.update(id, updateIvaDto);

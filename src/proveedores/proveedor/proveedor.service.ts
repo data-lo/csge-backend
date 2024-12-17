@@ -68,9 +68,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.findOne({
-        where: { rfc: rfc }
-      });
+      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
+      .getMany();
+
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
       return proveedor;
     } catch (error) {
@@ -81,7 +82,9 @@ export class ProveedorService {
   async findOne(id: string) {
     try {
       const proveedor = this.proveedorRepository.findOne({
-        where: { id: id },
+        where: { 
+          id: id ,
+        },
         relations: {
           contactos: true,
           contratos:true,
@@ -105,7 +108,8 @@ export class ProveedorService {
       .leftJoinAndSelect('proveedor.estaciones','estacion')
       .leftJoinAndSelect('estacion.servicios','servicio')
       .leftJoinAndSelect('servicio.renovaciones','renovaciones')
-      .where('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .where('proveedor.estatus = :estatus',{estatus})
+      .andWhere('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
       .andWhere('renovaciones.estatus = :estatus',{estatus})
       .getMany();
       return proveedores;
@@ -145,7 +149,7 @@ export class ProveedorService {
       const estatusProveedor = await this.obtenerEstatus(id);
       if (estatusProveedor) {
         const proveedor = await this.findOne(id);
-        await this.emisor(proveedor,'desactivado');
+        await this.emitter(proveedor,'desactivado');
         await this.proveedorRepository.update(id, {
           estatus: false
         });
@@ -179,8 +183,11 @@ export class ProveedorService {
       .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
       .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
       .getOne();
-      return contrato;
+      
+      if(!contrato) throw new BadRequestException('No existe el contrato');
 
+      return contrato;
+      
     }catch(error){
       handleExeptions(error);
     }
@@ -198,7 +205,7 @@ export class ProveedorService {
     }
   }
 
-  async emisor(proveedor: Proveedor, evento: string) {
+  async emitter(proveedor: Proveedor, evento: string) {
     this.eventEmitter.emit(
       `proveedor.${evento}`,
       new ProveedorEvent({ proveedor }),

@@ -137,7 +137,8 @@ export class Orden {
     (servicioContratado) => servicioContratado.ordenDeServicio,
     {
       onDelete: 'CASCADE',
-    },
+      cascade: true
+    }
   )
   serviciosContratados: ServicioContratado[];
 }

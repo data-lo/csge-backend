@@ -8,7 +8,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from '../usuarios/interfaces/usuarios.roles';
 import { rolesAdministraccion } from '../valid-administracion-roles.ob';
 
-@Auth(...rolesAdministraccion)
+//@Auth(...rolesAdministraccion)
 @Controller('administracion/departamentos')
 export class DepartamentosController {
   
@@ -16,7 +16,6 @@ export class DepartamentosController {
     private readonly departamentosService: DepartamentosService,
   ) {}
   private readonly logger = new LoggerService(DepartamentosController.name);
-
   @Post()
   create(@Body() createDepartamentoDto: CreateDepartamentoDto) {
     this.logger.log('Crear departamento');

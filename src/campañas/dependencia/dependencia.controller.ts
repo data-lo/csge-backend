@@ -9,37 +9,37 @@ import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 export class DependenciaController {
   constructor(private readonly dependenciaService: DependenciaService) {}
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Post()
   create(@Body() createDependenciaDto: CreateDependenciaDto) {
     return this.dependenciaService.create(createDependenciaDto);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.dependenciaService.findAll(+pagina);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get('busqueda')
   findAllBusqueda() {
     return this.dependenciaService.findAllBusqueda();
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.dependenciaService.findOne(id);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateDependenciaDto: UpdateDependenciaDto) {
     return this.dependenciaService.update(id, updateDependenciaDto);
   }
 
-  @Auth(...rolesCampanias)
+  //@Auth(...rolesCampanias)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.dependenciaService.remove(id);

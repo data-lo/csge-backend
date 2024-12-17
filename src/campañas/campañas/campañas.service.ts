@@ -158,7 +158,7 @@ export class CampañasService {
       const estatus = (await this.verificarEstatus(id)).estatus;
       if((estatus === EstatusCampaña.CREADA) || (estatus === EstatusCampaña.COTIZANDO)){
         const campaña = await this.findOne(id);
-        await this.emisor(campaña,'eliminada');
+        await this.emitter(campaña,'eliminada');
         
         await this.campañaRepository.delete(id);
         return {message:'Campaña eliminada existosamente'};
@@ -187,16 +187,12 @@ export class CampañasService {
       }
       const activaciones = (await this.findOne(id)).activaciones;
       const index = activaciones.length;
-    
       const ultimaActivacion = activaciones[index-1];
-
       await this.activacionService.desactivar(ultimaActivacion.id);
       const {partida, ...rest} = createActivacionDto;
-
       const partidaDb = await this.partidaService.create(partida);
       rest.campañaId = id;
       rest.partidaId = partidaDb.id;
-      
       const activacionDb = await this.activacionService.create({
         partida:partidaDb,
         ...rest
@@ -229,7 +225,7 @@ export class CampañasService {
     }
   }
 
-  async emisor(campaña:Campaña,evento:string){
+  async emitter(campaña:Campaña,evento:string){
     this.eventEmitter.emit(
       `campania.${evento}`,
       new CampaniaEvent({campaña}),
