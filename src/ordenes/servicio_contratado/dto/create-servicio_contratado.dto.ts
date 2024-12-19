@@ -45,8 +45,6 @@ export class CreateServicioContratadoDto {
     @IsOptional()
     numeroDiasSpot:number;
 
-    @IsUUID()
-    @IsString()
     @IsOptional()
     carteleraId:string;
 
