@@ -94,9 +94,9 @@ export class OrdenService {
         delete orden.partida;
         delete orden.proveedor;
   
-        orden.subtotal = montos.subtotal;
-        orden.iva = montos.iva;
-        orden.total = montos.total;
+        orden.subtotal = Number(montos.subtotal.toFixed(2));
+        orden.iva = Number(montos.iva.toFixed(2));
+        orden.total = Number(montos.total.toFixed(2));
         
 
         return orden;
