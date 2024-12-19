@@ -22,6 +22,7 @@ import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class OrdenService {
@@ -68,13 +69,18 @@ export class OrdenService {
       
       try{
         for (const servicioContratado of serviciosContratados) {
-          console.log(servicioContratado);
-          console.log(servicioContratado.cantidad);
-          const {cantidad, ...rest} = servicioContratado
+          const {cantidad, carteleraId, ...rest} = servicioContratado;
+          let cartelera = null;
+          
+          if(isUUID(carteleraId)){
+            cartelera = carteleraId;
+          }
+          
           await this.servicioContratadoService.create({
             ...rest,
             cantidad: servicioContratado.cantidad,
             ordenId: orden.id,
+            carteleraId: cartelera
           });
         }
   
