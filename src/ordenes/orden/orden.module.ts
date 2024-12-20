@@ -12,6 +12,7 @@ import { FirmaModule } from 'src/firma/firma/firma.module';
 import { OrdenEventosService } from './orden.events.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { IvaModule } from 'src/configuracion/iva/iva.module';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Orden]),
@@ -21,6 +22,7 @@ import { PassportModule } from '@nestjs/passport';
     PartidaModule,
     ServicioContratadoModule,
     FirmaModule,
+    IvaModule,
     AuthModule,
     PassportModule
   ],

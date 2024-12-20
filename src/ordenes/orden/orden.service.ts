@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,13 +24,16 @@ import { FirmaService } from '../../firma/firma/firma.service';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { isUUID } from 'class-validator';
+import { IvaGetter } from 'src/helpers/iva.getter';
 
 @Injectable()
 export class OrdenService {
   constructor(
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
-
+    @Inject(IvaGetter)
+    private readonly ivaGetter: IvaGetter,
+    
     private readonly firmaService:FirmaService,
     private readonly campañaService: CampañasService,
     private readonly proveedorService: ProveedorService,
@@ -47,7 +51,7 @@ export class OrdenService {
         serviciosContratados,
         ...rest
       } = createOrdenDto;
-      console.log(contratoId);
+
 
       const campania = await this.campañaService.findOne(campaniaId);
       const proveedor = await this.proveedorService.findOne(proveedorId);
@@ -345,34 +349,35 @@ export class OrdenService {
     try {
       const orden = await this.findOne(ordenId);
       const { serviciosContratados } = orden;
-    
+      
+
       let iva = 0;
       let subtotal = 0;
       let total = 0.0;
-
+      let ivaFrontera = false;
 
       serviciosContratados.forEach((servicioContratado) => {
         
         const servicio = plainToClass(ServicioDto, servicioContratado.servicio);
         const cantidad = servicioContratado.cantidad;
         const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
+        ivaFrontera = servicio.ivaFrontera;
 
-        console.log(cantidad,tarifaUnitaria);
         if (isNaN(cantidad) || isNaN(tarifaUnitaria)) {
           throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
         }
 
         const subtotalServicio = tarifaUnitaria * cantidad;
-
         subtotal += subtotalServicio;
+      
       });
 
-      iva = subtotal * 0.16;
+      iva = await this.ivaGetter.obtenerIva(subtotal,ivaFrontera);
       total = subtotal + iva;
 
-      orden.subtotal = parseFloat(subtotal.toFixed(4));
-      orden.iva = parseFloat(iva.toFixed(4));
-      orden.total = parseFloat(total.toFixed(4));
+      orden.subtotal = parseFloat(subtotal.toFixed(2));
+      orden.iva = parseFloat(iva.toFixed(2));
+      orden.total = parseFloat(total.toFixed(2));
 
       await this.ordenRepository.save(orden);
       return {
