@@ -6,9 +6,9 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+
 import { rolesAdministracion } from '../valid-administracion-roles.ob';
 import { LoggerService } from 'src/logger/logger.service';
-
 
 @Controller('administracion/usuarios')
 export class UsuariosController {
