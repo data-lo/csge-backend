@@ -51,7 +51,7 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { ordenOFacturaId, tipoDeDocumento } = createFirmaDto;
+      const { ordenOFacturaId, tipoDeDocumento} = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         ordenOFacturaId,
@@ -101,18 +101,6 @@ export class FirmaService {
     } catch (error) {
       handleExeptions(error);
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} firma`;
-  }
-
-  update(id: number, updateFirmaDto: UpdateFirmaDto) {
-    return `This action updates a #${id} firma`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} firma`;
   }
 
   async obtenerUsuariosFirmantes(
@@ -180,8 +168,11 @@ export class FirmaService {
   async firmarDocumento(usuarioId: string, documentoId: string) {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id: usuarioId });
-      const documento = await this.firmaRepository.findOneBy({
-        id: documentoId,
+      const documento = await this.firmaRepository.findOne({
+        where: { id: documentoId },
+        relations: {
+          usuariosFirmadores: true,
+        }
       });
 
       if (!usuario) throw new NotFoundException('No se encontró el usuario');
@@ -196,6 +187,7 @@ export class FirmaService {
       const stickers = await this.crearStickers(
         [usuario],
         documento.tipoDeDocumento,
+        documento.usuariosFirmadores
       );
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
       const response = await this.enviarDocumentoAFirmamexSDK(
@@ -213,44 +205,6 @@ export class FirmaService {
     }
   }
 
-  async firmarDeAprobacionFactura(usuario: Usuario, documento: Firma) {
-    try {
-      const serviciosFirmamex = await this.firmamexService.getServices();
-      const firmamexId = documento.ticket;
-      console.log(firmamexId);
-
-      const endorsmentDescription = 'APROBACIÓN DE RECEPCIÓN DE FACTURA ';
-      const rect = coordenadasAprobacionFactura;
-
-      console.log(usuario.rfc, usuario.correo);
-
-      const response = await serviciosFirmamex.endorse(
-        firmamexId,
-        endorsmentDescription,
-        {
-          authority: 'chihuahua',
-          stickerType: 'line',
-          dataType: 'rfc',
-          email: 'juan.cepeda@archivistica.com.mx',
-          data: 'CEFJ980722K10',
-          imageType: 'endorsment',
-          page: 1,
-          rect: rect,
-        },
-      );
-
-      if (response.status === 'success') {
-        return documento.documentoUrlFirmamex;
-      } else {
-        throw new BadRequestException(
-          'Error en el servicio de endoso de Firmamex',
-        );
-      }
-    } catch (error) {
-      console.log(error);
-      handleExeptions(error);
-    }
-  }
 
   private async construir_pdf(
     documentoId,
@@ -273,16 +227,28 @@ export class FirmaService {
     }
   }
 
-  async crearStickers(usuarios: Usuario[], tipoDeDocumento: TipoDeDocumento) {
+  async crearStickers(usuarios: Usuario[], tipoDeDocumento: TipoDeDocumento, usuariosFirmadores: Usuario[]): Promise<Sticker[]> {
     try {
       let rect = {};
+      const stickers = [];
+
       if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
         rect = coordenadasOrden;
       }
       if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
         rect = coordenadasCotejador;
+        const stickerAprobador = {
+          authority: 'chihuahua',
+          stickerType: 'rect',
+          dataType: 'rfc',
+          data: usuariosFirmadores[0].rfc,
+          imageType: 'hash',
+          page: 0,
+          rect: coordenadasAprobacionFactura, 
+        }
+        stickers.push(stickerAprobador);
       }
-      const stickers = [];
+
       for (const usuario of usuarios) {
         const sticker = {
           authority: 'chihuahua',
@@ -427,4 +393,19 @@ export class FirmaService {
       documento.end();
     });
   }
+
+
+
+  findOne(id: number) {
+    return `This action returns a #${id} firma`;
+  }
+
+  update(id: number, updateFirmaDto: UpdateFirmaDto) {
+    return `This action updates a #${id} firma`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} firma`;
+  }
+
 }

@@ -124,12 +124,4 @@ export class ServicioService {
       handleExeptions(error);
     }
   }
-
-  async renovarServicio() {
-    try {
-
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
 }

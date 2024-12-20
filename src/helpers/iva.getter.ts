@@ -13,7 +13,6 @@ export class IvaGetter {
     async obtenerIva(tarifa:number,esIvaFrontera:boolean){
 
         let ivaPorcentaje:number = 0.0000;
-
         if(esIvaFrontera){
             ivaPorcentaje =  await this.obtenerIvaFrontera();
         }else{
@@ -35,14 +34,8 @@ export class IvaGetter {
         }
         
         const razonDeIva = 1.0000 + ivaPorcentaje;
-        console.log(razonDeIva);
-        
         const tarifaUnitariaSinIva = ( tarifa / razonDeIva);
         const ivaDesglosado = (tarifa - tarifaUnitariaSinIva);
-        
-        console.log('tarifa unitaria sin iva ',tarifaUnitariaSinIva)
-
-        console.log('iva ',ivaDesglosado)
         return {
             tarifa:parseFloat(tarifaUnitariaSinIva.toFixed(4)),
             iva:parseFloat(ivaDesglosado.toFixed(4))

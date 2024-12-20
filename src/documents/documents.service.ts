@@ -58,9 +58,6 @@ export class DocumentsService {
         facturaDb:facturaDb,
         textoEncabezado:textoEncabezado.texto,
         textoPieDePagina:textoPieDePagina.texto,
-        cotejador:facturaDb.usuarioTestigo,
-        fechaDeCotejo:facturaDb.fechaValidacion
-
       });
       
       const document = this.printerService.createPdf(definicionDeFactura);
