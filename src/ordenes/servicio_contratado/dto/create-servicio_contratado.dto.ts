@@ -11,10 +11,9 @@ export class CreateServicioContratadoDto {
     servicio:ServicioDto
 
     @IsOptional()
-    @IsArray({each:true})
+    @IsArray()
     calendarizacion:Date[];
 
-    
     @IsOptional()
     cantidad:number;
 
@@ -46,8 +45,6 @@ export class CreateServicioContratadoDto {
     @IsOptional()
     numeroDiasSpot:number;
 
-    @IsUUID()
-    @IsString()
     @IsOptional()
     carteleraId:string;
 

@@ -11,37 +11,37 @@ export class CarteleraGobiernoController {
   constructor(private readonly carteleraGobiernoService: CarteleraGobiernoService) {}
   private readonly logger = new LoggerService(CarteleraGobiernoController.name);
 
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Post()
   create(@Body() createCarteleraGobiernoDto: CreateCarteleraGobiernoDto) {
     return this.carteleraGobiernoService.create(createCarteleraGobiernoDto);
   }
   
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Get()
   findAll(@Query('pagina') pagina:string) {
     return this.carteleraGobiernoService.findAll(+pagina);
   }
 
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Get('busqueda')
   findAllBusqueda() {
     return this.carteleraGobiernoService.findAllBusqueda();
   }
 
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.carteleraGobiernoService.findOne(id);
   }
 
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
     return this.carteleraGobiernoService.update(id, updateCarteleraGobiernoDto);
   }
 
-  //@Auth(...rolesCartelera)
+  @Auth(...rolesCartelera)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.carteleraGobiernoService.remove(id);

@@ -11,32 +11,32 @@ export class DimensionesController {
   constructor(private readonly dimensionesService: DimensionesService) {}
   private readonly logger = new LoggerService(DimensionesController.name);
 
-  //@Auth(...rolesDimensiones)
+  @Auth(...rolesDimensiones)
   @Post()
   create(@Body() createDimensionDto: CreateDimensionDto) {
     this.logger.log('Crear Dimension');
     return this.dimensionesService.create(createDimensionDto);
   }
 
-  //@Auth(...rolesDimensiones)
+  @Auth(...rolesDimensiones)
   @Get()
   findAll() {
     return this.dimensionesService.findAll();
   }
 
-  //@Auth(...rolesDimensiones)
+  @Auth(...rolesDimensiones)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.dimensionesService.findOne(id);
   }
 
-  //@Auth(...rolesDimensiones)
+  @Auth(...rolesDimensiones)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id:string, @Body() updateDimensionDto: UpdateDimensionDto) {
     return this.dimensionesService.update(id, updateDimensionDto);
   }
 
-  //@Auth(...rolesDimensiones)
+  @Auth(...rolesDimensiones)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.dimensionesService.remove(id);

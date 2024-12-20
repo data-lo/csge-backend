@@ -33,7 +33,7 @@ export class FacturaController {
   constructor(private readonly facturaService: FacturaService) {}
   private readonly logger = new LoggerService(FacturaController.name);
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Post()
   @UseInterceptors(
     FilesInterceptor('archivosFactura', 2, {
@@ -53,6 +53,7 @@ export class FacturaController {
   async create(
     @UploadedFiles() archivosFactura: Express.Multer.File[],
     @Body() createFacturaDto: CreateFacturaDto,
+    @GetUser() usuario:Usuario
   ) {
     const uuid = archivosFactura[0].filename.split('.')[0];
 
@@ -77,28 +78,38 @@ export class FacturaController {
     createFacturaDto.id = uuid;
     createFacturaDto.xml = xmlFile.path;
     createFacturaDto.pdf = pdfFile.path;
-    return this.facturaService.create(createFacturaDto);
+    return this.facturaService.create(createFacturaDto,usuario);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura) 
+  @Post('cotejar/:id')
+  cotrejarFactura(
+    @Param('id',ParseUUIDPipe) id: string,
+    @GetUser() usuario:Usuario
+  )
+    {
+      return this.facturaService.cotejarFactura(id,usuario);
+  } 
+
+  @Auth(...rolesFactura)
   @Get()
   findAll(@Query('pagina') pagina: string) {
     return this.facturaService.findAll(+pagina);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('busqueda')
   findAllBusqueda() {
     return this.facturaService.findAllBusqueda();
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('estatus/:id')
   findOneEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('pdf/:id')
   async obtenerDocumentoEnPdf(
     @Res() res: Response,
@@ -110,13 +121,13 @@ export class FacturaController {
     pdfDoc.end();
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.facturaService.findOne(id);
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Get('descargar/:id/:type')
   async descargarArchivo(@Param() params, @Res() res: Response) {
     const id = params.id;
@@ -132,22 +143,13 @@ export class FacturaController {
     }
   }
 
-  //@Auth(...rolesFactura)
+  @Auth(...rolesFactura)
   @Patch(':id')
   cancelarFactura(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFacturaDto: UpdateFacturaDto,
   ) {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);
-  }
-
-  @Auth(...rolesFactura)
-  @Post('cotejar/:id')
-  async aprobarFactura(
-    @Param('id',ParseUUIDPipe) facturaId: string,
-    @GetUser() usuario:Usuario
-  ){
-    return await this.facturaService.cotejarFactura(usuario,facturaId);
   }
 
 

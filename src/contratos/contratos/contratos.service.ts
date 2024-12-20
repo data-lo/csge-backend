@@ -220,21 +220,26 @@ export class ContratosService {
   async actualizarMontosDelContrato(contratoId:string,subtotal:number,eventType){
     try{
       const contratoDb = await this.findOne(contratoId);
+      let {montoEjercido, montoDisponible, montoPagado} = contratoDb;
       switch(eventType){
         case 'orden.aprobada':
-          contratoDb.montoEjercido = contratoDb.montoEjercido + subtotal;
-          contratoDb.montoDisponible = contratoDb.montoDisponible - subtotal;
+          montoEjercido = montoEjercido + subtotal;
+          montoDisponible = montoDisponible - subtotal;
+          contratoDb.montoEjercido = Number(montoEjercido);
+          contratoDb.montoDisponible = Number(montoDisponible);
           break;
         case 'orden.cancelada':
-          contratoDb.montoEjercido = contratoDb.montoEjercido - subtotal;
-          contratoDb.montoDisponible = contratoDb.montoDisponible + subtotal;
+          montoEjercido = montoEjercido - subtotal;
+          montoDisponible = montoDisponible + subtotal;
+          contratoDb.montoEjercido = Number(montoEjercido);
+          contratoDb.montoDisponible = Number(montoDisponible);
           break;
         case 'factura.pagada':
-          contratoDb.montoEjercido = contratoDb.montoEjercido - subtotal;
-          contratoDb.montoPagado = contratoDb.montoPagado + subtotal;
+          montoEjercido = montoEjercido - subtotal;
+          montoPagado = montoPagado + subtotal;
+          contratoDb.montoPagado = Number(montoPagado);
           break;
       }
-
       await this.contratoRepository.save(contratoDb)
       this.logger.log(`${eventType}:${contratoId},MONTO ACTUALIZADO:${subtotal}`);
       return;

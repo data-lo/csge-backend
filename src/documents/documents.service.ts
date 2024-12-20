@@ -48,7 +48,8 @@ export class DocumentsService {
       const facturaDb = await this.facturRepository.findOne({
         where:{id:id},
         relations:{
-          proveedor:true
+          proveedor:true,
+          usuarioTestigo:true
         }
       });
       const textoEncabezado = await this.textosService.obtenerEncabezado();
@@ -56,8 +57,9 @@ export class DocumentsService {
       const definicionDeFactura = await aprobacionDeFacturaPdf({
         facturaDb:facturaDb,
         textoEncabezado:textoEncabezado.texto,
-        textoPieDePagina:textoPieDePagina.texto
+        textoPieDePagina:textoPieDePagina.texto,
       });
+      
       const document = this.printerService.createPdf(definicionDeFactura);
       return document;
     }catch(error){

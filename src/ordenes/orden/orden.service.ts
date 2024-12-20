@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,7 +8,7 @@ import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orden } from './entities/orden.entity';
-import { Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
@@ -19,23 +20,25 @@ import { ServicioContratadoService } from '../servicio_contratado/servicio_contr
 import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
 import { plainToClass } from 'class-transformer';
 import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
-import { DocumentsService } from 'src/documents/documents.service';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { isUUID } from 'class-validator';
+import { IvaGetter } from 'src/helpers/iva.getter';
 
 @Injectable()
 export class OrdenService {
   constructor(
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
-
+    @Inject(IvaGetter)
+    private readonly ivaGetter: IvaGetter,
+    
     private readonly firmaService:FirmaService,
     private readonly campañaService: CampañasService,
     private readonly proveedorService: ProveedorService,
     private readonly contratoService: ContratosService,
     private readonly servicioContratadoService: ServicioContratadoService,
-    private readonly documentsService: DocumentsService,
   ) {}
 
   async create(createOrdenDto: CreateOrdenDto) {
@@ -48,6 +51,7 @@ export class OrdenService {
         serviciosContratados,
         ...rest
       } = createOrdenDto;
+
 
       const campania = await this.campañaService.findOne(campaniaId);
       const proveedor = await this.proveedorService.findOne(proveedorId);
@@ -69,13 +73,18 @@ export class OrdenService {
       
       try{
         for (const servicioContratado of serviciosContratados) {
-          console.log(servicioContratado);
-          console.log(servicioContratado.cantidad);
-          const {cantidad, ...rest} = servicioContratado
+          const {cantidad, carteleraId, ...rest} = servicioContratado;
+          let cartelera = null;
+          
+          if(isUUID(carteleraId)){
+            cartelera = carteleraId;
+          }
+          
           await this.servicioContratadoService.create({
             ...rest,
             cantidad: servicioContratado.cantidad,
             ordenId: orden.id,
+            carteleraId: cartelera
           });
         }
   
@@ -89,10 +98,11 @@ export class OrdenService {
         delete orden.partida;
         delete orden.proveedor;
   
-        orden.subtotal = montos.subtotal;
-        orden.iva = montos.iva;
-        orden.total = montos.total;
-  
+        orden.subtotal = Number(montos.subtotal.toFixed(2));
+        orden.iva = Number(montos.iva.toFixed(2));
+        orden.total = Number(montos.total.toFixed(2));
+        
+
         return orden;
       
       }catch(error){
@@ -271,16 +281,18 @@ export class OrdenService {
 
   async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
     try {
-      const ordenesPrevias = await this.ordenRepository.findAndCountBy({
-        tipoDeServicio: tipoDeServicio,
-      });
-
-      const numeroDeFolio = ordenesPrevias[1] + 1;
-      const serviciosParaFolio = new ServiciosParaFolio();
-      const abreviacionFolio =
-        serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
       const year = new Date().getFullYear();
-      return `${numeroDeFolio}-${abreviacionFolio}-${year}`;
+      
+      const ultimoFolio = await this.ordenRepository.createQueryBuilder('orden')
+      .select('MAX(CAST(SUBSTRING(orden.folio, \'^[0-9]+\') AS INTEGER))', 'maxFolio')
+      .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
+      .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
+      .getRawOne();
+      
+      const numeroDeFolio = ultimoFolio.maxFolio ? parseInt(ultimoFolio.maxFolio) + 1 : 1;
+      const serviciosParaFolio = new ServiciosParaFolio();
+      const abreviacionFolio = serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
+      return `${numeroDeFolio}-${abreviacionFolio}-${year}`;    
     } catch (error) {
       handleExeptions(error);
     }
@@ -337,34 +349,35 @@ export class OrdenService {
     try {
       const orden = await this.findOne(ordenId);
       const { serviciosContratados } = orden;
-    
+      
+
       let iva = 0;
       let subtotal = 0;
       let total = 0.0;
-
+      let ivaFrontera = false;
 
       serviciosContratados.forEach((servicioContratado) => {
         
         const servicio = plainToClass(ServicioDto, servicioContratado.servicio);
         const cantidad = servicioContratado.cantidad;
         const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
+        ivaFrontera = servicio.ivaFrontera;
 
-        console.log(cantidad,tarifaUnitaria);
         if (isNaN(cantidad) || isNaN(tarifaUnitaria)) {
           throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
         }
 
         const subtotalServicio = tarifaUnitaria * cantidad;
-
         subtotal += subtotalServicio;
+      
       });
 
-      iva = subtotal * 0.16;
+      iva = await this.ivaGetter.obtenerIva(subtotal,ivaFrontera);
       total = subtotal + iva;
 
-      orden.subtotal = parseFloat(subtotal.toFixed(4));
-      orden.iva = parseFloat(iva.toFixed(4));
-      orden.total = parseFloat(total.toFixed(4));
+      orden.subtotal = parseFloat(subtotal.toFixed(2));
+      orden.iva = parseFloat(iva.toFixed(2));
+      orden.total = parseFloat(total.toFixed(2));
 
       await this.ordenRepository.save(orden);
       return {
@@ -388,7 +401,7 @@ export class OrdenService {
   }
 
   async obtenerOrdenEnPdf(id:string) {
-    const documento = await this.firmaService.construir_pdf(id,TipoDeDocumento.ORDEN_DE_SERVICIO);
+    const documento = await this.firmaService.descargarDocumento(id,TipoDeDocumento.ORDEN_DE_SERVICIO);
     return documento;
   }
 

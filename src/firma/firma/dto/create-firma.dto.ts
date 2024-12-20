@@ -1,5 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
-import { EstatusDeFirma } from "../interfaces/estatus-de-firma.enum";
+import { IsBoolean, IsEnum, IsOptional, IsUUID } from "class-validator";
 import { TipoDeDocumento } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 
 export class CreateFirmaDto {

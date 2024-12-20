@@ -11,13 +11,13 @@ import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 export class ActivacionController {
   constructor(private readonly activacionService: ActivacionService) {}
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Post()
   create(@Body() createActivacionDto: CreateActivacionDto) {
     return this.activacionService.create(createActivacionDto);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Get()
   findAll(
     @Query('pagina') pagina: string,
@@ -26,31 +26,31 @@ export class ActivacionController {
     return this.activacionService.findAll(+pagina);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Get('estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.activacionService.obtenerEstatus(id);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.activacionService.findOne(id);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Patch('desactivar')
   desactivar(@Body('activacionId',ParseUUIDPipe) activacionId: string) {
     return this.activacionService.desactivar(activacionId);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateActivacionDto: UpdateActivacionDto) {
     return this.activacionService.update(id, updateActivacionDto);
   }
 
-  //@Auth(...rolesCampanias)
+  @Auth(...rolesCampanias)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.activacionService.remove(id);

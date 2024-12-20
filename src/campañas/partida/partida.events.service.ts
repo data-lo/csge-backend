@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import { CampaniaEvent } from "../campañas/interfaces/campaña-evento";
 import { PartidaService } from './partida.service';
 import { OrdenEvent } from "src/ordenes/interfaces/orden-event";
+import { handleExeptions } from "src/helpers/handleExceptions.function";
 
 @Injectable()
 export class PartidaEventosService {
@@ -11,17 +11,22 @@ export class PartidaEventosService {
         private activacionService:PartidaService
     ){}
 
-    @OnEvent('campania.eliminada',{async:true})
-    async eliminarActivacion(event:CampaniaEvent){
-        const partidaId = event.payload.activaciones.at(0).partida.id;
-        await this.activacionService.delete(partidaId);
-        return;
-    }
-
     @OnEvent('orden.aprobada')
     async ordenAprbada(orden:OrdenEvent){
-        const {campaña,total} = orden.orden;
-        await this.activacionService.actualizarMontos(campaña.id,total,'orden.aprobada');
+        try{
+            const {campaña,total} = orden.orden;
+            console.log('en partida events, campania ', campaña, 'total ', total);
+            try{
+                await this.activacionService.actualizarMontos(campaña.id,total,'orden.aprobada');
+            }
+            catch(error){
+                return;
+            }
+            
+        }catch(error){
+            handleExeptions(error);
+        }
+        
     }
 
 }

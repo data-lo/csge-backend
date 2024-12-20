@@ -15,7 +15,7 @@ import { rolesImagen } from './valid-imagen-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 
 
-//@Auth(...rolesImagen)
+@Auth(...rolesImagen)
 @Controller('configuracion/imagen')
 export class ImagenController {
   constructor(
@@ -39,7 +39,7 @@ export class ImagenController {
       }
   }
 
-  //@Auth(...rolesImagen)
+  @Auth(...rolesImagen)
   @Post()
   @UseInterceptors( FileInterceptor ('imagen',{
     fileFilter:fileFilter,

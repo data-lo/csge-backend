@@ -5,7 +5,7 @@ import { UpdateCaracteristicaDto } from './dto/update-caracteristica.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { rolesCaracteristicas } from './valid-modules-caracterisitcas-roles.ob';
 
-//@Auth(...rolesCaracteristicas)
+@Auth(...rolesCaracteristicas)
 @Controller('catalogos/caracteristicas')
 export class CaracteristicasController {
   constructor(private readonly caracteristicasService: CaracteristicasService) {}

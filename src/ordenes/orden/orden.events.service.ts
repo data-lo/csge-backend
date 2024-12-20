@@ -17,7 +17,7 @@ export class OrdenEventosService {
     ){}
 
 
-    // emitir los evenetos orden.pagada, orden.cancelada y orden.pagada
+    // emitir los evenetos orden.pagada, orden.cancelada y orden.facturada
     // para la actualizacion de los montos del contrato
 
     @OnEvent('aprobacion.orden',{async:true})
@@ -26,7 +26,8 @@ export class OrdenEventosService {
             where:{id: event.documentoId},
             relations:{
                 contrato:true,
-                campaña:true}
+                campaña:true
+            }
         });
         if (orden) {
           orden.fechaDeAprobacion = new Date();

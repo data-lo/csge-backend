@@ -12,31 +12,31 @@ export class TiemposController {
   constructor(private readonly tiemposService: TiemposService) {}
   private readonly logger = new LoggerService(TiemposController.name);
 
-  //@Auth(...rolesTiempos)
+  @Auth(...rolesTiempos)
   @Post()
   create(@Body() createTiempoDto: CreateTiempoDto) {
     return this.tiemposService.create(createTiempoDto);
   }
 
-  //@Auth(...rolesTiempos)
+  @Auth(...rolesTiempos)
   @Get()
   findAll() {
     return this.tiemposService.findAll();
   }
 
-  //@Auth(...rolesTiempos)
+  @Auth(...rolesTiempos)
   @Get(':id')
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.tiemposService.findOne(id);
   }
 
-  //@Auth(...rolesTiempos)
+  @Auth(...rolesTiempos)
   @Patch(':id')
   update(@Param('id',ParseUUIDPipe) id: string, @Body() updateTiempoDto: UpdateTiempoDto) {
     return this.tiemposService.update(id, updateTiempoDto);
   }
 
-  //@Auth(...rolesTiempos)
+  @Auth(...rolesTiempos)
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.tiemposService.remove(id);

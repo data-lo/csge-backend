@@ -2,11 +2,12 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ParseFloatPipe,
 } from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
 import { Repository } from 'typeorm';
 import { Orden } from '../orden/entities/orden.entity';
@@ -17,12 +18,10 @@ import * as xmls2js from 'xml-js';
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
-import { DocumentsService } from 'src/documents/documents.service';
 import { EstatusOrdenDeServicio } from '../orden/interfaces/estatus-orden-de-servicio';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { FirmaService } from '../../firma/firma/firma.service';
-import { EstatusDeFirma } from 'src/firma/firma/interfaces/estatus-de-firma.enum';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 
 @Injectable()
@@ -38,10 +37,9 @@ export class FacturaService {
     private proveedrRepository: Repository<Proveedor>,
     
     private readonly firmaService:FirmaService,
-    private readonly documentsService: DocumentsService,
   ) {}
 
-  async create(createFacturaDto: CreateFacturaDto) {
+  async create(createFacturaDto: CreateFacturaDto, usuarioTestigo:Usuario) {
     try {
       const {
         ordenesDeServicioIds,
@@ -51,6 +49,7 @@ export class FacturaService {
         id,
         ...rest
       } = createFacturaDto;
+      
       const validacionBool = Boolean(validacionTestigo);
       if (!validacionBool)
         throw new BadRequestException({ message: 'Validar testigo', id: id });
@@ -58,7 +57,7 @@ export class FacturaService {
       let ordenes: Orden[] = [];
       let subtotalDeOrdenes: number = 0.0;
 
-      const ordenesIds = [ordenesDeServicioIds];
+      const ordenesIds = ordenesDeServicioIds;
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
         if (!orden)
@@ -103,6 +102,7 @@ export class FacturaService {
         iva: facturaXmlData.iva,
         total: facturaXmlData.total,
         validacionTestigo: validacionBool,
+        usuarioTestigo:usuarioTestigo,
         ...rest,
       });
 
@@ -336,26 +336,28 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const aprobacionFacturaPdf =
-        await this.documentsService.construirAprobacionDeFactura(id);
-      return aprobacionFacturaPdf;
+      const documento = await this.firmaService.descargarDocumento(id,TipoDeDocumento.APROBACION_DE_FACTURA);
+      return documento;
     } catch (error) {
       handleExeptions(error);
     }
   }
   
 
-  async cotejarFactura(usuario:Usuario, facturaId:string){
+  async cotejarFactura(facturaId:string,usuario:Usuario){
+    
     const documentoFirmaDto:CreateFirmaDto = {
       ordenOFacturaId:facturaId,
       tipoDeDocumento:TipoDeDocumento.APROBACION_DE_FACTURA,
       estaFirmado:false,
     }
-    const documentoFirma = (await this.firmaService.create(documentoFirmaDto)).documentoAFirmar;
+
+    const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);
     const linkDeFacturaACotejar = await this.firmaService.firmarDocumento(usuario.id,documentoFirma.id);
     const factura = await this.facturaRepository.findOneBy({id:facturaId});
     factura.usuarioTestigo = usuario;
     await this.facturaRepository.save(factura);
     return linkDeFacturaACotejar;
   }
+
 }

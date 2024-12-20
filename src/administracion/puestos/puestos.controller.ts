@@ -13,9 +13,9 @@ import { CreatePuestoDto } from './dto/create-puesto.dto';
 import { UpdatePuestoDto } from './dto/update-puesto.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesAdministraccion } from '../valid-administracion-roles.ob';
+import { rolesAdministracion } from '../valid-administracion-roles.ob';
 
-//@Auth(...rolesAdministraccion)
+@Auth(...rolesAdministracion)
 @Controller('administracion/puestos')
 export class PuestosController {
   constructor(private readonly puestosService: PuestosService) {}

@@ -1,6 +1,6 @@
 import { ValidRoles } from "./usuarios/interfaces/usuarios.roles";
 
-export const rolesAdministraccion = [
+export const rolesAdministracion = [
     ValidRoles.AGENTE,
     ValidRoles.DIRECCION,
     ValidRoles.JURIDICO,

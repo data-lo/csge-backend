@@ -18,8 +18,8 @@ export class Partida {
     @Column({
         name:'monto_activo',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0,
+        scale:4,
         nullable:false
     })
     montoActivo:number;
@@ -27,8 +27,8 @@ export class Partida {
     @Column({
         name:'monto_ejercido',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0,
+        scale:4,
         nullable:false
     })
     montoEjercido:number;
@@ -37,8 +37,8 @@ export class Partida {
     @Column({
         name:'monto_pagado',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0,
+        scale:4,
         nullable:false
     })
     montoPagado:number;
