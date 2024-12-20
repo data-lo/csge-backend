@@ -14,8 +14,6 @@ interface AprobacionDeFacturaOptions {
     facturaDb:Factura,
     textoEncabezado:string,
     textoPieDePagina:string,
-    cotejador:Usuario,
-    fechaDeCotejo:Date
 }
 
 export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions) => {
@@ -29,8 +27,6 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
     
     const textoEncabezado = factura.textoEncabezado;
     const textoPieDePagina = factura.textoPieDePagina;
-    const cotejador = factura.cotejador;
-    const fechaDeCotejo = factura.fechaDeCotejo;
     const textoDeRecepcion = `RECIBÍ DE LA OFICINA DE SERVICIOS ADMINISTRATIVOS DE LA COORDINACIÓN DE COMUNICACIÓN
     FACTURAS ORIGINALES PARA SU REVISIÓN Y AUTORIZACIÓN
     (ANEXAR OFICIOS DE DEPENDENCIAS DESCENTRALIZADAS A LAS FACTURAS QUE CORRESPONDAN)`;
@@ -85,7 +81,6 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
             tablaDeProveedorSection(proveedor.razonSocial,folio,total),
             firmasDeRecepcionSection(),
             notaDeFacturaSection(notaDeRecepcion),
-            {marginTop:10,stack:[cotejadorSection(cotejador,fechaDeCotejo)]}
         ],
     };
     return docDefinition;
