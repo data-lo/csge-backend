@@ -73,6 +73,27 @@ export class WebhooksService {
     }
   }
 
+  private async handleOriginalSigned(webhook:OriginalSigned){
+    try{
+      const { firmamex_id } = webhook;
+      const documentoDeFirma = await this.firmaRepository.findOneBy({
+        ticket:firmamex_id
+      });
+
+      const documentoId = documentoDeFirma.ordenOFacturaId;
+
+      if(documentoDeFirma.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
+        documentoDeFirma.estaFirmado = false;
+        documentoDeFirma.estatusDeFirma = EstatusDeFirma.PENDIENTE_DE_FIRMA;
+        await this.firmaRepository.save(documentoDeFirma);
+        this.emitter(documentoId,'cotejada.facura');
+      }
+    }catch(error){
+      //eliminar documento de firmamex
+      handleExeptions(error);
+    }
+  }
+
   private async handleDocumentRejected(webhook: DocumentRejected) {
     try{
       const { firmamex_id } = webhook;
@@ -97,10 +118,6 @@ export class WebhooksService {
     }catch(error){
       handleExeptions(error);
     }
-  }
-
-  private handleOriginalSigned(webhook: OriginalSigned) {
-    // Tu lógica aquí
   }
 
   private handleUniversalSigned(webhook: UniversalSigned) {
