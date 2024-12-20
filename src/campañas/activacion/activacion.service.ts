@@ -25,10 +25,13 @@ export class ActivacionService {
   async create(createActivacionDto: CreateActivacionDto) {
     try{
       const {partidaId, campañaId, partida, ...rest} = createActivacionDto;
+
       const campañaDb = await this.campañaRepository.findOneBy({id:campañaId});
       if(!campañaDb) throw new NotFoundException('Campaña no encontrada');
+      
       const partidaDb = await this.partidaRepository.findOneBy({id:partidaId})
       if(!partidaDb) throw new NotFoundException('Partida no encontrada');
+      
       const activacion = this.activacionRepository.create({
         partida:partidaDb,
         campaña:campañaDb,

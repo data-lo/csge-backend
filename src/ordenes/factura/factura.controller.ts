@@ -82,13 +82,12 @@ export class FacturaController {
   }
 
   @Auth(...rolesFactura) 
-  @Post('cotejar/:id')
-  cotrejarFactura(
+  @Post('mandar-aprobar/:id')
+  aprobarFactura(
     @Param('id',ParseUUIDPipe) id: string,
-    @GetUser() usuario:Usuario
   )
     {
-      return this.facturaService.cotejarFactura(id,usuario);
+      return this.facturaService.mandarFacturaAFirmar(id);
   } 
 
   @Auth(...rolesFactura)
@@ -151,6 +150,17 @@ export class FacturaController {
   ) {
     return this.facturaService.cancelarFactura(id, updateFacturaDto);
   }
+
+
+  //COTEJAR FACTURA MEDIANTE FIRMA, BAJO LA LOGICA DE 2 FIRMAS MEDIANTE FIRMAMEX
+  //@Auth(...rolesFactura)
+  //@Post('cotejar/:id')
+  //async aprobarFactura(
+  //  @Param('id',ParseUUIDPipe) facturaId: string,
+  //  @GetUser() usuario:Usuario
+  //){
+  //  return await this.facturaService.cotejarFactura(usuario,facturaId);
+  //}
 
 
 }

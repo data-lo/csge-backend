@@ -1,5 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
+import { UpdateRenovacionDto } from './dto/update-renovacion.dto';
 import { DesactivarRenovacionDto } from './dto/desactivar-renovacion.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +9,7 @@ import { Repository } from 'typeorm';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
+import { flattenCaracteristica } from '../../helpers/flattenCaracterisitcas.function';
 
 @Injectable()
 export class RenovacionService {
@@ -25,16 +27,9 @@ export class RenovacionService {
     try{  
       
       let {tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest} = createRenovacionDto;
-      if(servicioId){
-        const servicioDb = await this.servicioRepository.findOne(
-          {
-            where:{id:servicioId},
-            relations:{renovaciones:true}
-          }
-        );
-        servicioDb.renovaciones[-1].estatus = false;
-        await this.servicioRepository.save(servicioDb);
 
+      if(servicioId){
+        const servicioDb = await this.servicioRepository.findOneBy({id:servicioId});
         if(createRenovacionDto.ivaIncluido){
           const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
           tarifaUnitaria = ivaDesglosado.tarifa,
@@ -55,9 +50,9 @@ export class RenovacionService {
         await this.renovacionRepository.save(renovacion);
         delete renovacion.servicio;
         return renovacion;
+      
       }
       throw new NotFoundException('El servicio no se encuentra');
-    
     }catch(error:any){
       handleExeptions(error)
     }
@@ -85,6 +80,47 @@ export class RenovacionService {
       handleExeptions(error)
     }
   }
+
+  async update(id: string, updateRenovacionDto: UpdateRenovacionDto) {
+    try {
+        const { 
+          tarifaUnitaria,
+          ivaIncluido,
+          ivaFrontera,
+          iva,
+          estatus,
+          caracteristicasDelServicio,
+          servicioId,
+          ...rest} = updateRenovacionDto;
+
+        const renovacion = await this.findOne(id);
+        
+        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || servicioId){
+          throw new BadRequestException('Campos relacionados a estatus, tarifas ,iva o relación con el servicio no pueden ser actualizados, crear nueva renovación');
+        }
+        
+        if(renovacion.estatus === false && estatus === true){
+          throw new BadRequestException('Las renovaciones no pueden ser reactivadas, crear nueva renovación');
+        }
+
+        if(renovacion){
+          let caracteristicasDelServicioDb = renovacion.caracteristicasDelServicio;    
+          if(caracteristicasDelServicio){
+            caracteristicasDelServicioDb = new Object(caracteristicasDelServicio)
+          }
+          await this.renovacionRepository.update(id,{
+            caracteristicasDelServicio:caracteristicasDelServicioDb,
+            estatus:estatus,
+            fechaDeCreacion: new Date(),
+            ...rest
+          }); 
+          return await this.findOne(id);
+        }
+    } catch (error: any) {
+        handleExeptions(error);
+    }
+  }
+
 
   async remove(id: string) {
     try{

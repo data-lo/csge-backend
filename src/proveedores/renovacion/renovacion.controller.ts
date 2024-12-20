@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { RenovacionService } from './renovacion.service';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
+import { UpdateRenovacionDto } from './dto/update-renovacion.dto';
 import { DesactivarRenovacionDto } from './dto/desactivar-renovacion.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -39,6 +40,12 @@ export class RenovacionController {
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.renovacionService.findOne(id);
+  }
+
+  @Auth(...rolesRenovaciones)
+  @Patch(':id')
+  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateRenovacionDto: UpdateRenovacionDto) {
+    return this.renovacionService.update(id, updateRenovacionDto);
   }
 
   @Auth(...rolesRenovaciones)

@@ -16,7 +16,7 @@ export class ServicioController {
   create(@Body() createServicioDto: CreateServicioDto) {
     return this.servicioService.create(createServicioDto);
   }
-  
+
   @Auth(...rolesServicios)
   @Patch('desactivar')
   desactivarServicio(@Body('servicioId',ParseUUIDPipe) servicioId:string){
