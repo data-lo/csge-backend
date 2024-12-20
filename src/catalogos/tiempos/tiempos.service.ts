@@ -24,13 +24,9 @@ export class TiemposService {
     }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
-      const tiempos = await this.tiempoRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina)
-      });
+      const tiempos = await this.tiempoRepository.find();
       return tiempos;
     }catch(error){
       handleExeptions(error);

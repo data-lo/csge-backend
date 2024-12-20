@@ -19,6 +19,8 @@ import { ServicioModule } from 'src/proveedores/servicio/servicio.module';
 import { DependenciaModule } from 'src/campañas/dependencia/dependencia.module';
 import { ProveedorModule } from 'src/proveedores/proveedor/proveedor.module';
 import { EstacionModule } from 'src/proveedores/estacion/estacion.module';
+import { ContratosModule } from 'src/contratos/contratos/contratos.module';
+import { CarteleraGobiernoModule } from 'src/ordenes/cartelera_gobierno/cartelera_gobierno.module';
 
 @Module({
   controllers: [SeedController],
@@ -41,7 +43,9 @@ import { EstacionModule } from 'src/proveedores/estacion/estacion.module';
     ServicioModule,
     DependenciaModule,
     ProveedorModule,
-    EstacionModule
+    EstacionModule,
+    ContratosModule,
+    CarteleraGobiernoModule
   ]
 })
 export class SeedModule {}

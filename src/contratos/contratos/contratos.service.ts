@@ -14,15 +14,17 @@ import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ContratoEvent } from '../interfaces/contrato-evento';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class ContratosService {
+
+  private readonly logger = new LoggerService(ContratosService.name);
+
   constructor(
     private eventEmitter: EventEmitter2,
-
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
-
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
   ) {}
@@ -77,7 +79,7 @@ export class ContratosService {
         'contrato.montoDisponible',
         'contrato.estatusDeContrato',
         'proveedor.id',
-        'proveedor.nombreComercial',
+        'proveedor.razonSocial',
       ])
       .skip(paginationSetter.getSkipElements(pagina))
       .take(paginationSetter.castPaginationLimit())
@@ -131,10 +133,12 @@ export class ContratosService {
 
   async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
     try {
-      const { estatusDeContrato, ...rest } = updateContratoDto;
+      const {estatusDeContrato} = updateContratoDto;
       await this.contratoRepository.update(id, {
         estatusDeContrato: estatusDeContrato,
       });
+      const contrato = await this.findOne(id);
+      this.emitter(contrato,contrato.estatusDeContrato.toLowerCase())
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -197,7 +201,7 @@ export class ContratosService {
       const estatusDeContratoDb = await this.obtenerEstatus(id);
       if (estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO) {
         const contrato = await this.findOne(id);
-        await this.emiter(contrato, 'desactivado');
+        await this.emitter(contrato, 'desactivado');
         await this.contratoRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
           motivoCancelacion: motivoCancelacion,
@@ -213,12 +217,45 @@ export class ContratosService {
     }
   }
 
+  async actualizarMontosDelContrato(contratoId:string,subtotal:number,eventType){
+    try{
+      const contratoDb = await this.findOne(contratoId);
+      let {montoEjercido, montoDisponible, montoPagado} = contratoDb;
+      switch(eventType){
+        case 'orden.aprobada':
+          montoEjercido = montoEjercido + subtotal;
+          montoDisponible = montoDisponible - subtotal;
+          contratoDb.montoEjercido = Number(montoEjercido);
+          contratoDb.montoDisponible = Number(montoDisponible);
+          break;
+        case 'orden.cancelada':
+          montoEjercido = montoEjercido - subtotal;
+          montoDisponible = montoDisponible + subtotal;
+          contratoDb.montoEjercido = Number(montoEjercido);
+          contratoDb.montoDisponible = Number(montoDisponible);
+          break;
+        case 'factura.pagada':
+          montoEjercido = montoEjercido - subtotal;
+          montoPagado = montoPagado + subtotal;
+          contratoDb.montoPagado = Number(montoPagado);
+          break;
+      }
+      await this.contratoRepository.save(contratoDb)
+      this.logger.log(`${eventType}:${contratoId},MONTO ACTUALIZADO:${subtotal}`);
+      return;
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async descargarReporte() {}
 
-  async emiter(contrato: Contrato, evento: string) {
+  async emitter(contrato: Contrato, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
-      new ContratoEvent({ contrato }),
+      new ContratoEvent(contrato),
     );
   }
+
 }

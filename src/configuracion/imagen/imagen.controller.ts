@@ -10,13 +10,21 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileFilter } from 'src/helpers/fileFilter';
 import { fileNamer } from 'src/helpers/fileNamer';
+import { LoggerService } from 'src/logger/logger.service';
+import { rolesImagen } from './valid-imagen-roles.ob';
+import { Auth } from 'src/auth/decorators/auth.decorator';
 
+
+@Auth(...rolesImagen)
 @Controller('configuracion/imagen')
 export class ImagenController {
   constructor(
     private readonly imagenService: ImagenService,
     private readonly configService: ConfigService
   ) {}
+
+  private readonly logger = new LoggerService(ImagenController.name);
+  
 
   @Get()
   findImage(
@@ -31,6 +39,7 @@ export class ImagenController {
       }
   }
 
+  @Auth(...rolesImagen)
   @Post()
   @UseInterceptors( FileInterceptor ('imagen',{
     fileFilter:fileFilter,

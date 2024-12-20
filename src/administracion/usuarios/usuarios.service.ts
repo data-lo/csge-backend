@@ -13,6 +13,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { userInfo } from 'os';
 
 @Injectable()
 export class UsuariosService {
@@ -159,7 +160,7 @@ export class UsuariosService {
   async login(loginUserDto: LoginUserDto) {
     try {
       const { password, correo } = loginUserDto;
-      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo }));
+      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo.toUpperCase() }));
 
       if (!dbUser) {
         throw new UnauthorizedException('Usuario no encontrado')
@@ -181,9 +182,10 @@ export class UsuariosService {
       }
 
       delete dbUser.password;
+      
       return {
         user: {
-          ...dbUser
+          id:dbUser.id
         },
         token: {
           token: this.getJwtToken({ id: dbUser.id })
@@ -277,7 +279,7 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-
+      if(!usuario) throw new NotFoundException('Usuario no encontrado');
       return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
       handleExeptions(error);

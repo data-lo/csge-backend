@@ -8,7 +8,11 @@ import { ProveedorModule } from 'src/proveedores/proveedor/proveedor.module';
 import { ContratosModule } from 'src/contratos/contratos/contratos.module';
 import { PartidaModule } from 'src/campañas/partida/partida.module';
 import { ServicioContratadoModule } from '../servicio_contratado/servicio_contratado.module';
-import { DocumentsModule } from 'src/documents/documents.module';
+import { FirmaModule } from 'src/firma/firma/firma.module';
+import { OrdenEventosService } from './orden.events.service';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
+import { IvaModule } from 'src/configuracion/iva/iva.module';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Orden]),
@@ -17,9 +21,12 @@ import { DocumentsModule } from 'src/documents/documents.module';
     ContratosModule,
     PartidaModule,
     ServicioContratadoModule,
-    DocumentsModule
+    FirmaModule,
+    IvaModule,
+    AuthModule,
+    PassportModule
   ],
   controllers: [OrdenController],
-  providers: [OrdenService],
+  providers: [OrdenService,OrdenEventosService],
 })
 export class OrdenModule {}

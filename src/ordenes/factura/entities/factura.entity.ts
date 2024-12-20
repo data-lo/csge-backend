@@ -1,5 +1,5 @@
 import { Proveedor } from "src/proveedores/proveedor/entities/proveedor.entity";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
+import { Column, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryColumn} from 'typeorm';
 import { EstatusFactura } from "../interfaces/estatus-factura";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 import { Orden } from "src/ordenes/orden/entities/orden.entity";
@@ -8,19 +8,20 @@ import { Orden } from "src/ordenes/orden/entities/orden.entity";
 export class Factura {
     
     @PrimaryColumn('uuid')
+    @Generated('uuid')
     id:string;
 
-    concepto:string;
-
-    @ManyToOne(()=>Proveedor, (proveedor)=>proveedor.id )
-    @JoinColumn({name:"proveedorId"})
-    proveedor:Proveedor;
+    @Column({
+        name:'folio_factura',
+        nullable:false,
+    })
+    folio:string;
 
     @Column({
         name:'subtotal_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     subtotal:number;
@@ -28,8 +29,8 @@ export class Factura {
     @Column({
         name:'iva_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     iva:number;
@@ -37,8 +38,8 @@ export class Factura {
     @Column({
         name:'total_factura',
         type:"decimal",
-        default:0.00,
-        scale:2,
+        default:0.0000,
+        scale:4,
         nullable:false
     })
     total:number;
@@ -77,7 +78,8 @@ export class Factura {
     @Column({
         name:'fecha_de_validacion',
         type:'date',
-        nullable:false,
+        nullable:true,
+        default:null
     })
     fechaValidacion:Date;
 
@@ -113,11 +115,15 @@ export class Factura {
     })
     motivoCancelacion:string;
 
+    @ManyToOne(()=>Proveedor, (proveedor)=>proveedor.id )
+    @JoinColumn({name:"proveedorId"})
+    proveedor:Proveedor;
+
     @ManyToOne(()=> Usuario, (usuario) => usuario.id)
     usuarioTestigo:Usuario;
 
     @ManyToMany(() => Orden,{
-        eager:false
+        eager:false,
     })     
     @JoinTable()
     ordenesDeServicio:Orden[]

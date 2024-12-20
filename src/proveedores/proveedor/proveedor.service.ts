@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { Proveedor } from './entities/proveedor.entity';
@@ -9,6 +9,8 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
+import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 @Injectable()
 export class ProveedorService {
@@ -17,7 +19,9 @@ export class ProveedorService {
     private eventEmitter: EventEmitter2,
 
     @InjectRepository(Proveedor)
-    private proveedorRepository: Repository<Proveedor>
+    private proveedorRepository: Repository<Proveedor>,
+    @InjectRepository(Contrato)
+    private contratoRepository: Repository<Contrato>
   ) { }
 
 
@@ -64,9 +68,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.findOne({
-        where: { rfc: rfc }
-      });
+      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
+      .getMany();
+
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
       return proveedor;
     } catch (error) {
@@ -77,9 +82,12 @@ export class ProveedorService {
   async findOne(id: string) {
     try {
       const proveedor = this.proveedorRepository.findOne({
-        where: { id: id },
+        where: { 
+          id: id ,
+        },
         relations: {
           contactos: true,
+          contratos:true,
           estaciones: {
             municipios: true
           },
@@ -88,6 +96,25 @@ export class ProveedorService {
       if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
       return proveedor;
     } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async findByService(tipoDeServicio:string){
+    try{
+      const estatus:boolean = true;
+      const proveedores = this.proveedorRepository
+      .createQueryBuilder('proveedor')
+      .leftJoinAndSelect('proveedor.estaciones','estacion')
+      .leftJoinAndSelect('estacion.servicios','servicio')
+      .leftJoinAndSelect('servicio.renovaciones','renovaciones')
+      .where('proveedor.estatus = :estatus',{estatus})
+      .andWhere('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .andWhere('renovaciones.estatus = :estatus',{estatus})
+      .getMany();
+      return proveedores;
+
+    }catch(error){
       handleExeptions(error);
     }
   }
@@ -122,7 +149,7 @@ export class ProveedorService {
       const estatusProveedor = await this.obtenerEstatus(id);
       if (estatusProveedor) {
         const proveedor = await this.findOne(id);
-        await this.emisor(proveedor,'desactivado');
+        await this.emitter(proveedor,'desactivado');
         await this.proveedorRepository.update(id, {
           estatus: false
         });
@@ -147,6 +174,25 @@ export class ProveedorService {
     }
   }
 
+  async obtenerContatoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
+    try{
+      const estatusDeContrato = 'LIBERADO';
+      const contrato = await this.contratoRepository
+      .createQueryBuilder('contratos')
+      .where('contratos.proveedorId = :proveedorId', { proveedorId })
+      .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
+      .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
+      .getOne();
+      
+      if(!contrato) throw new BadRequestException('No existe el contrato');
+
+      return contrato;
+      
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async delete(id: string) {
     try {
       const proveedor = await this.findOne(id);
@@ -159,7 +205,7 @@ export class ProveedorService {
     }
   }
 
-  async emisor(proveedor: Proveedor, evento: string) {
+  async emitter(proveedor: Proveedor, evento: string) {
     this.eventEmitter.emit(
       `proveedor.${evento}`,
       new ProveedorEvent({ proveedor }),

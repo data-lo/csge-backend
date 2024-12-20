@@ -1,13 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { FirmamexServices } from './firmamexSDK';
 
 @Injectable()
 export class FirmamexService {
-    firmamexServices() {
-        const services = FirmamexServices(
-            process.env.WEB_ID,
-            process.env.API_KEY
-        );
-        return services;
+  services: any;
+
+  firmamexServicesFunc() {
+    const FirmamexServices = require('./firmamexSDK');
+    if (!process.env.WEB_ID_FIRMAMEX || !process.env.API_KEY_FIRMAMEX) {
+      throw new Error('Las API keys no están configuradas correctamente.');
     }
+    this.services = FirmamexServices(
+      process.env.WEB_ID_FIRMAMEX,
+      process.env.API_KEY_FIRMAMEX,
+    );
+    return;
+  }
+
+  getServices() {
+    if (!this.services) {
+      this.firmamexServicesFunc();
+      return this.services;
+    }
+    return this.services;
+  }
 }

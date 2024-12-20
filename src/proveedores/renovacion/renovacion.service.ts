@@ -17,13 +17,10 @@ export class RenovacionService {
   constructor(
     @InjectRepository(Renovacion)
     private readonly renovacionRepository:Repository<Renovacion>,
-
     @Inject(IvaGetter)
-    private readonly ivaGetter:IvaGetter,
-    
+    private readonly ivaGetter:IvaGetter,  
     @InjectRepository(Servicio)
     private readonly servicioRepository:Repository<Servicio>
-    
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {
@@ -33,16 +30,20 @@ export class RenovacionService {
 
       if(servicioId){
         const servicioDb = await this.servicioRepository.findOneBy({id:servicioId});
-                
         if(createRenovacionDto.ivaIncluido){
           const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
           tarifaUnitaria = ivaDesglosado.tarifa,
           iva = ivaDesglosado.iva
         }
+
+        if(!createRenovacionDto.ivaIncluido){
+          iva = await this.ivaGetter.obtenerIva(tarifaUnitaria,ivaFrontera);
+        }
         
         const renovacion = this.renovacionRepository.create({
           servicio:servicioDb,
           tarifaUnitaria:tarifaUnitaria,
+          fechaDeCreacion: new Date(),
           iva:iva,
           ...rest
         });
@@ -87,7 +88,6 @@ export class RenovacionService {
           ivaIncluido,
           ivaFrontera,
           iva,
-          fechaDeCreacion,
           estatus,
           caracteristicasDelServicio,
           servicioId,
@@ -95,7 +95,7 @@ export class RenovacionService {
 
         const renovacion = await this.findOne(id);
         
-        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || fechaDeCreacion || servicioId){
+        if(tarifaUnitaria || ivaIncluido || ivaFrontera || iva || servicioId){
           throw new BadRequestException('Campos relacionados a estatus, tarifas ,iva o relación con el servicio no pueden ser actualizados, crear nueva renovación');
         }
         
@@ -111,6 +111,7 @@ export class RenovacionService {
           await this.renovacionRepository.update(id,{
             caracteristicasDelServicio:caracteristicasDelServicioDb,
             estatus:estatus,
+            fechaDeCreacion: new Date(),
             ...rest
           }); 
           return await this.findOne(id);
@@ -118,7 +119,7 @@ export class RenovacionService {
     } catch (error: any) {
         handleExeptions(error);
     }
-}
+  }
 
 
   async remove(id: string) {

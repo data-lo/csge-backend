@@ -11,7 +11,8 @@ export class CreateFacturaDto {
     
     @IsOptional()
     @IsUUID()
-    ordenesDeServicioIds:string;
+    @IsArray({each:true})
+    ordenesDeServicioIds:string[];
 
     @IsUUID()
     @IsString()
@@ -25,6 +26,10 @@ export class CreateFacturaDto {
     @IsString()
     @IsOptional()
     xml:string;
+
+    @IsString()
+    @IsOptional()
+    folio:string;
 
     @IsString()
     @IsOptional()

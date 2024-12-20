@@ -25,13 +25,9 @@ export class LongitudesService {
     }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
-      const longitudes = await this.longitudRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina)
-      });
+      const longitudes = await this.longitudRepository.find({});
       return longitudes;
     }catch(error){
       handleExeptions(error);

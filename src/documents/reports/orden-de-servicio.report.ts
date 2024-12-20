@@ -1,15 +1,18 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { headerSection } from './sections/header.section';
-import { tipoOrdenSection } from './orden-de-servicio.sections.ts/tipo-orden.section';
+import { tipoOrdenSection } from './orden-de-servicio-sections/tipo-orden.section';
 import {
   campañaOrdenSection,
   informacionOrdenSection,
+  montosTotalesOrdenSection,
   proveedorOrdenSection,
-} from './orden-de-servicio.sections.ts';
-import { footerPageSection, footerSection } from './sections/footer.section';
-import { facturarAOrdenSection } from './orden-de-servicio.sections.ts/facturar-a.-ordensection';
-import { serviciosContratadosSection } from './orden-de-servicio.sections.ts/servicios-contratados.section';
+} from './orden-de-servicio-sections';
+import { footerSection } from './sections/footer.section';
+import { facturarAOrdenSection } from './orden-de-servicio-sections/facturar-a.-ordensection';
+import { serviciosContratadosSection } from './orden-de-servicio-sections/servicios-contratados.section';
+import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-pago.section';
+import { firmasDeRecepcionSection } from './aprobacion-de-factura-sections/firmas-de-recepcion-section';
 
 interface OrdenDeServicioOptions {
   ordenDeServicio: Orden;
@@ -18,24 +21,34 @@ interface OrdenDeServicioOptions {
 }
 
 export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
-  console.log(orden);
-  
   const {
     campaña,
     proveedor,
     serviciosContratados,
     tipoDeServicio,
     folio,
-    contrato,
     fechaDeAprobacion,
     fechaDeEmision,
-    ...rest
+    subtotal,
+    iva,
+    total,
+    contrato
   } = orden.ordenDeServicio;
 
-  console.log(serviciosContratados)
+
+  const {
+    razonSocial,
+    rfc,
+    tipoProveedor,
+    domicilioFiscal,
+  } = proveedor;
+
   const textoEncabezado = orden.textoEncabezado;
   const textoPieDePagina = orden.textoPieDePagina;
   const presupuestoText = 'PRESUPUESTO 2025';
+
+
+  const {footerTextPieDePaginaC,presupuestoTextC} = footerSection({textoPieDePagina,presupuestoText});
 
   const docDefinition: TDocumentDefinitions = {
     info: {
@@ -44,35 +57,83 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
         'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
       title: `ORDEN DE SERVICIO ${folio}`,
     },
+    
     pageSize: 'LETTER',
-    pageMargins: [40, 120, 40, 20],
+    pageMargins: [30, 120, 30, 60],
+    footer: function (currentPage, pageCount) {
+      return {
+        columns: [
+          { 
+            width:'*',
+            stack:[presupuestoTextC]
+          },
+          {
+            width:'*',
+            stack:[footerTextPieDePaginaC]
+          },
+          {
+            stack: [
+              {
+                width:'auto',
+                font: 'Poppins',
+                alignment: 'right',
+                marginRight: 30,
+                bold: true,
+                stack: [currentPage.toString() + ' de ' + pageCount],
+              },
+            ]
+          },
+        ]
+      };
+    },
 
     header: await headerSection({
       showLogo: true,
       showTitle: true,
       textoEncabezado: textoEncabezado,
-      folio:folio,
+      folio: folio,
     }),
 
-    footer:function(currentPage,pageCount){
-      const footerTexts = footerSection({textoPieDePagina,presupuestoText});
-      const footerPages = footerPageSection({currentPage,pageCount})
-      return footerTexts.columns.push(footerPages);
-    },
-    
     content: [
+      {
+        columns:[ 
+          {width:'*',alignment:'right',stack:[firmasDeRecepcionSection()]}
+        ]
+      },
       tipoOrdenSection(tipoDeServicio),
       campañaOrdenSection(campaña),
       {
-        columns:[
-          [proveedorOrdenSection(proveedor)],
+        columns: [
+          [proveedorOrdenSection({
+              razonSocial,
+              rfc,
+              tipoProveedor,
+              domicilioFiscal,
+              contrato
+            })],
           [
-            informacionOrdenSection({ folio, fechaDeEmision, fechaDeAprobacion }),
-            facturarAOrdenSection()
+            informacionOrdenSection({
+              folio,
+              fechaDeEmision,
+              fechaDeAprobacion,
+            }),
+            facturarAOrdenSection(),
           ],
-        ]
+        ],
       },
-      serviciosContratadosSection({serviciosContratados})
+      {
+        marginBottom: 5,
+        stack: [serviciosContratadosSection({ serviciosContratados })],
+      },
+      {
+        columns: [
+          { width: '*', alignment: 'left', stack: [TextoPlazoPagoSection(10)] },
+          {
+            width: 'auto',
+            stack: [montosTotalesOrdenSection({ subtotal, iva, total })],
+          },
+        ],
+      },
     ],
   };
   return docDefinition;

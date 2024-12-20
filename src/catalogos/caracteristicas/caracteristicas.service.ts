@@ -12,7 +12,6 @@ import { TiemposService } from '../tiempos/tiempos.service';
 import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { TipoUnidad } from './interfaces/tipo-unidad.interface';
 import { flattenCaracteristica } from '../../helpers/flattenCaracterisitcas.function';
-import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 
 @Injectable()
@@ -81,13 +80,9 @@ export class CaracteristicasService {
       }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
-      const caracteristicas = await this.caracteristicasRepository.find({
-        skip:paginationSetter.getSkipElements(pagina),
-        take:paginationSetter.castPaginationLimit()
-      });
+      const caracteristicas = await this.caracteristicasRepository.find({});
       return caracteristicas;
     }catch(error:any){
       handleExeptions(error);

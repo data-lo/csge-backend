@@ -8,6 +8,8 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
 import { ProveedorService } from '../proveedor/proveedor.service';
+import { Proveedor } from '../proveedor/entities/proveedor.entity';
+import { Estacion } from '../estacion/entities/estacion.entity';
 
 @Injectable()
 export class ContactoService {
@@ -70,27 +72,29 @@ export class ContactoService {
 
   async update(id: string, updateContactoDto: UpdateContactoDto) {
     try {
+      
       const contacto = await this.findOne(id);
       if (!contacto) throw new NotFoundException('No se encuentra el contacto');
-      const { proveedorId, estacionId } = updateContactoDto;
-      let proveedorDb = null;
-      let estacionDb = null;
+      const { proveedorId, estacionId, ...rest } = updateContactoDto;
+      let proveedorDb:Proveedor = null;
+      let estacionDb:Estacion = null;
 
       if (proveedorId) {
         proveedorDb = await this.proveedorService.findOne(proveedorId);
       }
 
       if (estacionId) {
-        estacionDb = await this.estacionService.findOne(proveedorId);
+        estacionDb = await this.estacionService.findOne(estacionId);
       }
 
-      await this.contactoRepository.update(id, {
-        proveedor: proveedorDb,
-        estacion: estacionDb,
-        ...updateContactoDto,
+      await this.contactoRepository.update(id,{
+        proveedor:proveedorDb,
+        estacion:estacionDb,
+        ...rest
       });
-
+      
       return await this.findOne(id);
+    
     } catch (error: any) {
       handleExeptions(error);
     }

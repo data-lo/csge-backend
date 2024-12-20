@@ -34,12 +34,9 @@ export class DimensionesService {
     }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
-      const paginationSetter = new PaginationSetter()
       const dimensiones = await this.dimensionRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina),
         relations:{
           longitudId:true
         }

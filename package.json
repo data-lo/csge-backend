@@ -1,8 +1,8 @@
 {
   "name": "csge-backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "1.0.0",
+  "description": "SOFTWARE DE ADMINISTRACIÓN DE PUBLICIDAD Y ORDENES DE SERVICIO DE GOBIERNO DEL ESTADO DE CHIHUAHUA",
+  "author": "REGISTROS AUTOMATIZADOS DE MÉXICO S.A. DE C.V.",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@formkit/tempo": "^0.1.2",
+    "@nestjs/axios": "^3.1.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",

@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Renovacion } from './entities/renovacion.entity';
 import { IvaModule } from 'src/configuracion/iva/iva.module';
 import { Servicio } from '../servicio/entities/servicio.entity';
+import { AuthModule } from 'src/auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 
 @Module({
@@ -13,6 +15,8 @@ import { Servicio } from '../servicio/entities/servicio.entity';
   imports: [
     TypeOrmModule.forFeature([Renovacion,Servicio]),
     IvaModule,
+    AuthModule,
+    PassportModule
   ],
   exports:[RenovacionService]
 })

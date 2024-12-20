@@ -28,6 +28,7 @@ export class ServicioService {
       });
 
       await this.servicioRepository.save(servicio);
+      delete servicio.estacion;
       return servicio;
     } catch (error) {
       handleExeptions(error);

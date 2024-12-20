@@ -9,12 +9,11 @@ export class ProveedorEventosService {
         private readonly proveedorService:ProveedorService,
     ){}
 
-
     @OnEvent('contrato.liberado',{async:true})
     async activarProveedor(event:ContratoEvent){
-        const proveedorId = event.payload.proveedor.id;
-        await this.proveedorService.activarProveedor(proveedorId);
-        return;
+        const proveedor = event.contrato.proveedor;
+        await this.proveedorService.activarProveedor(proveedor.id);
+        this.proveedorService.emitter(proveedor,'activado')
     }
-
+    
 }

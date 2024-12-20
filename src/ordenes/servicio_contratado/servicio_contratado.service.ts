@@ -14,116 +14,118 @@ export class ServicioContratadoService {
 
   constructor(
     @InjectRepository(ServicioContratado)
-    private servicioContratadoRepository:Repository<ServicioContratado>,
-    
+    private servicioContratadoRepository: Repository<ServicioContratado>,
+
     @InjectRepository(CarteleraGobierno)
-    private carteleraGobiernoRepository:Repository<CarteleraGobierno>,
+    private carteleraGobiernoRepository: Repository<CarteleraGobierno>,
 
     @InjectRepository(Orden)
-    private ordenRepository:Repository<Orden>
-  ){}
+    private ordenRepository: Repository<Orden>
+  ) { }
 
   async create(createServicioContratadoDto: CreateServicioContratadoDto) {
-    try{
-      
+    try {
+
       let cartelera = null;
-      const {carteleraId, ordenId, ...rest} = createServicioContratadoDto;
-      if(carteleraId){
-        cartelera = await this.carteleraGobiernoRepository.findOneBy({id:carteleraId});
-        if(!cartelera) throw new NotFoundException('No se encuentra la cartelera');
+      const { carteleraId, ordenId, cantidad, ...rest } = createServicioContratadoDto;
+      if (carteleraId) {
+        cartelera = await this.carteleraGobiernoRepository.findOneBy({ id: carteleraId });
+        if (!cartelera) throw new NotFoundException('No se encuentra la cartelera');
       }
 
-      const orden = await this.ordenRepository.findOneBy({id:ordenId});
-      if(!orden) throw new NotFoundException('No se encuentra la orden');
+      const orden = await this.ordenRepository.findOneBy({ id: ordenId });
+      if (!orden) throw new NotFoundException('No se encuentra la orden');
 
       const servicioContratado = this.servicioContratadoRepository.create({
-        cartelera:cartelera,
-        ordenDeServicio:orden,
+        cantidad: Number(cantidad),
+        cartelera: cartelera,
+        ordenDeServicio: orden,
         ...rest
       });
       await this.servicioContratadoRepository.save(servicioContratado);
       return servicioContratado;
 
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async findAll( pagina:number ) {
-    try{
+  async findAll(pagina: number) {
+    try {
       const paginationSetter = new PaginationSetter()
       const serviciosContratados = await this.servicioContratadoRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina),
-        relations:{
-          cartelera:true,
-          ordenDeServicio:true,
+        take: paginationSetter.castPaginationLimit(),
+        skip: paginationSetter.getSkipElements(pagina),
+        relations: {
+          cartelera: true,
+          ordenDeServicio: true,
         },
-        select:{
-          ordenDeServicio:{
-            id:true
+        select: {
+          ordenDeServicio: {
+            id: true
           }
         }
       });
       return serviciosContratados;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async findOne(id: string) {
-    try{
+    try {
       const servicioContratado = await this.servicioContratadoRepository.findOne({
-        where:{id:id},
-        relations:{
-          cartelera:true,
-          ordenDeServicio:true
-        },select:{
-          ordenDeServicio:{
-            id:true
+        where: { id: id },
+        relations: {
+          cartelera: true,
+          ordenDeServicio: true
+        }, select: {
+          ordenDeServicio: {
+            id: true
           }
         }
       });
-      if(!servicioContratado) throw new NotFoundException('No se encuentra el servicio contratado');
+      if (!servicioContratado) throw new NotFoundException('No se encuentra el servicio contratado');
       return servicioContratado;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async update(id: string, updateServicioContratadoDto: UpdateServicioContratadoDto) {
-    try{
+    try {
       const servicioContratado = await this.findOne(id);
-      if(servicioContratado){
-        const {servicio, carteleraId, ...rest} = updateServicioContratadoDto;
+      if (servicioContratado) {
+        const { servicio, carteleraId, cantidad, ...rest } = updateServicioContratadoDto;
         let cartelera = null;
-        
-        if(carteleraId){
-          cartelera = await this.carteleraGobiernoRepository.findOneBy({id:carteleraId});
-          if(!cartelera) throw new NotFoundException('No se encuentra la cartelerea');
+
+        if (carteleraId) {
+          cartelera = await this.carteleraGobiernoRepository.findOneBy({ id: carteleraId });
+          if (!cartelera) throw new NotFoundException('No se encuentra la cartelerea');
         }
-        await this.servicioContratadoRepository.update(id,{
-          servicio:Object(servicio),
-          cartelera:cartelera,
+        await this.servicioContratadoRepository.update(id, {
+          cantidad: Number(cantidad),
+          servicio: Object(servicio),
+          cartelera: cartelera,
           ...rest
         });
       }
       return await this.findOne(id);
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
   async remove(id: string) {
-    try{
+    try {
       const servicioContratado = await this.findOne(id);
-      if(servicioContratado){
+      if (servicioContratado) {
         await this.servicioContratadoRepository.delete(id);
-        return {message:'Servicio de orden eliminado correctamente'};
+        return { message: 'Servicio de orden eliminado correctamente' };
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
-  
+
 }

@@ -2,12 +2,14 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { DateFormatterInterceptor } from './interceptors/dateFormatter.interceptor';
+import { allowedOrigins } from './allowedOrigins';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.enableCors({
-    origin: ['*'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: false,
@@ -18,7 +20,13 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  //app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
+  app.useGlobalFilters(
+    new AllExceptionsFilter(httpAdapter),
+  );
+  app.useGlobalInterceptors(
+    new DateFormatterInterceptor()
+  );
+
   await app.listen(process.env.SERVER_PORT);
 }
 bootstrap();

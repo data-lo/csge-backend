@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { CaracteristicasService } from './caracteristicas.service';
 import { CreateCaracteristicaDto } from './dto/create-caracteristica.dto';
 import { UpdateCaracteristicaDto } from './dto/update-caracteristica.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { rolesCaracteristicas } from './valid-modules-caracterisitcas-roles.ob';
 
+@Auth(...rolesCaracteristicas)
 @Controller('catalogos/caracteristicas')
 export class CaracteristicasController {
   constructor(private readonly caracteristicasService: CaracteristicasService) {}
@@ -13,8 +16,8 @@ export class CaracteristicasController {
   }
 
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.caracteristicasService.findAll(+pagina);
+  findAll() {
+    return this.caracteristicasService.findAll();
   }
 
   @Get(':id')

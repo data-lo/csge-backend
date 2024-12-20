@@ -52,6 +52,13 @@ import { ProveedorParcialDto } from 'src/proveedores/proveedor/dto/proveedor-par
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
 import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { EstacionService } from 'src/proveedores/estacion/estacion.service';
+import { ContratosService } from 'src/contratos/contratos/contratos.service';
+import { contratosData } from './data/contratos/contratos.data';
+import { CreateContratoDto } from 'src/contratos/contratos/dto/create-contrato.dto';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { CarteleraGobiernoService } from 'src/ordenes/cartelera_gobierno/cartelera_gobierno.service';
+import { cartelerasData } from './data/carteleras/carteleras-data';
+import { CreateCarteleraGobiernoDto } from '../ordenes/cartelera_gobierno/dto/create-cartelera_gobierno.dto';
 
 @Injectable()
 export class SeedService {
@@ -79,9 +86,15 @@ export class SeedService {
     private readonly proveedoresService:ProveedorService,
     private readonly estacionService:EstacionService,
 
+    private readonly contratosService:ContratosService,
+    
     //modulo campañas
 
     private readonly dependenciaService:DependenciaService,
+    
+
+    //Carteleras
+    private readonly cartelerasService:CarteleraGobiernoService
 
   ){}
   
@@ -394,6 +407,94 @@ export class SeedService {
         await this.dependenciaService.create(dependenciaDto);
       }
       return;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async seedContratos(){
+    try{
+      await this.insertarContratos();
+      return {message:"contratos insertados exitosamente"};
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async insertarContratos(){
+    try{
+      for(const contrato of contratosData){
+    
+        let {rfc, montoMaximoContratado, ivaMontoMaximoContratado, montoMinimoContratado, ivaMontoMinimoContratado, ...rest} = contrato;
+        const proveedorId = await this.proveedoresService.findByRfc(rfc);
+        if(!proveedorId) continue;
+
+        if(!montoMinimoContratado){
+          montoMinimoContratado = montoMaximoContratado;
+          ivaMontoMinimoContratado = ivaMontoMaximoContratado;
+          montoMaximoContratado = null;
+          ivaMontoMaximoContratado = null;
+        }
+
+        if(contrato.tipoDeservicio === 'IMPRESOS-REVISTA'){
+          rest.tipoDeservicio = TipoDeServicio.REVISTA;
+        }
+
+        if(contrato.tipoDeservicio === 'IMPRESOS-PERIODICO'){
+          rest.tipoDeservicio = TipoDeServicio.IMPRESION_PRENSA;
+        }
+        
+        
+        try{
+          const contratoDto = plainToClass(CreateContratoDto,{
+            proveedorId:proveedorId.at(0).id,
+            montoMaximoContratado: Number(montoMaximoContratado),
+            ivaMontoMaximoContratado:Number(ivaMontoMaximoContratado),
+            montoMinimoContratado:Number(montoMinimoContratado),
+            ivaMontoMinimoContratado:Number(ivaMontoMinimoContratado),
+            tipoDeServicio:rest.tipoDeservicio.replaceAll(" ","_"),
+            objetoContrato:rest.ObjetoContrato,
+            ...rest
+          });
+          const contrato = await this.contratosService.create(contratoDto);
+          console.log('Proveedor Insertado', contrato);
+        }catch(error){
+          
+        }
+      }
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+  async seedCarteleras(){
+    await this.insertarCarteleras();
+    return 'Carteleras Insertadas con exito';
+  }
+
+
+  async insertarCarteleras(){
+    try{
+      for(const cartelera of cartelerasData){
+        const carteleraDto = plainToClass(CreateCarteleraGobiernoDto,{
+          numeroDeInventario:cartelera.numeroDeInventario.toString(),
+          clave:cartelera.clave,
+          ubicacion:cartelera.ubicacion,
+          ruta:cartelera.ruta.toString(),
+          medida:cartelera.medida,
+          metrosCuadrados:cartelera.metrosCuadrados.toString()
+        });
+
+        try{
+          const carteleraDb = await this.cartelerasService.create(carteleraDto);
+          console.log('cartelera insertada correctamente');
+          console.log(carteleraDb);
+
+        }catch(error){
+          console.log(error.message)
+          continue;
+        }
+      }
     }catch(error){
       handleExeptions(error);
     }
