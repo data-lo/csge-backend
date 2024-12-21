@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ServicioService } from './servicio.service';
 import { CreateServicioDto } from './dto/create-servicio.dto';
-import { UpdateServicioDto } from './dto/update-servicio.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { rolesServicios } from './valid-servicios-roles.ob';
@@ -18,21 +17,17 @@ export class ServicioController {
   }
   
   @Auth(...rolesServicios)
-  @Patch('desactivar')
-  desactivarServicio(@Body('servicioId',ParseUUIDPipe) servicioId:string){
+  @Patch('desactivar-servicio')
+  desactivarServicio(
+    @Body('servicioId',ParseUUIDPipe) servicioId:string){
     return this.servicioService.desactivarServicio(servicioId);
   }
 
   @Auth(...rolesServicios)
-  @Patch('activar')
-  activarServicio(@Body('servicioId',ParseUUIDPipe) servicioId:string){
-    return this.servicioService.desactivarServicio(servicioId);
-  }
-
-  @Auth(...rolesServicios)
-  @Patch('renovar')
-  renovarServicio(){
-
+  @Patch('activar-servicio')
+  activarServicio(
+    @Body('servicioId',ParseUUIDPipe) servicioId:string){
+    return this.servicioService.activarServicio(servicioId);
   }
 
   @Auth(...rolesServicios)
@@ -52,11 +47,4 @@ export class ServicioController {
   findOne(@Param('id',ParseUUIDPipe) id: string) {
     return this.servicioService.findOne(id);
   }
-
-  @Auth(...rolesServicios)
-  @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateServicioDto: UpdateServicioDto) {
-    return this.servicioService.update(id, updateServicioDto);
-  }
-
 }
