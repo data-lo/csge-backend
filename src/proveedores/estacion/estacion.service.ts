@@ -110,6 +110,18 @@ export class EstacionService {
           }
         }
       });
+      estacion.servicios.forEach(servicio => {
+        const ultimaRenovacion = servicio.renovaciones.filter(renovacion => {
+          if(renovacion.esUltimaRenovacion){
+            return renovacion;
+          }
+        });
+        
+        if(!ultimaRenovacion[0]) throw new NotFoundException('No se encuentra la renovacion');
+        delete ultimaRenovacion[0].fechaDeCreacion;
+        delete servicio.renovaciones;
+        servicio.renovaciones = ultimaRenovacion;
+      });
       if(!estacion) throw new BadRequestException('La estacion no se encuentra');
       return estacion;
     }catch(error){
