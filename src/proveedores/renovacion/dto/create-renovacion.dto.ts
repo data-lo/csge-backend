@@ -1,5 +1,5 @@
-import { Transform, Type} from "class-transformer";
-import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested, IsUUID } from 'class-validator';
+import { Type} from "class-transformer";
+import { IsBoolean, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested, IsUUID, isBoolean } from 'class-validator';
 import { CaracteristicasDelServicioDto } from "./caracteristicas-del-servicio.dto";
 
 export class CreateRenovacionDto {
@@ -21,10 +21,6 @@ export class CreateRenovacionDto {
 
     @IsBoolean()
     ivaFrontera:boolean;
-
-    @IsBoolean()
-    @IsOptional()
-    estatus:boolean;
 
     @IsObject()
     @ValidateNested()
