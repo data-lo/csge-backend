@@ -133,18 +133,15 @@ export class ContratosService {
 
   async obtenerTipoDeServicioContratado(proveedorId:string){
     try{
-      const proveedorDb = await this.proveedorRepository.findOne({
-        where:{
-          id:proveedorId
-        }
-      });
       const contratos = await this.contratoRepository.createQueryBuilder('contrato')
-      .select([
-        'contrato.tipoDeServicio'
-      ])
-      .where('contrato.proveedor = :proveedor',{proveedorDb})
-      .andWhere('contrato.estatus = ADJUDICADO or LIBERADO')
+      .select(['contrato.tipoDeServicio'])
+      .where('contrato.proveedor = :proveedorId',{proveedorId})
+      .andWhere('(contrato.estatus_de_contrato = :liberado OR contrato.estatus = :adjudicado)', {
+        adjudicado: 'ADJUDICADO',
+        liberado: 'LIBERADO',
+      })      
       .getMany();
+      return contratos;
 
     }catch(error){
       handleExeptions(error);
