@@ -44,6 +44,12 @@ export class ContratosController {
   }
 
   @Auth(...rolesContratos)
+  @Get('tipos-de-servicio/:id')
+  findTiposDeServicioPorProveedor(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosService.obtenerTipoDeServicioContratado(id);
+  }
+
+  @Auth(...rolesContratos)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
     this.logger.log('actualizar contrato')

@@ -131,6 +131,27 @@ export class ContratosService {
     }
   }
 
+  async obtenerTipoDeServicioContratado(proveedorId:string){
+    try{
+      const proveedorDb = await this.proveedorRepository.findOne({
+        where:{
+          id:proveedorId
+        }
+      });
+      const contratos = await this.contratoRepository.createQueryBuilder('contrato')
+      .select([
+        'contrato.tipoDeServicio'
+      ])
+      .where('contrato.proveedor = :proveedor',{proveedorDb})
+      .andWhere('contrato.estatus = ADJUDICADO or LIBERADO')
+      .getMany();
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
+
   async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
     try {
       const {estatusDeContrato} = updateContratoDto;
@@ -150,21 +171,28 @@ export class ContratosService {
   async update(id: string, updateContratoDto: UpdateContratoDto) {
     try {
       const estatusDelContrato = await this.obtenerEstatus(id);
-      const { proveedorId, ...rest } = updateContratoDto;
+      const { proveedorId, linkContrato, ...rest } = updateContratoDto;
 
       if (!proveedorId)
         throw new BadRequestException(
           'No es posible modificar el proveedor, proveedorId no existe',
         );
 
-      if (estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE) {
+      if (
+        estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE || EstatusDeContrato.ADJUDICADO
+      ) {
         throw new BadRequestException(
-          'El contrato no se encuentra PENDIENTE. Cancelar Contrato',
+          'El contrato no se encuentra PENDIENTE O ADJUDICADO Cancelar Contrato',
         );
       } else {
         const proveedor = await this.proveedorRepository.findOneBy({
           id: proveedorId,
         });
+        if(estatusDelContrato.estatus = EstatusDeContrato.ADJUDICADO){
+          await this.contratoRepository.update(id,{
+            linkContrato:linkContrato
+          })
+        }
         await this.contratoRepository.update(id, {
           proveedor: proveedor,
           ...rest,
