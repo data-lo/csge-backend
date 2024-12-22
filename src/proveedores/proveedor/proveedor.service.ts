@@ -186,16 +186,18 @@ export class ProveedorService {
 
   async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
-      const estatusDeContrato = 'LIBERADO';
+      
       const contrato = await this.contratoRepository
       .createQueryBuilder('contratos')
       .where('contratos.proveedorId = :proveedorId', { proveedorId })
       .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
-      .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
+      .andWhere('(contratos.estatus_de_contrato = :liberado OR contratos.estatus_de_contrato = :adjudicado)', {
+        adjudicado: 'ADJUDICADO',
+        liberado: 'LIBERADO',
+      })
       .getOne();
-      
+      console.log(contrato);
       if(!contrato) throw new BadRequestException('No existe el contrato');
-
       return contrato;
       
     }catch(error){
