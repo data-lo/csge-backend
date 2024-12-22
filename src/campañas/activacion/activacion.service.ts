@@ -102,13 +102,11 @@ export class ActivacionService {
 
   async desactivar(id:string){
     try{
-      const activacion = await this.findOne(id);
-      if(activacion){
-        await this.activacionRepository.update(id,{
-          estatus:false
-        });
-        return await this.findOne(id);
-      }
+      const activacionDb = await this.activacionRepository.findOneBy({id:id});
+      if(!activacionDb) throw new NotFoundException('No se encuentra la activacion');
+      activacionDb.estatus = false;
+      await this.activacionRepository.save(activacionDb);
+      return {estatus:true,message:'Activacion Desactivada Exitosamente'};
     }catch(error){
       handleExeptions(error);
     }

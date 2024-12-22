@@ -38,6 +38,7 @@ import { LoggerModule } from './logger/logger.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FirmamexModule } from './firma/firmamex/firmamex.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
     EventEmitterModule.forRoot({
       delimiter:'.'
     }),
+    ScheduleModule.forRoot(),
     UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 

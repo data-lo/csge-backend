@@ -52,7 +52,4 @@ export class Partida {
         name:'actualizado_en'
     })
     actualizadoEn:Date;
-
-    //OneToMany
-    //Orden de Servicio
 }
