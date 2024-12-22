@@ -20,7 +20,7 @@ import { LoggerService } from 'src/logger/logger.service';
 export class ContratosService {
 
   private readonly logger = new LoggerService(ContratosService.name);
-
+ 
   constructor(
     private eventEmitter: EventEmitter2,
     @InjectRepository(Contrato)
@@ -136,7 +136,7 @@ export class ContratosService {
       const contratos = await this.contratoRepository.createQueryBuilder('contrato')
       .select(['contrato.tipoDeServicio'])
       .where('contrato.proveedor = :proveedorId',{proveedorId})
-      .andWhere('(contrato.estatus_de_contrato = :liberado OR contrato.estatus = :adjudicado)', {
+      .andWhere('(contrato.estatus_de_contrato = :liberado OR contrato.estatus_de_contrato = :adjudicado)', {
         adjudicado: 'ADJUDICADO',
         liberado: 'LIBERADO',
       })      
@@ -176,7 +176,7 @@ export class ContratosService {
         );
 
       if (
-        estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE || EstatusDeContrato.ADJUDICADO
+        estatusDelContrato.estatus !== EstatusDeContrato.ADJUDICADO || EstatusDeContrato.PENDIENTE
       ) {
         throw new BadRequestException(
           'El contrato no se encuentra PENDIENTE O ADJUDICADO Cancelar Contrato',
@@ -192,6 +192,7 @@ export class ContratosService {
         }
         await this.contratoRepository.update(id, {
           proveedor: proveedor,
+          linkContrato: linkContrato,
           ...rest,
         });
         return await this.findOne(id);
