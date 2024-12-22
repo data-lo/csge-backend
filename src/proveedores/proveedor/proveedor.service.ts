@@ -27,6 +27,17 @@ export class ProveedorService {
 
   async create(createProveedorDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
+      
+      if(createProveedorDto.rfc.length < 12) throw new BadRequestException('El RFC debe de contener minimo 12 caracteres');
+      
+      if(createProveedorDto.rfc.length === 12 || createProveedorDto.rfc.length === 13){
+        const proveedorExistente = await this.findByRfc(createProveedorDto.rfc);
+        console.log(proveedorExistente);
+        if(proveedorExistente){
+          return proveedorExistente[0];
+        }
+      }
+
       const proveedor = this.proveedorRepository.create(createProveedorDto);
       await this.proveedorRepository.save(proveedor);
       return proveedor;
@@ -68,11 +79,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      const proveedor = await this.proveedorRepository.createQueryBuilder('proveedor')
       .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
       .getMany();
-
-      if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
+      if (proveedor.length === 0) return undefined;
       return proveedor;
     } catch (error) {
       handleExeptions(error);
