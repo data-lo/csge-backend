@@ -32,12 +32,6 @@ export class CampañasController {
   }
 
   @Auth(...rolesCampanias)
-  @Get('estatus/:id')
-  estatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.campañasService.verificarEstatus(id);
-  }
-
-  @Auth(...rolesCampanias)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.campañasService.findOne(id);

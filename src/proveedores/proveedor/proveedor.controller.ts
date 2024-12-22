@@ -42,7 +42,7 @@ export class ProveedorController {
   obtenerTipoDeContrato(
     @Param('id',ParseUUIDPipe) id:string,
     @Query('tipoDeServicio', new ParseEnumPipe(TipoDeServicio)) tipoDeServicio:TipoDeServicio){
-    return this.proveedorService.obtenerContatoDelProveedor(id,tipoDeServicio);
+    return this.proveedorService.obtenerContartoDelProveedor(id,tipoDeServicio);
   }
 
   @Auth(...rolesProveedores)

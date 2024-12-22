@@ -20,9 +20,9 @@ export class PartidaService {
   
   async create(createPartidaDto: CreatePartidaDto) {
     try{
-      const partida = this.partidaRepository.create(createPartidaDto);
-      await this.partidaRepository.save(partida);
-      return partida;
+      const partidaDb = this.partidaRepository.create(createPartidaDto);
+      await this.partidaRepository.save(partidaDb);
+      return partidaDb;
     }catch(error){
       handleExeptions(error);
     }
@@ -41,10 +41,10 @@ export class PartidaService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(partidaId: string) {
     try{
       const partida = await this.partidaRepository.findOne({
-        where:{id:id},
+        where:{id:partidaId},
       });
       if(!partida) throw new NotFoundException('La partida no exisite');
       return partida;
@@ -53,25 +53,26 @@ export class PartidaService {
     }
   }
 
-  async update(id: string, updatePartidaDto: UpdatePartidaDto) {
+  async update(partidaId: string, updatePartidaDto: UpdatePartidaDto) {
     try{
-      const partida = await this.findOne(id);
-      if(partida){
-        await this.partidaRepository.update(id,updatePartidaDto);
-        return await this.findOne(id);
-      }
+      const partidaDb = await this.partidaRepository.findOne({
+        where:{id:partidaId}
+      });
+      
+      if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
+      await this.partidaRepository.update(partidaId,updatePartidaDto);
+      return {message:'Partida actualziada correctamente'};
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  async desactivarPartida(id:string){
+  async desactivarPartida(partidaId:string){
     try{
-      console.log('here');
-      const partida = await this.findOne(id);
-      partida.estatus = false;
-      await this.partidaRepository.save(partida);
-      return await this.findOne(id);
+      const partidaDb = await this.partidaRepository.findOneBy({id:partidaId})
+      partidaDb.estatus = false;
+      await this.partidaRepository.save(partidaDb);
+      return {message:'Partida desactivada correctamente'};
     }catch(error){
       handleExeptions(error);
     }
@@ -99,13 +100,12 @@ export class PartidaService {
     }
   }
 
-  async delete(id:string){
+  async remove(id:string){
     try{
-      const partida = await this.findOne(id);
-      if(partida){
-        await this.partidaRepository.delete(id);
-        return {message:'Partida eliminada exitosamente'};
-      }
+      const partidaDb = await this.partidaRepository.findOneBy({id:id});
+      if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
+      await this.partidaRepository.remove(partidaDb);
+      return {message:'Partida eliminada exitosamente'};
     }catch(error){
       handleExeptions(error);
     }
