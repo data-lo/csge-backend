@@ -2,70 +2,63 @@ import { IsOptional, IsString} from 'class-validator';
 
 export class CaracteristicasDelServicioDto{
     
-    //NOMBRE FOMRATO FULL COLOR, BLANCO Y NEGRO, A, AAA, AAA,
-    @IsString()
     @IsOptional()
-    nombreFormato: string;
-
-    //IMPRESO AUDIOVIDUAL PIEZA SERVICIO TIPOFORMATO INTERFACE
     @IsString()
-    @IsOptional()
-    tipoFormato: string;
+    tipoFormato:string;
 
-    //tipo unidad
-    //LONGITUD /TIEMPO
+    @IsOptional()
     @IsString()
-    @IsOptional()
-    tipoUnidad: string;
+    tipoUnidad:string;
 
-    //VASOS PARA EVENTO
+    @IsOptional()
     @IsString()
-    @IsOptional()
-    pieza: string;
+    unidad:string;
 
-    //PAGINAS EN LA PRESNA
+    @IsOptional()
     @IsString()
+    simbolo:string;
+
     @IsOptional()
-    paginasPrensa: string;
-
-
-    //SECCIÓN EN LA PRESNA
     @IsString()
-    @IsOptional()
-    seccionPrensa: string;
+    pieza:string;
 
-    //SITIO WEB DE LA PUBLICACIÓN
-    @IsString()
     @IsOptional()
-    webPublicacion: string;
+    @IsString()
+    medidaImpresion:string;
 
-    //NOMBRE DE PROGRAMA
-    @IsString()
     @IsOptional()
-    programa: string;
+    @IsString()
+    medidaTiempo:string;
 
-    //12.4
-    @IsString()
     @IsOptional()
-    alto: string;
+    @IsString()
+    medidaImpresionId:string;
 
-    //25.5
-    @IsString()
     @IsOptional()
-    ancho: string;
+    @IsString()
+    medidaTiempoId:string;
 
-    //METRO, PULGADA, YARDA, SEGUNDO, MINTUO, HORA
-    @IsString()
     @IsOptional()
-    unidad: string;
+    @IsString()
+    ancho:string;
 
-    //MM, PX, YR, M, S, MIN, HR, 
-    @IsString()
     @IsOptional()
-    simbolo: string;
+    @IsString()
+    alto:string;
+    
+    @IsOptional()
+    @IsString()
+    seccionPrensa:string;
 
-    //SUPLEMENTO, PUBLIREPORTAJE, PLANA
-    @IsString()
     @IsOptional()
-    medidaDeImpresion: string;
+    @IsString()
+    webPublicacion:string;
+
+    @IsOptional()
+    @IsString()
+    paginasPresna:string;
+
+    @IsOptional()
+    @IsString()
+    programa:string;
 }
