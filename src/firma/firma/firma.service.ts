@@ -304,7 +304,7 @@ export class FirmaService {
   async obtenerDocumentosDeFrimamex() {
     try {
       const from = new Date('2024-11-27').getTime();
-      const to = new Date('2024-11-28').getTime();
+      const to = new Date().getTime();
       const serviciosFirmamex = await this.firmamexService.getServices();
       let documentos = await serviciosFirmamex.listDocuments(from, to);
       return documentos;

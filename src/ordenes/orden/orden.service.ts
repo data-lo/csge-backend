@@ -25,7 +25,6 @@ import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
-import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 
 @Injectable()
 export class OrdenService {
