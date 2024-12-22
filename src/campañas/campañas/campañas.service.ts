@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
@@ -13,11 +13,13 @@ import { EstatusCampaña } from './interfaces/estatus-campaña.enum';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CampaniaEvent } from './interfaces/campaña-evento';
+import { LoggerService } from 'src/logger/logger.service';
 
 
 @Injectable()
 export class CampañasService {
 
+  logger = new LoggerService(CampañasService.name);
   constructor(
 
     private eventEmitter:EventEmitter2,
@@ -35,7 +37,7 @@ export class CampañasService {
   async create(createCampañaDto: CreateCampañaDto) {
     try{
       let dependencias = [];
-      const {dependenciasIds, activacion, partida, ...rest} = createCampañaDto;
+      const {dependenciasIds, activacion, ...rest} = createCampañaDto;
     
       for(const dependenciaId of dependenciasIds){
         const dependencia = await this.dependeciaRepository.findOneBy({id:dependenciaId});
@@ -48,16 +50,26 @@ export class CampañasService {
         ...rest
       });
 
-      await this.campañaRepository.save(campaña);
-      const partidaDb = await this.partidaService.create(partida);
+      const campañaDb = await this.campañaRepository.save(campaña);
+  
+      const partidaDto = {
+        montoActivo:0,
+        montoEjercido:0,
+        montoPagado:0
+      }
+      const partidaDb = await this.partidaService.create(partidaDto);
+      if(!partidaDb) throw new InternalServerErrorException({message:'No se logro crear la partida',campaniaId:campañaDb.id});
 
       activacion.campañaId = campaña.id;
       activacion.partidaId = partidaDb.id;
-
-      await this.activacionService.create(activacion);
+      
+      const activacionDb = await this.activacionService.create(activacion);
+    
+      if(!activacionDb) throw new InternalServerErrorException({message:'No se logro crear la activacion',campaniaId:campañaDb.id});
       return campaña;
 
     }catch(error){
+      await this.remove(error.campaniaId);
       handleExeptions(error);
     }
   }
@@ -122,6 +134,7 @@ export class CampañasService {
       if(!campaña) throw new NotFoundException('Campaña no encontrada');
       return campaña;
     }catch(error){
+      this.logger.log('Error en encontrar una campaña');
       handleExeptions(error);
     }
   }
@@ -168,7 +181,6 @@ export class CampañasService {
       });
       if(!campaniaDb) throw new NotFoundException('No se encuentra la campaña');
       if((campaniaDb.estatus === EstatusCampaña.CREADA) || (campaniaDb.estatus === EstatusCampaña.COTIZANDO)){
-        console.log('ejecutando metodo remove');
         await this.campañaRepository.remove(campaniaDb);
         return {message:'Campaña eliminada existosamente'};
       }
@@ -196,15 +208,18 @@ export class CampañasService {
       const activacionResponse = await this.activacionService.desactivar(ultimaActivacion.id);
       if(!activacionResponse.estatus) throw new InternalServerErrorException('Desactivacion de activacion fallido');
       
-      const {partida, ...rest} = createActivacionDto;
+      const partida = {
+        montoActivo:0,
+        montoEjercido:0,
+        montoPagado:0
+      }
       const partidaDb = await this.partidaService.create(partida);
       if(!partidaDb) throw new InternalServerErrorException('Creacion de nueva partida fallida');
 
-      rest.campañaId = campañaDb.id;
-      rest.partidaId = partidaDb.id;
       const activacionDb = await this.activacionService.create({
-        partida:partidaDb,
-        ...rest
+        partidaId:partidaDb.id,
+        campañaId:campañaDb.id,
+        ...createActivacionDto
       });
 
       if(!activacionDb) throw new InternalServerErrorException({message:'No se creo la activacion correctamente',partidaId:partidaDb.id});
