@@ -29,6 +29,7 @@ import {
   coordenadasCotejador,
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
+import { Stream } from 'stream';
 
 @Injectable()
 export class FirmaService {
@@ -51,7 +52,7 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { ordenOFacturaId, tipoDeDocumento} = createFirmaDto;
+      const { ordenOFacturaId, tipoDeDocumento } = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         ordenOFacturaId,
@@ -172,7 +173,7 @@ export class FirmaService {
         where: { id: documentoId },
         relations: {
           usuariosFirmadores: true,
-        }
+        },
       });
 
       if (!usuario) throw new NotFoundException('No se encontró el usuario');
@@ -187,7 +188,7 @@ export class FirmaService {
       const stickers = await this.crearStickers(
         [usuario],
         documento.tipoDeDocumento,
-        documento.usuariosFirmadores
+        documento.usuariosFirmadores,
       );
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
       const response = await this.enviarDocumentoAFirmamexSDK(
@@ -204,7 +205,6 @@ export class FirmaService {
       handleExeptions(error);
     }
   }
-
 
   private async construir_pdf(
     documentoId,
@@ -227,7 +227,11 @@ export class FirmaService {
     }
   }
 
-  async crearStickers(usuarios: Usuario[], tipoDeDocumento: TipoDeDocumento, usuariosFirmadores: Usuario[]): Promise<Sticker[]> {
+  async crearStickers(
+    usuarios: Usuario[],
+    tipoDeDocumento: TipoDeDocumento,
+    usuariosFirmadores: Usuario[],
+  ): Promise<Sticker[]> {
     try {
       let rect = {};
       const stickers = [];
@@ -244,8 +248,8 @@ export class FirmaService {
           data: usuariosFirmadores[0].rfc,
           imageType: 'hash',
           page: 0,
-          rect: coordenadasAprobacionFactura, 
-        }
+          rect: coordenadasAprobacionFactura,
+        };
         stickers.push(stickerAprobador);
       }
 
@@ -331,36 +335,27 @@ export class FirmaService {
       const documentoEnFirma = await this.firmaRepository.findOne({
         where: { ordenOFacturaId: ordenOFacturaId },
       });
-      
-      console.log('documento en firma ',documentoEnFirma);
-      if (!documentoEnFirma) {
-        documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
-        console.log('regresa en construir pdf')
-        return documento;
-      }
-      
-      console.log(documentoEnFirma.ticket +'ok');
-      if (!documentoEnFirma.ticket) {
+
+      if (!documentoEnFirma || !documentoEnFirma.ticket)  {
         documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
         return documento;
       }
-      
+
+
       const serviciosFirmamex = await this.firmamexService.getServices();
       const documentoEnB64 = await serviciosFirmamex.getDocument(
         'original',
         documentoEnFirma.ticket,
       );
-      
-      const informacionDocumento = await serviciosFirmamex.getReport(
-        documentoEnFirma.ticket,
-      );
 
-      documento = await this.deBase64aPdf(
-        documentoEnB64.original,
-        informacionDocumento.document.name,
-      );
-      
-      return documento;
+      //const informacionDocumento = await serviciosFirmamex.getReport(
+      //  documentoEnFirma.ticket,
+      //);
+
+      return {
+        tipo:'stream',
+        documento:this.base64aStream(documentoEnB64.original)
+      }
     } catch (error) {
       console.log(error);
       handleExeptions(error);
@@ -380,6 +375,18 @@ export class FirmaService {
     });
   }
 
+  private base64aStream(base64Data:string){
+    try{
+      const bufferStream = new Stream.Readable();
+      const buffer = Buffer.from(base64Data,'base64');
+      bufferStream.push(buffer);
+      bufferStream.push(null);
+      return bufferStream;
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async crearArchivoEnBase64(documento: PDFKit.PDFDocument) {
     const chunks: Uint8Array[] = [];
     return new Promise((resolve, reject) => {
@@ -394,8 +401,6 @@ export class FirmaService {
     });
   }
 
-
-
   findOne(id: number) {
     return `This action returns a #${id} firma`;
   }
@@ -407,5 +412,4 @@ export class FirmaService {
   remove(id: number) {
     return `This action removes a #${id} firma`;
   }
-
 }
