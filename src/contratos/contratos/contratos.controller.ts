@@ -38,17 +38,16 @@ export class ContratosController {
   }
 
   @Auth(...rolesContratos)
-  @Get('tipos-de-servicios/:id')
-  findTiposDeServicioPorProveedor(@Param('id', ParseUUIDPipe) proveedorId: string) {
-    return this.contratosService.obtenerTipoDeServicioContratado(proveedorId);
-  }
-  
-  @Auth(...rolesContratos)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosService.findOne(id);
   }
 
+  @Auth(...rolesContratos)
+  @Get('tipos-de-servicio/:id')
+  findTiposDeServicioPorProveedor(@Param('id', ParseUUIDPipe) id: string) {
+    return this.contratosService.obtenerTipoDeServicioContratado(id);
+  }
 
   @Auth(...rolesContratos)
   @Patch(':id')

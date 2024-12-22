@@ -6,6 +6,8 @@ import { textoDeRecepcionSection } from "./aprobacion-de-factura-sections/texto-
 import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-de-proveedor-section";
 import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
 import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
+import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
+import { cotejadorSection } from "./aprobacion-de-factura-sections/cotejador-section";
 
 
 interface AprobacionDeFacturaOptions {
