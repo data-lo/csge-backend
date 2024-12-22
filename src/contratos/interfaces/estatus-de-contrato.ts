@@ -1,5 +1,6 @@
 export enum EstatusDeContrato{
     PENDIENTE = 'PENDIENTE',
+    ADJUDICADO = 'ADJUDICADO',
     LIBERADO  = 'LIBERADO',
     TERMINADO = 'TERMINADO',
     CANCELADO = 'CANCELADO'

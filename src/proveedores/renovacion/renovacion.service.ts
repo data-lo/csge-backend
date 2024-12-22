@@ -1,13 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
-import { DesactivarRenovacionDto } from './dto/desactivar-renovacion.dto';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Renovacion } from './entities/renovacion.entity';
 import { Repository } from 'typeorm';
-import { PaginationSetter } from '../../helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
+import { error } from 'console';
 
 @Injectable()
 export class RenovacionService {
@@ -22,55 +21,43 @@ export class RenovacionService {
   ){}
 
   async create(createRenovacionDto: CreateRenovacionDto) {
-    try{  
+    try{
       
       let {tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest} = createRenovacionDto;
-      if(servicioId){
-        const servicioDb = await this.servicioRepository.findOne(
-          {
-            where:{id:servicioId},
-            relations:{renovaciones:true}
-          }
-        );
-        servicioDb.renovaciones[-1].estatus = false;
-        await this.servicioRepository.save(servicioDb);
-
-        if(createRenovacionDto.ivaIncluido){
-          const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
-          tarifaUnitaria = ivaDesglosado.tarifa,
-          iva = ivaDesglosado.iva
-        }
-
-        if(!createRenovacionDto.ivaIncluido){
-          iva = await this.ivaGetter.obtenerIva(tarifaUnitaria,ivaFrontera);
-        }
-        
-        const renovacion = this.renovacionRepository.create({
-          servicio:servicioDb,
-          tarifaUnitaria:tarifaUnitaria,
-          fechaDeCreacion: new Date(),
-          iva:iva,
-          ...rest
-        });
-        await this.renovacionRepository.save(renovacion);
-        delete renovacion.servicio;
-        return renovacion;
-      }
-      throw new NotFoundException('El servicio no se encuentra');
-    
-    }catch(error:any){
-      handleExeptions(error)
-    }
-  }
-
-  async findAll(pagina:number) {
-    try{
-      const paginationSetter = new PaginationSetter();
-      const renovaciones = await this.renovacionRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina)
+      if(!servicioId) throw new BadRequestException('El servicio es requerido');
+      
+      const servicioDb = await this.servicioRepository.findOne({
+          where:{id:servicioId},    
       });
-      return renovaciones;
+
+      if(!servicioDb) throw new NotFoundException('El servicio no se encuentra');
+
+      if(createRenovacionDto.ivaIncluido){
+        const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria,ivaFrontera);
+        tarifaUnitaria = ivaDesglosado.tarifa,
+        iva = ivaDesglosado.iva
+      }
+      if(!createRenovacionDto.ivaIncluido){
+        iva = await this.ivaGetter.obtenerIva(tarifaUnitaria,ivaFrontera);
+      }
+      
+      if(! (await this.esPrimerRenovacion(servicioId))){
+        await this.hayNuevaRenovacion(servicioId);
+      }
+
+      const renovacion = this.renovacionRepository.create({
+        servicio:servicioDb,
+        tarifaUnitaria:tarifaUnitaria,
+        fechaDeCreacion: new Date(),
+        iva:iva,
+        esUltimaRenovacion:true,
+        ...rest
+      });
+
+      await this.renovacionRepository.save(renovacion);
+      delete renovacion.servicio;
+      return renovacion;
+    
     }catch(error:any){
       handleExeptions(error)
     }
@@ -109,15 +96,104 @@ export class RenovacionService {
     }
   }
 
-  async desactivarRenovacion(desactivarRenovacionDto:DesactivarRenovacionDto){
+  async obtenerRenovaciones(servicioId:string){
     try{
-      const {renovacionId} = desactivarRenovacionDto;
-      const renovacionDb = await this.findOne(renovacionId);
-      if(renovacionDb){
-        await this.renovacionRepository.update(renovacionId,{estatus:false});
-        const renovacion = await this.findOne(renovacionId);
-        return {message:'Renovacion desactivada exitosamente',estaus:renovacion.estatus};
+      const servicioDb = await this.servicioRepository.findOne({
+        where:{id:servicioId},
+        relations:{
+          renovaciones:true
+        }
+      });
+      if(!servicioDb) throw new BadRequestException('El servicio no se encuentra');
+      return servicioDb.renovaciones;
+      
+    }catch(error:any){
+        handleExeptions(error);
+    }
+  }
+
+  async esPrimerRenovacion(servicioId:string){
+    try{
+      const renovaciones = await this.obtenerRenovaciones(servicioId);
+      if(renovaciones.length < 1){
+        return true;
       }
+      return false;
+    }catch(error){;
+      handleExeptions(error);
+    }
+  }
+
+
+  async activarUltimaRenovacion(servicioId:string){
+    try{
+      const servicioDb = await this.servicioRepository.findOne({
+        where:{id:servicioId},
+        relations:{
+          renovaciones:true
+        }
+      });
+      const renovacion = servicioDb.renovaciones.find((renovacion) => {
+        if(renovacion.esUltimaRenovacion === true){
+          return renovacion;
+      }});
+      renovacion.estatus = true;
+      await this.renovacionRepository.save(renovacion);
+      return;
+    }catch(error:any){
+      handleExeptions(error)
+    }
+  }
+
+  async desactivarUltimaRenovacion(servicioId:string){
+    try{
+      
+      const servicioDb = await this.servicioRepository.findOne({
+        where:{id:servicioId},
+        relations:{
+          renovaciones:true
+        }
+      });
+      
+      if(!servicioDb) throw new NotFoundException('El servicio no se encuentra');
+
+      const renovacion = servicioDb.renovaciones.find((renovacion) => {
+        if(renovacion.esUltimaRenovacion === true){
+          return renovacion;
+      }});
+
+      if(!renovacion) throw new InternalServerErrorException('No se encuentra la renovacion');
+      
+      console.log(renovacion);
+      renovacion.estatus = false;
+      await this.renovacionRepository.save(renovacion);
+      return;
+      
+    }catch(error:any){
+      handleExeptions(error)
+    }
+  }
+
+  async hayNuevaRenovacion(servicioId:string){
+    try{
+      const servicioDb = await this.servicioRepository.findOne({
+        where:{id:servicioId},
+        relations:{
+          renovaciones:true
+        }
+      });
+      
+      if(!servicioDb)throw new BadRequestException('No hay renovaciones para este servicio');
+      
+      const renovacion = servicioDb.renovaciones.find((renovacion) => {
+        if(renovacion.esUltimaRenovacion === true){
+          return renovacion;
+      }});
+
+      renovacion.estatus = false;
+      renovacion.esUltimaRenovacion = false;
+      await this.renovacionRepository.save(renovacion);
+      return;
 
     }catch(error:any){
       handleExeptions(error)

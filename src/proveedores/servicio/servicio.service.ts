@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateServicioDto } from './dto/create-servicio.dto';
-import { UpdateServicioDto } from './dto/update-servicio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Servicio } from './entities/servicio.entity';
 import { Repository } from 'typeorm';
@@ -8,6 +7,8 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
 import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ServicioEvent } from './interfaces/servicio-event';
 
 @Injectable()
 export class ServicioService {
@@ -16,6 +17,7 @@ export class ServicioService {
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
     private estacionService: EstacionService,
+    private eventEmitter: EventEmitter2,
   ) { }
 
   async create(createServicioDto: CreateServicioDto) {
@@ -41,7 +43,7 @@ export class ServicioService {
       const servicios = await this.servicioRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina),
-        relations: ['renovaciones']
+        relations: {renovaciones:true}
       });
       return servicios;
     } catch (error) {
@@ -57,29 +59,19 @@ export class ServicioService {
           renovaciones: true
         }
       });
-
       if (!servicio) throw new NotFoundException('No se encuentra el servicio');
-      const index = servicio.renovaciones.length
-      const ultimaRenovacion = servicio.renovaciones[index - 1];
+      const ultimaRenovacion = servicio.renovaciones.find((renovacion) => {
+        if(renovacion.esUltimaRenovacion){
+          return renovacion;
+        }
+      });
 
+      if(!ultimaRenovacion) throw new NotFoundException('No se encuentra la renovacion');
+      
       delete ultimaRenovacion.fechaDeCreacion;
       delete servicio.renovaciones;
-
-      servicio.renovaciones = [ultimaRenovacion];
+      servicio.renovaciones = [ultimaRenovacion];      
       return flattenCaracteristica(servicio)
-
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
-
-  async update(id: string, updateServicioDto: UpdateServicioDto) {
-    try {
-      const servicio = await this.findOne(id);
-      if (servicio) {
-        await this.servicioRepository.update(id, updateServicioDto);
-        return this.findOne(id);
-      }
     } catch (error) {
       handleExeptions(error);
     }
@@ -87,13 +79,14 @@ export class ServicioService {
 
   async desactivarServicio(id: string) {
     try {
-      const servicio = await this.findOne(id);
-      if (servicio) {
-        await this.servicioRepository.update(id, {
-          estatus: false
-        });
-        return await this.findOne(id);
-      }
+      const servicio = await this.servicioRepository.findOneBy({ id: id });
+      if(!servicio) throw new NotFoundException('No se encuentra el servicio');
+      await this.servicioRepository.update(
+        id,{
+        estatus: false
+      });
+      await this.emitter(servicio.id,'servicio.desactivado');
+      return { message: 'Servicio desactivado correctamente' };
     } catch (error) {
       handleExeptions(error);
     }
@@ -101,13 +94,12 @@ export class ServicioService {
 
   async activarServicio(id: string) {
     try {
-      const servicio = await this.findOne(id);
-      if (servicio) {
-        await this.servicioRepository.update(id, {
-          estatus: true
-        });
-        return await this.findOne(id);
-      }
+      const servicio = await this.servicioRepository.findOneBy({id:id});
+      if (!servicio) throw new NotFoundException('No se encuentra el servicio');
+      servicio.estatus = true;
+      await this.servicioRepository.save(servicio);
+      await this.emitter(servicio.id,'servicio.activado');
+      return { message: 'Servicio activado correctamente' };
     } catch (error) {
       handleExeptions(error);
     }
@@ -124,4 +116,12 @@ export class ServicioService {
       handleExeptions(error);
     }
   }
+
+  private emitter(servicioId:string, evento:string) {
+    this.eventEmitter.emit(
+      `${evento}`,
+      new ServicioEvent(servicioId)
+    )
+  }
+
 }

@@ -174,7 +174,7 @@ export class ProveedorService {
     }
   }
 
-  async obtenerContatoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
+  async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
       const estatusDeContrato = 'LIBERADO';
       const contrato = await this.contratoRepository

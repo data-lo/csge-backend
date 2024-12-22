@@ -69,6 +69,14 @@ export class Renovacion {
     })
     estatus:boolean;
 
+    @Column({
+        name:'es_ultima_renovacion',
+        type:'boolean',
+        nullable:false,
+        default:true
+    }) 
+    esUltimaRenovacion:boolean;
+
     @ManyToOne(()=> Servicio,(servicio) => servicio.renovaciones)
     servicio:Servicio;
 

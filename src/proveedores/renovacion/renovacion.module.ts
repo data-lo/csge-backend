@@ -7,11 +7,12 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
 import { Servicio } from '../servicio/entities/servicio.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { RenovacionEventosService } from './renovacion.events.service';
 
 
 @Module({
   controllers: [RenovacionController],
-  providers: [RenovacionService],
+  providers: [RenovacionService,RenovacionEventosService],
   imports: [
     TypeOrmModule.forFeature([Renovacion,Servicio]),
     IvaModule,
