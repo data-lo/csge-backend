@@ -176,7 +176,7 @@ export class ContratosService {
         );
 
       if (
-        estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE || EstatusDeContrato.ADJUDICADO
+        estatusDelContrato.estatus !== EstatusDeContrato.ADJUDICADO || EstatusDeContrato.PENDIENTE
       ) {
         throw new BadRequestException(
           'El contrato no se encuentra PENDIENTE O ADJUDICADO Cancelar Contrato',
@@ -192,6 +192,7 @@ export class ContratosService {
         }
         await this.contratoRepository.update(id, {
           proveedor: proveedor,
+          linkContrato: linkContrato,
           ...rest,
         });
         return await this.findOne(id);
