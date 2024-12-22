@@ -6,19 +6,18 @@ export class CreateActivacionDto {
     
 
     @IsDate()
-    @IsOptional()
     @Transform(({value}) => {
         const [day, month, year] = value.split('-');
         return new Date(`${year}-${month}-${day}`)
     })
-    fechaDeCreacion:string;
+    fechaDeInicio:string;
 
     @IsDate()
     @Transform(({value}) => {
         const [day, month, year] = value.split('-');
         return new Date(`${year}-${month}-${day}`)
     })
-    fechaDeInicio:string;
+    fechaDeCierre:string;
 
     @IsDate()
     @IsOptional()
@@ -27,13 +26,6 @@ export class CreateActivacionDto {
         return new Date(`${year}-${month}-${day}`)
     })
     fechaDeAprobacion:string;
-
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaDeCierre:string;
 
     @IsString()
     @IsUUID()
@@ -44,10 +36,4 @@ export class CreateActivacionDto {
     @IsString()
     @IsUUID()
     campañaId:string;
-
-    @IsOptional()
-    @IsObject()
-    @ValidateNested()
-    @Type(() => CreatePartidaDto,)
-    partida:CreatePartidaDto;
 }
