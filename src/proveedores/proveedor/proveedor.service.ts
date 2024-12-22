@@ -27,6 +27,17 @@ export class ProveedorService {
 
   async create(createProveedorDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
+      
+      if(createProveedorDto.rfc.length < 12) throw new BadRequestException('El RFC debe de contener minimo 12 caracteres');
+      
+      if(createProveedorDto.rfc.length === 12 || createProveedorDto.rfc.length === 13){
+        const proveedorExistente = await this.findByRfc(createProveedorDto.rfc);
+        console.log(proveedorExistente);
+        if(proveedorExistente){
+          return proveedorExistente[0];
+        }
+      }
+
       const proveedor = this.proveedorRepository.create(createProveedorDto);
       await this.proveedorRepository.save(proveedor);
       return proveedor;
@@ -68,11 +79,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      const proveedor = await this.proveedorRepository.createQueryBuilder('proveedor')
       .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
       .getMany();
-
-      if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
+      if (proveedor.length === 0) return undefined;
       return proveedor;
     } catch (error) {
       handleExeptions(error);
@@ -176,16 +186,18 @@ export class ProveedorService {
 
   async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
-      const estatusDeContrato = 'LIBERADO';
+      
       const contrato = await this.contratoRepository
       .createQueryBuilder('contratos')
       .where('contratos.proveedorId = :proveedorId', { proveedorId })
       .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
-      .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
+      .andWhere('(contratos.estatus_de_contrato = :liberado OR contratos.estatus_de_contrato = :adjudicado)', {
+        adjudicado: 'ADJUDICADO',
+        liberado: 'LIBERADO',
+      })
       .getOne();
-      
+      console.log(contrato);
       if(!contrato) throw new BadRequestException('No existe el contrato');
-
       return contrato;
       
     }catch(error){
