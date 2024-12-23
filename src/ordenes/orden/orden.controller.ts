@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
+import { Stream } from 'stream';
 
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
@@ -53,8 +54,13 @@ export class OrdenController {
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
     res.setHeader('Content-Type','application/pdf');
-    pdfDoc.pipe(res);
-    pdfDoc.end();
+    if(pdfDoc.tipo === 'stream'){
+      pdfDoc.documento.pipe(res);
+    }
+    else{
+      pdfDoc.pipe(res);
+      pdfDoc.end();
+    }
   }
 
   @Auth(...rolesOrdenes)

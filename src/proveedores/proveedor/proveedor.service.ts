@@ -196,7 +196,6 @@ export class ProveedorService {
         liberado: 'LIBERADO',
       })
       .getOne();
-      console.log(contrato);
       if(!contrato) throw new BadRequestException('No existe el contrato');
       return contrato;
       
