@@ -28,19 +28,16 @@ export class CreateServicioContratadoDto {
     fechaFinal:Date;
 
     @IsNumber()
-    @IsPositive()
     @IsInt()
     @IsOptional()
     versionesSpot:number;
     
     @IsNumber()
-    @IsPositive()
     @IsInt()
     @IsOptional()
     impactosVersionSpot:number;
 
     @IsNumber()
-    @IsPositive()
     @IsInt()
     @IsOptional()
     numeroDiasSpot:number;

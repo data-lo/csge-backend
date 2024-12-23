@@ -335,27 +335,28 @@ export class FirmaService {
       const documentoEnFirma = await this.firmaRepository.findOne({
         where: { ordenOFacturaId: ordenOFacturaId },
       });
-
-      if (!documentoEnFirma || !documentoEnFirma.ticket)  {
+      if (!documentoEnFirma)  {
+        documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
+        return documento;
+      }
+      if(!documentoEnFirma.ticket){
         documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
         return documento;
       }
 
 
-      const serviciosFirmamex = await this.firmamexService.getServices();
-      const documentoEnB64 = await serviciosFirmamex.getDocument(
-        'original',
-        documentoEnFirma.ticket,
-      );
+      //NO FUNCIONA EL DOCUMENTO EN B64 DEL API DE FIRMAMEX
 
-      //const informacionDocumento = await serviciosFirmamex.getReport(
+      //const serviciosFirmamex = await this.firmamexService.getServices();
+      //const documentoEnB64 = await serviciosFirmamex.getDocument(
+      //  'original',
       //  documentoEnFirma.ticket,
       //);
-
-      return {
-        tipo:'stream',
-        documento:this.base64aStream(documentoEnB64.original)
-      }
+      //return {
+      //  tipo:'stream',
+      //  documento:this.base64aStream(documentoEnB64.original)
+      //}
+      return {tipo:'url',url:documentoEnFirma.documentoUrlFirmamex};
     } catch (error) {
       console.log(error);
       handleExeptions(error);

@@ -53,11 +53,11 @@ export class OrdenController {
     @Param('id',ParseUUIDPipe) id:string
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
-    res.setHeader('Content-Type','application/pdf');
-    if(pdfDoc.tipo === 'stream'){
-      pdfDoc.documento.pipe(res);
+    if(pdfDoc.tipo == 'url'){
+      res.send(pdfDoc.url);
     }
     else{
+      res.setHeader('Content-Type','application/pdf');
       pdfDoc.pipe(res);
       pdfDoc.end();
     }
