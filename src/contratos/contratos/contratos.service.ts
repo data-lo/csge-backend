@@ -15,6 +15,7 @@ import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ContratoEvent } from '../interfaces/contrato-evento';
 import { LoggerService } from 'src/logger/logger.service';
+import { ContratoMaestro } from './entities/contrato.maestro.entity';
 
 @Injectable()
 export class ContratosService {
@@ -27,6 +28,10 @@ export class ContratosService {
     private contratoRepository: Repository<Contrato>,
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
+
+    @InjectRepository(ContratoMaestro)
+    private readonly contratoMaestroRepository: Repository<ContratoMaestro>,
+
   ) {}
 
   async create(createContratoDto: CreateContratoDto) {
@@ -36,6 +41,7 @@ export class ContratosService {
       const {
         montoMaximoContratado,
         montoMinimoContratado,
+        tipoDeServicios,
         proveedorId,
         ...rest
       } = createContratoDto;
@@ -50,7 +56,7 @@ export class ContratosService {
         where: { id: proveedorId },
       });
 
-      const contrato = this.contratoRepository.create({
+      const contratoMaestro = await this.contratoMaestroRepository.create({
         montoMinimoContratado: montoMinimoContratado,
         montoMaximoContratado: montoMaximoContratado,
         montoDisponible: montoDisponible,
@@ -58,8 +64,18 @@ export class ContratosService {
         ...rest,
       });
 
-      await this.contratoRepository.save(contrato);
-      return contrato;
+      await this.contratoMaestroRepository.save(contratoMaestro);
+
+      for (let i = 0; i < tipoDeServicios.length; i++) {
+        const contrato = this.contratoRepository.create({
+          tipoDeServicio: tipoDeServicios[i],
+          contratoMaestro: contratoMaestro,
+        });
+        await this.contratoRepository.save(contrato);
+      }
+      
+      return contratoMaestro;
+
     } catch (error) {
       handleExeptions(error);
     }

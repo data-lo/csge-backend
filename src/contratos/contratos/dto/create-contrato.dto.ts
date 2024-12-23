@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 
 export class CreateContratoDto {
+
   @IsOptional()
   @IsUUID()
   proveedorId: string;
@@ -27,8 +28,8 @@ export class CreateContratoDto {
   @IsEnum(TipoDeContrato)
   tipoDeContrato: TipoDeContrato;
 
-  @IsEnum(TipoDeServicio)
-  tipoDeServicio: TipoDeServicio;
+  @IsArray({each: true})
+  tipoDeServicios: TipoDeServicio[];
 
   @IsString()
   objetoContrato: string;
@@ -52,21 +53,6 @@ export class CreateContratoDto {
   ivaMontoMaximoContratado: number;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoEjercido: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoPagado: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoDisponible: number;
-
-  @IsOptional()
   @IsBoolean({})
   ivaFrontera: boolean;
 
@@ -80,11 +66,6 @@ export class CreateContratoDto {
   @IsOptional()
   @IsArray({ each: true })
   contratoModificatorioId: string[];
-
-  @IsUUID()
-  @IsOptional()
-  @IsArray({ each: true })
-  ordenesDeServicioId: string[];
 
   @IsString()
   @IsOptional()

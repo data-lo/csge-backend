@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Contrato } from '../../contratos/entities/contrato.entity';
+import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 @Entity()
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
@@ -129,7 +130,7 @@ export class ContratoModificatorio {
   })
   ordenesDeServicioId: string[];
 
-  @ManyToOne(() => Contrato, (contrato) => contrato.contratosModificatorios)
+  @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.contratosModificatorios)
   @JoinColumn({ name: 'contrato_id' })
   contrato: Contrato;
 
