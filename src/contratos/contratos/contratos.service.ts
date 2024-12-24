@@ -161,24 +161,24 @@ export class ContratosService {
   async obtenerTipoDeServicioContratado(proveedorId:string){
    try{
 
-
-
     const contratos = await this.contratoMaestroRepository
     .createQueryBuilder('contratoMaestro')
-    .leftJoinAndSelect('contratoMaestro.contratos','contrato')
-    .select([
-      'contrato.tipoDeServicio',
-      'contrato.id'
-    ])
+    .innerJoinAndSelect('contratoMaestro.contratos','contrato')
     .where('contratoMaestro.proveedor = :proveedorId',{proveedorId})
     .andWhere('(contratoMaestro.estatus_de_contrato = :liberado OR contratoMaestro.estatus_de_contrato = :adjudicado)', {
       adjudicado: 'ADJUDICADO',
       liberado: 'LIBERADO',
-    })      
-    .getMany();
+    })  
+    .select([
+      'contratoMaestro.id',
+      'contrato.tipoDeServicio',
+      'contrato.id'
+    ])
+    .getRawMany()
+    
+    const tipoDeServicio = contratos.map(result => result.contrato_tipo_de_servicio);
+    return tipoDeServicio;
 
-      console.log(contratos);
-      return contratos;
     }catch(error){
       handleExeptions(error);
     }
