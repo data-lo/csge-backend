@@ -4,6 +4,7 @@ import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
 import {
   IsArray,
   IsBoolean,
+  IsDate,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -28,7 +29,7 @@ export class CreateContratoDto {
   @IsEnum(TipoDeContrato)
   tipoDeContrato: TipoDeContrato;
 
-  @IsArray({each: true})
+  @IsArray()
   tipoDeServicios: TipoDeServicio[];
 
   @IsString()
@@ -56,17 +57,12 @@ export class CreateContratoDto {
   @IsBoolean({})
   ivaFrontera: boolean;
 
-  @IsOptional()
+  @IsDate()
   fechaInicial: Date;
 
-  @IsOptional()
+  @IsDate()
   fechaFinal: Date;
-
-  @IsUUID()
-  @IsOptional()
-  @IsArray({ each: true })
-  contratoModificatorioId: string[];
-
+  
   @IsString()
   @IsOptional()
   motivoCancelacion: string;

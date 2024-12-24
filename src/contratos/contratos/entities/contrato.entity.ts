@@ -44,7 +44,7 @@ export class Contrato {
 
   @Column({
     name: 'numero_de_contrato',
-    unique: true,
+    unique: false,
   })
   numeroDeContrato: string;
 

@@ -21,7 +21,6 @@ export class DateFormatterInterceptor implements NestInterceptor{
     
     private formatDates(obj:any):void {
 
-        const idioma = 'es';
         const timeZone = 'America/Chihuahua'; 
 
         if(obj && typeof obj === 'object'){
@@ -30,8 +29,6 @@ export class DateFormatterInterceptor implements NestInterceptor{
                 if(typeof value === 'string' && this.isISODate(value)){
                     console.log('Encontro una llave con fechas')
                     obj[key] = tzDate(value,timeZone)
-                    console.log('Se formateo la fecha');
-                    console.log (obj[key]);
                 } else if (typeof obj[key] === 'object'){
                     this.formatDates(obj[key]);
                 }

@@ -67,15 +67,18 @@ export class ContratosService {
 
       await this.contratoMaestroRepository.save(contratoMaestro);
 
-      for (let i = 0; i < tipoDeServicios.length; i++) {
-        const contrato = this.contratoRepository.create({
-          tipoDeServicio: tipoDeServicios[i],
-          contratoMaestro: contratoMaestro,
-          numeroDeContrato: contratoMaestro.numeroDeContrato
-        });
-        await this.contratoRepository.save(contrato);
+      try{
+        for (let i = 0; i < tipoDeServicios.length; i++) {
+          const contrato = this.contratoRepository.create({
+            tipoDeServicio: tipoDeServicios[i],
+            contratoMaestro: contratoMaestro,
+            numeroDeContrato: contratoMaestro.numeroDeContrato
+          });
+          await this.contratoRepository.save(contrato);
+        }
+      }catch(error){
+        await this.remove(contratoMaestro.id);
       }
-      
       return contratoMaestro;
 
     } catch (error) {
@@ -86,20 +89,21 @@ export class ContratosService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const contratos = await this.contratoMaestroRepository.createQueryBuilder('contratoMaestro')
-      .leftJoinAndSelect('contrato_maestro.proveedor', 'proveedor')
-      .leftJoinAndSelect('contrato_maestro.contratos', 'contratos')
+      const contratos = await this.contratoMaestroRepository
+      .createQueryBuilder('contratoMaestro')
+      .leftJoinAndSelect('contratoMaestro.proveedor', 'proveedor')
+      .leftJoinAndSelect('contratoMaestro.contratos', 'contratos')
       .select([
         'contratoMaestro.id',
         'contratoMaestro.numeroDeContrato',
-        'contratoMaestro.tipoDeServicio',
+        'contratoMaestro.tipoDeContrato',
         'contratoMaestro.montoEjercido',
         'contratoMaestro.montoPagado',
         'contratoMaestro.montoDisponible',
         'contratoMaestro.estatusDeContrato',
+        'contratos.id',
         'contratos.tipoDeServicio',
-        'proveedor.id',
-        'proveedor.razonSocial',
+        'proveedor.razonSocial'
       ])
       .skip(paginationSetter.getSkipElements(pagina))
       .take(paginationSetter.castPaginationLimit())
@@ -156,17 +160,25 @@ export class ContratosService {
 
   async obtenerTipoDeServicioContratado(proveedorId:string){
    try{
-      const contratos = await this.contratoMaestroRepository.createQueryBuilder('contratoMaestro')
-      .leftJoinAndSelect('contratoMaestro.contratos','contrato')
-      .select(['contrato.tipoDeServicio'])
-      .where('contratoMaestro.proveedor = :proveedorId',{proveedorId})
-      .andWhere('(contratoMaestro.estatus_de_contrato = :liberado OR contratoMaestro.estatus_de_contrato = :adjudicado)', {
-        adjudicado: 'ADJUDICADO',
-        liberado: 'LIBERADO',
-      })      
-      .getMany();
-      return contratos;
 
+
+
+    const contratos = await this.contratoMaestroRepository
+    .createQueryBuilder('contratoMaestro')
+    .leftJoinAndSelect('contratoMaestro.contratos','contrato')
+    .select([
+      'contrato.tipoDeServicio',
+      'contrato.id'
+    ])
+    .where('contratoMaestro.proveedor = :proveedorId',{proveedorId})
+    .andWhere('(contratoMaestro.estatus_de_contrato = :liberado OR contratoMaestro.estatus_de_contrato = :adjudicado)', {
+      adjudicado: 'ADJUDICADO',
+      liberado: 'LIBERADO',
+    })      
+    .getMany();
+
+      console.log(contratos);
+      return contratos;
     }catch(error){
       handleExeptions(error);
     }
@@ -251,14 +263,18 @@ export class ContratosService {
 
   async remove(id: string) {
     try {
-      const estatusDelContrato = await this.obtenerEstatus(id);
-      if (estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE) {
+      const contratoMaestroDb = await this.contratoMaestroRepository.findOne({
+        where:{id:id},
+        relations:{
+          contratos:true
+        }
+      })
+      if (contratoMaestroDb.estatusDeContrato != EstatusDeContrato.PENDIENTE) {
         throw new BadRequestException(
           'El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato',
         );
       } else {
-        await this.contratoRepository.delete({ id: id });
-        return { message: 'contrato eliminado' };
+        await this.contratoMaestroRepository.remove(contratoMaestroDb);
       }
     } catch (error) {
       handleExeptions(error);
