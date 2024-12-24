@@ -11,11 +11,6 @@ export class ContratosEventosService {
 
   @OnEvent('orden.aprobada', { async: true })
   async ordenAprobada(orden: OrdenEvent) {
-    const { contrato, subtotal } = orden.orden;
-    this.contratosService.actualizarMontosDelContrato(
-      contrato.id,
-      subtotal,
-      'orden.aprobada',
-    );
+    
   }
 }

@@ -96,12 +96,6 @@ export class ContratoMaestro {
   })
   fechaFinal: Date;
 
-  @OneToMany(
-    () => ContratoModificatorio,
-    (contratoModificatorio) => contratoModificatorio.contrato,
-  )
-  contratosModificatorios: ContratoModificatorio[];
-
   @Column({
     name: 'motivo_de_cancelacion',
     nullable: true,
@@ -151,7 +145,6 @@ export class ContratoMaestro {
   })
   montoEjercido: number;
 
-
   @Column({
     name: 'monto_activo',
     type: 'decimal',
@@ -164,8 +157,17 @@ export class ContratoMaestro {
   @OneToMany(() => Contrato, (contrato) => contrato.contratoMaestro)
   contratos: Contrato[];
 
-  @ManyToOne(() => Proveedor, (proveedor) => proveedor.contratos)
+  @ManyToOne(() => Proveedor, (proveedor) => proveedor.contratosMaestros,{
+    onDelete:'CASCADE',
+    cascade:true
+  })
   proveedor: Proveedor;
+
+  @OneToMany(
+    () => ContratoModificatorio,
+    (contratoModificatorio) => contratoModificatorio.contrato,
+  )
+  contratosModificatorios: ContratoModificatorio[];
 
   @CreateDateColumn({
     name: 'creado_en',

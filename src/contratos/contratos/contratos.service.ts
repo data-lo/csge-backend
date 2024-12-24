@@ -26,6 +26,7 @@ export class ContratosService {
     private eventEmitter: EventEmitter2,
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
+
     @InjectRepository(Proveedor)
     private readonly proveedorRepository: Repository<Proveedor>,
 
@@ -70,6 +71,7 @@ export class ContratosService {
         const contrato = this.contratoRepository.create({
           tipoDeServicio: tipoDeServicios[i],
           contratoMaestro: contratoMaestro,
+          numeroDeContrato: contratoMaestro.numeroDeContrato
         });
         await this.contratoRepository.save(contrato);
       }
@@ -84,16 +86,18 @@ export class ContratosService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const contratos = await this.contratoRepository.createQueryBuilder('contrato')
-      .leftJoinAndSelect('contrato.proveedor', 'proveedor')
+      const contratos = await this.contratoMaestroRepository.createQueryBuilder('contratoMaestro')
+      .leftJoinAndSelect('contrato_maestro.proveedor', 'proveedor')
+      .leftJoinAndSelect('contrato_maestro.contratos', 'contratos')
       .select([
-        'contrato.id',
-        'contrato.numeroDeContrato',
-        'contrato.tipoDeServicio',
-        'contrato.montoEjercido',
-        'contrato.montoPagado',
-        'contrato.montoDisponible',
-        'contrato.estatusDeContrato',
+        'contratoMaestro.id',
+        'contratoMaestro.numeroDeContrato',
+        'contratoMaestro.tipoDeServicio',
+        'contratoMaestro.montoEjercido',
+        'contratoMaestro.montoPagado',
+        'contratoMaestro.montoDisponible',
+        'contratoMaestro.estatusDeContrato',
+        'contratos.tipoDeServicio',
         'proveedor.id',
         'proveedor.razonSocial',
       ])
@@ -108,7 +112,7 @@ export class ContratosService {
 
   async findAllBusqueda() {
     try {
-      const contratos = await this.contratoRepository.find({
+      const contratos = await this.contratoMaestroRepository.find({
         relations: {
           proveedor: true,
         },
@@ -121,16 +125,15 @@ export class ContratosService {
 
   async findOne(id: string) {
     try {
-      const contrato = await this.contratoRepository.findOne({
+      const contrato = await this.contratoMaestroRepository.findOne({
         where: { id: id },
         relations: {
-          contratosModificatorios: true,
-          proveedor: true,
+          contratos:true,
+          proveedor:true,
+          contratosModificatorios:true
         },
       });
-      if (!contrato) {
-        throw new NotFoundException('El contrato no se encuentra');
-      }
+      if (!contrato) throw new NotFoundException('El contrato no se encuentra');
       return contrato;
     } catch (error) {
       handleExeptions(error);
@@ -139,20 +142,25 @@ export class ContratosService {
 
   async obtenerEstatus(id: string) {
     try {
-      const contrato = await this.findOne(id);
-      const estatusDeContrato = contrato.estatusDeContrato;
-      return { estatus: estatusDeContrato };
+
+      const contratoMaestro = await this.contratoMaestroRepository.findOne({
+        where: { id: id },
+        select:{estatusDeContrato:true}
+      })
+      if(!contratoMaestro) throw new NotFoundException('El contrato no se encuentra');
+      return { estatus: contratoMaestro.estatusDeContrato };
     } catch (error) {
       handleExeptions(error);
     }
   }
 
   async obtenerTipoDeServicioContratado(proveedorId:string){
-    try{
-      const contratos = await this.contratoRepository.createQueryBuilder('contrato')
+   try{
+      const contratos = await this.contratoMaestroRepository.createQueryBuilder('contratoMaestro')
+      .leftJoinAndSelect('contratoMaestro.contratos','contrato')
       .select(['contrato.tipoDeServicio'])
-      .where('contrato.proveedor = :proveedorId',{proveedorId})
-      .andWhere('(contrato.estatus_de_contrato = :liberado OR contrato.estatus_de_contrato = :adjudicado)', {
+      .where('contratoMaestro.proveedor = :proveedorId',{proveedorId})
+      .andWhere('(contratoMaestro.estatus_de_contrato = :liberado OR contratoMaestro.estatus_de_contrato = :adjudicado)', {
         adjudicado: 'ADJUDICADO',
         liberado: 'LIBERADO',
       })      
@@ -168,11 +176,10 @@ export class ContratosService {
   async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
     try {
       const {estatusDeContrato} = updateContratoDto;
-      await this.contratoRepository.update(id, {
-        estatusDeContrato: estatusDeContrato,
-      });
-      const contrato = await this.findOne(id);
-      this.emitter(contrato,contrato.estatusDeContrato.toLowerCase())
+      await this.contratoMaestroRepository.update(id,{
+        estatusDeContrato:estatusDeContrato
+      })
+      this.emitter(id,estatusDeContrato.toLowerCase())
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -183,36 +190,60 @@ export class ContratosService {
 
   async update(id: string, updateContratoDto: UpdateContratoDto) {
     try {
-      const estatusDelContrato = await this.obtenerEstatus(id);
-      const { proveedorId, linkContrato, ...rest } = updateContratoDto;
+      const contratoMaestroDb = await this.contratoMaestroRepository.findOne({
+        where: { id: id },
+        relations: {
+          contratos:true
+        }
+      });
 
+      const { proveedorId, linkContrato, tipoDeServicios, ...rest } = updateContratoDto;
+      const { estatusDeContrato } = contratoMaestroDb;
       if (!proveedorId)
         throw new BadRequestException(
           'No es posible modificar el proveedor, proveedorId no existe',
         );
-
       if (
-        estatusDelContrato.estatus !== EstatusDeContrato.ADJUDICADO || EstatusDeContrato.PENDIENTE
+        estatusDeContrato !== EstatusDeContrato.ADJUDICADO || EstatusDeContrato.PENDIENTE
       ) {
         throw new BadRequestException(
           'El contrato no se encuentra PENDIENTE O ADJUDICADO Cancelar Contrato',
         );
-      } else {
-        const proveedor = await this.proveedorRepository.findOneBy({
-          id: proveedorId,
+      } 
+      
+      const proveedor = await this.proveedorRepository.findOneBy({
+        id: proveedorId,
+      });
+      
+      if(estatusDeContrato === EstatusDeContrato.ADJUDICADO){
+        await this.contratoMaestroRepository.update(id,{
+          linkContrato:linkContrato
         });
-        if(estatusDelContrato.estatus = EstatusDeContrato.ADJUDICADO){
-          await this.contratoRepository.update(id,{
-            linkContrato:linkContrato
-          })
-        }
-        await this.contratoRepository.update(id, {
-          proveedor: proveedor,
-          linkContrato: linkContrato,
-          ...rest,
-        });
-        return await this.findOne(id);
+        return {message:'Link del contrato actuzlizado exitosamente'};
       }
+      
+      if(tipoDeServicios){
+        for(const contrato of contratoMaestroDb.contratos){
+          await this.contratoRepository.remove(contrato)
+        }
+        for(const tipoDeServicio of tipoDeServicios){
+          const contrato = await this.contratoRepository.create({
+            tipoDeServicio:tipoDeServicio,
+            contratoMaestro:contratoMaestroDb,
+            numeroDeContrato:contratoMaestroDb.numeroDeContrato
+          });
+          await this.contratoRepository.save(contrato);
+        }
+      }
+
+      await this.contratoMaestroRepository.update(id, {
+        proveedor: proveedor,
+        linkContrato: linkContrato,
+        ...rest,
+      });
+      
+      return {message:'contrato actualizado con exito'};
+    
     } catch (error) {
       handleExeptions(error);
     }
@@ -242,13 +273,17 @@ export class ContratosService {
     try {
       const estatusDeContratoDb = await this.obtenerEstatus(id);
       if (estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO) {
-        const contrato = await this.findOne(id);
-        await this.emitter(contrato, 'desactivado');
-        await this.contratoRepository.update(id, {
+        
+        const contratoMaestroDb = await this.contratoMaestroRepository.findOneBy({id:id});
+
+        await this.emitter(contratoMaestroDb.id, 'desactivado');
+        
+        await this.contratoMaestroRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
           motivoCancelacion: motivoCancelacion,
         });
         return { message: `Estatus de contrato ${estatusDeContrato}` };
+      
       } else {
         throw new BadRequestException(
           'El contrato se debe encontrar LIBERADO para desactivarse o cancelarse',
@@ -259,8 +294,16 @@ export class ContratosService {
     }
   }
 
+
+  //manejar para cada caso de contrato y contrato maestro:
+  //pendiente
+
   async actualizarMontosDelContrato(contratoId:string,subtotal:number,eventType){
     try{
+
+      //m
+
+
       const contratoDb = await this.findOne(contratoId);
       let {montoEjercido, montoDisponible, montoPagado} = contratoDb;
       switch(eventType){
@@ -293,10 +336,10 @@ export class ContratosService {
 
   async descargarReporte() {}
 
-  async emitter(contrato: Contrato, evento: string) {
+  async emitter(contratoMaestroId:string, evento: string) {
     this.eventEmitter.emit(
       `contrato.${evento}`,
-      new ContratoEvent(contrato),
+      new ContratoEvent(contratoMaestroId),
     );
   }
 

@@ -32,7 +32,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     subtotal,
     iva,
     total,
-    contrato
+    contratoMaestro
   } = orden.ordenDeServicio;
 
 
@@ -109,7 +109,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
               rfc,
               tipoProveedor,
               domicilioFiscal,
-              contrato
+              contratoMaestro
             })],
           [
             informacionOrdenSection({

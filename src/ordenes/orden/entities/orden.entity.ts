@@ -14,6 +14,7 @@ import {
 } from 'typeorm';
 import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
@@ -120,8 +121,8 @@ export class Orden {
   })
   acutalizadoEn: Date;
 
-  @ManyToOne(() => Contrato, (contrato) => contrato.id)
-  contrato: Contrato;
+  @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.id)
+  contratoMaestro: ContratoMaestro;
 
   @ManyToOne(() => Campaña, (campaña) => campaña.id)
   campaña: Campaña;

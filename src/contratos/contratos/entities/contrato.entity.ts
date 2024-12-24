@@ -42,6 +42,12 @@ export class Contrato {
   })
   montoEjercido: number;
 
+  @Column({
+    name: 'numero_de_contrato',
+    unique: true,
+  })
+  numeroDeContrato: string;
+
   @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.id)
   contratoMaestro:ContratoMaestro
 

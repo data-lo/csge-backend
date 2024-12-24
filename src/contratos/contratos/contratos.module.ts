@@ -12,7 +12,7 @@ import { ContratoMaestro } from './entities/contrato.maestro.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Contrato, ContratoModificatorio, ContratoMaestro,Proveedor]),
+    TypeOrmModule.forFeature([Contrato, ContratoModificatorio, ContratoMaestro, Proveedor]),
     AuthModule,
     PassportModule
   ],

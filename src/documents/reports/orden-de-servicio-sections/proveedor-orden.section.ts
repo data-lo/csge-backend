@@ -1,5 +1,6 @@
 import { Content } from "pdfmake/interfaces"
 import { Contrato } from "src/contratos/contratos/entities/contrato.entity"
+import { ContratoMaestro } from "src/contratos/contratos/entities/contrato.maestro.entity"
 import { TipoProveedor } from "src/proveedores/proveedor/interfaces/tipo-proveedor.interface"
 
 
@@ -32,7 +33,7 @@ export const proveedorOrdenSection = (proveedor:interfaceProveedorI):Content[] =
     }
 
     const numeroContrato:Content = {
-        text:`CONTRATO: ${proveedor.contrato.numeroDeContrato}`
+        text:`CONTRATO: ${proveedor.contratoMaestro.numeroDeContrato}`
     }
 
     const domicilioFiscal:Content = {
@@ -54,5 +55,5 @@ interface interfaceProveedorI {
     razonSocial:string,
     tipoProveedor:TipoProveedor,
     domicilioFiscal:string,
-    contrato:Contrato
+    contratoMaestro:ContratoMaestro
 }

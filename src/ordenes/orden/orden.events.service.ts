@@ -22,20 +22,7 @@ export class OrdenEventosService {
 
     @OnEvent('aprobacion.orden',{async:true})
     async ordenAprobada(event: DocumentoEvent) {
-        const orden = await this.ordenRepository.findOne({
-            where:{id: event.documentoId},
-            relations:{
-                contrato:true,
-                campaña:true
-            }
-        });
-        if (orden) {
-          orden.fechaDeAprobacion = new Date();
-          orden.estatus = EstatusOrdenDeServicio.ACTIVA;
-          await this.ordenRepository.save(orden);
-          this.emitter('aprobada',orden);
-          return;
-        }
+        
     }
 
     private emitter(evento:string,orden:Orden){

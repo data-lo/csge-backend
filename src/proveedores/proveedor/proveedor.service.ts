@@ -9,8 +9,8 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
-import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 
 @Injectable()
 export class ProveedorService {
@@ -20,8 +20,8 @@ export class ProveedorService {
 
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
-    @InjectRepository(Contrato)
-    private contratoRepository: Repository<Contrato>
+    @InjectRepository(ContratoMaestro)
+    private contratoMaestroRepository: Repository<ContratoMaestro>
   ) { }
 
 
@@ -97,7 +97,7 @@ export class ProveedorService {
         },
         relations: {
           contactos: true,
-          contratos:true,
+          contratosMaestros:true,
           estaciones: {
             municipios: true
           },
@@ -187,9 +187,9 @@ export class ProveedorService {
   async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
       
-      const contrato = await this.contratoRepository
-      .createQueryBuilder('contratos')
-      .where('contratos.proveedorId = :proveedorId', { proveedorId })
+      const contrato = await this.contratoMaestroRepository
+      .createQueryBuilder('contratosMaestros')
+      .where('contratosMaestros.proveedorId = :proveedorId', { proveedorId })
       .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
       .andWhere('(contratos.estatus_de_contrato = :liberado OR contratos.estatus_de_contrato = :adjudicado)', {
         adjudicado: 'ADJUDICADO',

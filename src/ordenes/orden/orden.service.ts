@@ -55,14 +55,14 @@ export class OrdenService {
 
       const campania = await this.campañaService.findOne(campaniaId);
       const proveedor = await this.proveedorService.findOne(proveedorId);
-      const contrato = await this.contratoService.findOne(contratoId);  
+      const contratoMaestro = await this.contratoService.findOne(contratoId);  
       const partida = campania.activaciones.at(-1).partida;      
       const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
 
       const orden = this.ordenRepository.create({
         campaña: campania,
         proveedor: proveedor,
-        contrato: contrato,
+        contratoMaestro: contratoMaestro,
         partida: partida,
         folio: folio,
         tipoDeServicio: tipoDeServicio,
@@ -90,7 +90,7 @@ export class OrdenService {
   
         const montos = await this.calcularMontosDeOrden(orden.id);
   
-        delete orden.contrato;
+        delete orden.contratoMaestro;
         delete orden.campaña.activaciones;
         delete orden.campaña.dependencias;
         delete orden.campaña.creadoEn;
@@ -216,7 +216,7 @@ export class OrdenService {
         orden.proveedor = await this.proveedorService.findOne(proveedorId);
       }
       if (contratoId) {
-        orden.contrato = await this.contratoService.findOne(contratoId);
+        orden.contratoMaestro = await this.contratoService.findOne(contratoId);
       }
 
       Object.assign(orden, rest);
@@ -246,7 +246,7 @@ export class OrdenService {
 
       const ordenModificada = await this.findOne(id);
 
-      delete ordenModificada.contrato;
+      delete ordenModificada.contratoMaestro;
       delete ordenModificada.campaña.activaciones;
       delete ordenModificada.campaña.dependencias;
       delete ordenModificada.campaña.creadoEn;

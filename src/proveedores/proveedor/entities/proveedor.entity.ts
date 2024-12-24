@@ -3,7 +3,7 @@ import { TipoProveedor } from "../interfaces/tipo-proveedor.interface";
 import { Contrato } from "src/contratos/contratos/entities/contrato.entity";
 import { Contacto } from "src/proveedores/contacto/entities/contacto.entity";
 import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
-import { MaxLength, MinLength } from "class-validator";
+import { ContratoMaestro } from "src/contratos/contratos/entities/contrato.maestro.entity";
 
 @Entity('proveedores')
 export class Proveedor {
@@ -19,8 +19,8 @@ export class Proveedor {
     })
     numeroProveedor:string;
 
-    @OneToMany(() => Contrato, (contrato) => contrato.proveedor)
-    contratos:Contrato[];
+    @OneToMany(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.proveedor)
+    contratosMaestros:ContratoMaestro[];
     
     @Column({
         name:'representante_legal',
