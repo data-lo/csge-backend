@@ -118,6 +118,7 @@ export class ContratoMaestro {
   })
   ivaFrontera: boolean;
 
+  //Se calcula con el monto maximo disponible
   @Column({
     name: 'monto_disponible',
     type: 'decimal',
@@ -127,6 +128,7 @@ export class ContratoMaestro {
   })
   montoDisponible: number;
 
+  //Se incrementa al momento de un pago de SH
   @Column({
     name: 'monto_pagado',
     type: 'decimal',
@@ -136,6 +138,8 @@ export class ContratoMaestro {
   })
   montoPagado: number;
 
+
+  //Se incrementa al momento de una facturacion
   @Column({
     name: 'monto_ejercido',
     type: 'decimal',
@@ -145,6 +149,7 @@ export class ContratoMaestro {
   })
   montoEjercido: number;
 
+  //Se incrementa al momento de una contratacion
   @Column({
     name: 'monto_activo',
     type: 'decimal',

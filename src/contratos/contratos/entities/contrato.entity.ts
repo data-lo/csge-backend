@@ -43,6 +43,15 @@ export class Contrato {
   montoEjercido: number;
 
   @Column({
+    name: 'monto_pagado',
+    type: 'decimal',
+    scale: 2,
+    default: 0.0,
+    nullable: false,
+  })
+  montoPagado: number;
+
+  @Column({
     name: 'numero_de_contrato',
     unique: false,
   })
