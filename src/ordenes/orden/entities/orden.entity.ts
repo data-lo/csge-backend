@@ -1,6 +1,5 @@
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
-import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ServicioContratado } from 'src/ordenes/servicio_contratado/entities/servicio_contratado.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
@@ -110,6 +109,13 @@ export class Orden {
     default: null,
   })
   motivoDeCancelacion: string;
+
+  @Column({
+    name:'cotizada_en_campania',
+    nullable:false,
+    default:false,
+  })
+  esCampania:boolean
 
   @CreateDateColumn({
     name: 'creado_en',
