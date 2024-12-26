@@ -27,11 +27,19 @@ export class DateFormatterInterceptor implements NestInterceptor{
             for(const key of Object.keys(obj)){
                 const value = obj[key];
                 if(typeof value === 'string' && this.isISODate(value)){
+
+                    const hasZeroTime = value.includes('T00:00:00.000Z');
+
+                    if(hasZeroTime){
+                        obj[key] = new Date(value);
+                    }
+
                     const date = tzDate(value,timeZone)
                     const day = date.getDate();
                     const month = date.getMonth();
                     const year = date.getFullYear();
-                    obj[key] = new Date(year,month-1,day).toISOString().split('T')[0];
+                    obj[key] = new Date(year,month,day);
+
                 } else if (typeof obj[key] === 'object'){
                     this.formatDates(obj[key]);
                 }
