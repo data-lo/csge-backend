@@ -27,8 +27,11 @@ export class DateFormatterInterceptor implements NestInterceptor{
             for(const key of Object.keys(obj)){
                 const value = obj[key];
                 if(typeof value === 'string' && this.isISODate(value)){
-                    console.log('Encontro una llave con fechas')
-                    obj[key] = tzDate(value,timeZone)
+                    const date = tzDate(value,timeZone)
+                    const day = date.getDate();
+                    const month = date.getMonth();
+                    const year = date.getFullYear();
+                    obj[key] = new Date(year,month-1,day).toISOString().split('T')[0];
                 } else if (typeof obj[key] === 'object'){
                     this.formatDates(obj[key]);
                 }

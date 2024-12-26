@@ -39,6 +39,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { FirmamexModule } from './firma/firmamex/firmamex.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -57,6 +58,9 @@ import { ScheduleModule } from '@nestjs/schedule';
       delimiter:'.'
     }),
     ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal:true
+    }),
     UsuariosModule, 
     PuestosModule, 
     DepartamentosModule, 

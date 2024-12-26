@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { JwtPayload } from "../interfaces/jwt-payload.interface";
@@ -6,6 +6,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 
 @Injectable()
 
@@ -14,6 +15,10 @@ export class JwtStrategy extends PassportStrategy( Strategy ){
     constructor(
         @InjectRepository(Usuario)
         private readonly usuarioRepository:Repository<Usuario>,
+        
+        @Inject(CACHE_MANAGER) 
+        private cacheManager:Cache,
+        
         configService:ConfigService
     ){
         super({
@@ -24,13 +29,16 @@ export class JwtStrategy extends PassportStrategy( Strategy ){
 
     async validate(payload:JwtPayload): Promise<Usuario>{
         const { id } = payload;
-        const usuario = await this.usuarioRepository.findOneBy({id});
+        let usuario:Usuario = await this.cacheManager.get(id);
         if(!usuario){
-            throw new UnauthorizedException('El token no es valido');
+            usuario = await this.usuarioRepository.findOneBy({id});
+            if(!usuario){
+                throw new UnauthorizedException('El token no es valido');
+            }
+            if(!usuario.estatus)
+                throw new UnauthorizedException('El usuario se encuentra desactivado');
+            await this.cacheManager.set(id,usuario,1800000);
         }
-        if(!usuario.estatus)
-            throw new UnauthorizedException('El usuario se encuentra desactivado');
-
         return usuario;
     }
 }

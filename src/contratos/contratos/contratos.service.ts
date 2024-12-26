@@ -128,6 +128,7 @@ export class ContratosService {
       const contratos = await this.contratoMaestroRepository.find({
         relations: {
           proveedor: true,
+          contratos:true
         },
       });
       return contratos;
@@ -147,6 +148,10 @@ export class ContratosService {
         },
       });
       if (!contrato) throw new NotFoundException('El contrato no se encuentra');
+      const tipoDeServicios = contrato.contratos.map(c => c.tipoDeServicio);
+      delete contrato.contratos;
+
+      Object.assign(contrato,{tipoDeServicios:tipoDeServicios});
       return contrato;
     } catch (error) {
       handleExeptions(error);
