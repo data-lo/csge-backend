@@ -11,6 +11,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
+import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 
 @Injectable()
 export class ProveedorService {
@@ -21,7 +23,10 @@ export class ProveedorService {
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
     @InjectRepository(ContratoMaestro)
-    private contratoMaestroRepository: Repository<ContratoMaestro>
+    private contratoMaestroRepository: Repository<ContratoMaestro>,
+    
+    @InjectRepository(Contrato)
+    private contratoRepository: Repository<Contrato>
   ) { }
 
 
@@ -187,18 +192,25 @@ export class ProveedorService {
   async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
       
-      const contrato = await this.contratoMaestroRepository
-      .createQueryBuilder('contratosMaestros')
-      .where('contratosMaestros.proveedorId = :proveedorId', { proveedorId })
-      .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
-      .andWhere('(contratos.estatus_de_contrato = :liberado OR contratos.estatus_de_contrato = :adjudicado)', {
-        adjudicado: 'ADJUDICADO',
-        liberado: 'LIBERADO',
-      })
-      .getOne();
-      if(!contrato) throw new BadRequestException('No existe el contrato');
-      return contrato;
+      const contrato = await this.contratoRepository
+      .createQueryBuilder('contrato')
+      .leftJoinAndSelect('contrato.contratoMaestro', 'contratoMaestro')
+      .where('contratoMaestro.proveedorId = :proveedorId', { proveedorId })
+      .andWhere('contrato.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
+      .getMany();
+
+      if (!contrato.length) {
+        throw new NotFoundException('NO SE ENCONTRARON CONTRATOS CON LOS CRITERIOS ESPECIFICADOS');
+      }
       
+      const contratoMaestroId = contrato.filter(contrato => {
+        if(contrato.contratoMaestro.estatusDeContrato === EstatusDeContrato.ADJUDICADO || EstatusDeContrato.LIBERADO){
+          return contrato.contratoMaestro.id;         
+        }
+      });
+
+      return contratoMaestroId;
+
     }catch(error){
       handleExeptions(error);
     }

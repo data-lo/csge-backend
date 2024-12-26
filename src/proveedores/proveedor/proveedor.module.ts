@@ -6,9 +6,10 @@ import { Proveedor } from './entities/proveedor.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Proveedor, ContratoMaestro]),
+  imports:[TypeOrmModule.forFeature([Proveedor, ContratoMaestro, Contrato]),
     AuthModule,
     PassportModule
   ],
