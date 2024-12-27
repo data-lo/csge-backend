@@ -170,7 +170,7 @@ export class ContratoMaestro {
 
   @OneToMany(
     () => ContratoModificatorio,
-    (contratoModificatorio) => contratoModificatorio.contrato,
+    (contratoModificatorio) => contratoModificatorio.contratoMaestro,
   )
   contratosModificatorios: ContratoModificatorio[];
 

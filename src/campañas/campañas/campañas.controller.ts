@@ -20,6 +20,14 @@ export class CampañasController {
   }
 
   @Auth(...rolesCampanias)
+  @Post('mandar-aprobar/:id')
+  aprobarCampania(
+    @Param('id',ParseUUIDPipe) id:string
+  ){
+    return this.campañasService.mandarCampañaAAprobar(id);
+  }
+
+  @Auth(...rolesCampanias)
   @Get()
   findAll( @Query('pagina') pagina:string) {
     return this.campañasService.findAll(+pagina);

@@ -64,7 +64,7 @@ export class Orden {
     name: 'subtotal_orden_de_servicio',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   subtotal: number;
@@ -73,7 +73,7 @@ export class Orden {
     name: 'iva_orden_de_servicio',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   iva: number;
@@ -82,7 +82,7 @@ export class Orden {
     name: 'total',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   total: number;

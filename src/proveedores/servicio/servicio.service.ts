@@ -65,12 +65,13 @@ export class ServicioService {
           return renovacion;
         }
       });
-
-      if(!ultimaRenovacion) throw new NotFoundException('No se encuentra la renovacion');
       
+      ultimaRenovacion.ivaIncluido = false;
+      if(!ultimaRenovacion) throw new NotFoundException('No se encuentra la renovacion');
       delete ultimaRenovacion.fechaDeCreacion;
       delete servicio.renovaciones;
       servicio.renovaciones = [ultimaRenovacion];      
+
       return flattenCaracteristica(servicio)
     } catch (error) {
       handleExeptions(error);

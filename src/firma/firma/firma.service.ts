@@ -30,6 +30,8 @@ import {
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
 import { Stream } from 'stream';
+import { AprobacionDeCampaniaDto } from './interfaces/aprobacion-de-campania.dto';
+import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 
 @Injectable()
 export class FirmaService {
@@ -45,6 +47,9 @@ export class FirmaService {
 
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
+
+    @InjectRepository(Campaña)
+    private campaniaRepository: Repository<Campaña>,
 
     private readonly firmamexService: FirmamexService,
     private readonly documentsService: DocumentsService,
@@ -305,6 +310,32 @@ export class FirmaService {
     }
   }
 
+  async crearExpedienteDeCampania(aprobacionDeCampania:AprobacionDeCampaniaDto){
+    try{
+      const {nombreDeCampania,campaniaId} = aprobacionDeCampania;
+      const campania = await this.campaniaRepository.findOneBy({id:campaniaId});
+      const ordenes = await this.ordenRepository.find({
+        where:{
+          campaña:{id:campania.id},
+          esCampania:false
+        },select:{
+          id:true
+        }
+      });
+      
+      return {
+        nombreDeCampania:nombreDeCampania,
+        ordenesDeLaCampania:ordenes
+      }
+
+      //const serviciosFirmamex = await this.firmamexService.getServices();
+      //const {documentSet} = await serviciosFirmamex.createDocuemntSet(nombreDeCampania);
+
+    }catch(error){
+      handleExeptions(error);
+    }
+  }
+
   async obtenerDocumentosDeFrimamex() {
     try {
       const from = new Date('2024-11-27').getTime();
@@ -401,6 +432,8 @@ export class FirmaService {
       documento.end();
     });
   }
+
+
 
   findOne(id: number) {
     return `This action returns a #${id} firma`;

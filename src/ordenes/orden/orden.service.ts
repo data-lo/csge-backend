@@ -30,7 +30,7 @@ import { IvaGetter } from 'src/helpers/iva.getter';
 export class OrdenService {
   constructor(
     @InjectRepository(Orden)
-    private ordenRepository: Repository<Orden>,
+    private ordenRepository: Repository<Orden>,    
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
     
@@ -279,6 +279,31 @@ export class OrdenService {
     }
   }
 
+  
+  async findByRfc(rfc: string) {
+    try {
+      const estatus = EstatusOrdenDeServicio.ACTIVA
+      const ordenes = await this.ordenRepository.createQueryBuilder('ordenes')
+      .innerJoinAndSelect('ordenes.proveedor','proveedor')
+      .where('ordenes.estatus = :estatus',{estatus})
+      .andWhere('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
+      .getMany();
+
+      if(ordenes.length === 0) throw new BadRequestException('EL PROVEEDOR NO CUENTA CON ORDENES ACTIVAS');
+      const proveedorDb = ordenes.at(0).proveedor;
+      const ordenesDb = ordenes.map((orden) => {
+        delete orden.proveedor;
+        return orden;
+      })
+      return {
+        proveedor:proveedorDb,
+        ordenes:ordenesDb
+      }
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
   async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
     try {
       const year = new Date().getFullYear();
@@ -375,10 +400,10 @@ export class OrdenService {
       iva = await this.ivaGetter.obtenerIva(subtotal,ivaFrontera);
       total = subtotal + iva;
 
-      orden.subtotal = parseFloat(subtotal.toFixed(2));
-      orden.iva = parseFloat(iva.toFixed(2));
-      orden.total = parseFloat(total.toFixed(2));
-
+      orden.subtotal = parseFloat(subtotal.toFixed(4));
+      orden.iva = parseFloat(iva.toFixed(4));
+      orden.total = parseFloat(total.toFixed(4));
+    
       await this.ordenRepository.save(orden);
       return {
         subtotal: orden.subtotal,

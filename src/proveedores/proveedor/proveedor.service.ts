@@ -10,7 +10,6 @@ import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
-import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 
@@ -22,9 +21,6 @@ export class ProveedorService {
 
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
-    @InjectRepository(ContratoMaestro)
-    private contratoMaestroRepository: Repository<ContratoMaestro>,
-    
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>
   ) { }
@@ -209,7 +205,10 @@ export class ProveedorService {
         }
       });
 
-      return contratoMaestroId;
+      if(contratoMaestroId.length === 0){
+        throw new NotFoundException('EL PROVEEDOR NO CUENTA CON CONTRATOS ACTIVOS O ADJUDICADOS');
+      }
+      return contratoMaestroId.at(0);
 
     }catch(error){
       handleExeptions(error);

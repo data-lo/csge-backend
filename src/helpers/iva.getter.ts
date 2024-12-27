@@ -8,8 +8,6 @@ export class IvaGetter {
         private readonly ivaService:IvaService,
     ){}
 
-
-
     async obtenerIva(tarifa:number,esIvaFrontera:boolean){
 
         let ivaPorcentaje:number = 0.0000;

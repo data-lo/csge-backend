@@ -14,6 +14,7 @@ import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CampaniaEvent } from './interfaces/campaña-evento';
 import { LoggerService } from 'src/logger/logger.service';
+import { FirmaService } from 'src/firma/firma/firma.service';
 
 
 @Injectable()
@@ -31,6 +32,7 @@ export class CampañasService {
     private dependeciaRepository:Repository<Dependencia>,
     private readonly activacionService:ActivacionService,
     private readonly partidaService:PartidaService,
+    private readonly firmaService:FirmaService,
   
   ){}
 
@@ -237,9 +239,17 @@ export class CampañasService {
     }
   }
 
-  async aprobarCampaña(id:string){
+  async mandarCampañaAAprobar(id:string){
+    try{
+      const campaniaDb = await this.campañaRepository.findOneBy({id:id});
+      const expediente = await this.firmaService.crearExpedienteDeCampania({
+        campaniaId:campaniaDb.id,
+        nombreDeCampania:campaniaDb.nombre
+      });
+      return expediente;
+    }catch(error){
 
-
+    }
   }
 
   async actualizarEstatus(id:string,estatus:EstatusCampaña){

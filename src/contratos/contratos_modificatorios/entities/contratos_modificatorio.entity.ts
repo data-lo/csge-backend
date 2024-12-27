@@ -131,8 +131,8 @@ export class ContratoModificatorio {
   ordenesDeServicioId: string[];
 
   @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.contratosModificatorios)
-  @JoinColumn({ name: 'contrato_id' })
-  contrato: Contrato;
+  @JoinColumn({ name: 'contrato_maestro_id' })
+  contratoMaestro: ContratoMaestro;
 
   @CreateDateColumn({
     name: 'creado_en',

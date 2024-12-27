@@ -7,7 +7,7 @@ import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
-import { Stream } from 'stream';
+
 
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
@@ -32,6 +32,13 @@ export class OrdenController {
   @Get()
   findAll(@Query('pagina') pagina:string ) {
     return this.ordenService.findAll(+pagina);
+  }
+
+  @Auth(...rolesOrdenes)
+  @Get('rfc')
+  findByRfc(
+    @Query('rfc') rfc:string ) {
+    return this.ordenService.findByRfc(rfc);
   }
 
   @Auth(...rolesOrdenes)

@@ -23,7 +23,7 @@ export class ContratosModificatoriosService {
 
       const { montoMinimoContratado, montoMaximoContratado, contratoId, ...rest } =
         createContratoModificatorioDto;
-      const contratoDb = await this.contratosService.findOne(contratoId);
+      const contratoMaestroDb = await this.contratosService.findOne(contratoId);
 
       if(montoMaximoContratado){
         montoDisponible = montoMaximoContratado;
@@ -36,7 +36,7 @@ export class ContratosModificatoriosService {
           montoDisponible: montoDisponible,
           montoMinimoContratado: montoMinimoContratado,
           montoMaximoContratado: montoMaximoContratado,
-          contrato: contratoDb,
+          contratoMaestro: contratoMaestroDb,
           ...rest,
         },
       );
