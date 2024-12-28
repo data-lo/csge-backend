@@ -124,6 +124,9 @@ export class CampañasService {
 
   async findOne(id: string) {
     try{
+      let montoEjercido = 0;
+      let montoActivo = 0;
+      let montoPagado = 0;
       const campaña = await this.campañaRepository.findOne({
         where:{id:id},
         relations:{
@@ -133,8 +136,27 @@ export class CampañasService {
           dependencias:true
         }
       });
+      
       if(!campaña) throw new NotFoundException('Campaña no encontrada');
-      return campaña;
+
+      const partidas = campaña.activaciones.map((activacion) => {
+        return activacion.partida;
+      });
+      
+      partidas.forEach((partida)=>{
+        montoActivo += Number(partida.montoActivo);
+        montoEjercido += Number(partida.montoEjercido);
+        montoPagado += Number(partida.montoPagado);
+      });
+      return {
+        ...campaña,
+        montos:{
+          montoActivo:montoActivo,
+          montoEjercido:montoEjercido,
+          montoPagado:montoPagado
+        }
+      };
+
     }catch(error){
       this.logger.log('Error en encontrar una campaña');
       handleExeptions(error);

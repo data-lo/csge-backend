@@ -14,15 +14,8 @@ export class PartidaEventosService {
     @OnEvent('orden.aprobada')
     async ordenAprbada(orden:OrdenEvent){
         try{
-            const {campaña,total} = orden.orden;
-            console.log('en partida events, campania ', campaña, 'total ', total);
-            try{
-                await this.activacionService.actualizarMontos(campaña.id,total,'orden.aprobada');
-            }
-            catch(error){
-                return;
-            }
-            
+            const {ordenId,evento} = orden;
+            await this.activacionService.actualizarMontos(ordenId,evento);
         }catch(error){
             handleExeptions(error);
         }

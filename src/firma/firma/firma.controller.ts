@@ -45,11 +45,27 @@ export class FirmaController {
   }
 
   @Auth(...rolesFirma)
-  @Get()
-  findAll(
+  @Get('ordenes')
+  findAllOrdebes(
     @GetUser() usuario:Usuario
   ) {
-    return this.firmaService.findAll(usuario.id);
+    return this.firmaService.findAllOrdenes(usuario.id);
+  }
+
+  @Auth(...rolesFirma)
+  @Get('facturas')
+  findAllFacturas(
+    @GetUser() usuario:Usuario
+  ) {
+    return this.firmaService.findAllFacturas(usuario.id);
+  }
+
+  @Auth(...rolesFirma)
+  @Get('campanias')
+  findAllCampanias(
+    @GetUser() usuario:Usuario
+  ) {
+    return this.firmaService.findAllCampanias(usuario.id);
   }
 
   @Auth(...rolesFirma)

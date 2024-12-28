@@ -15,7 +15,7 @@ export class Firma {
         type:'uuid',
         name:'orden_o_factura_id',
         nullable:false,
-        //unique:true
+        unique:true
     })
     ordenOFacturaId:string;
 

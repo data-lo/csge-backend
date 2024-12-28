@@ -1,6 +1,10 @@
+import { tzDate } from '@formkit/tempo';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -14,6 +18,7 @@ import {
 
 @Entity('activaciones')
 export class Activacion {
+
   @Generated('uuid')
   @PrimaryColumn('uuid')
   id: string;
@@ -78,4 +83,13 @@ export class Activacion {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
+
+  @BeforeInsert()
+  localeTimeZoneInsert(){
+    this.creadoEn = localeTimeFormatter(this.creadoEn);
+  }
+  @BeforeUpdate()
+  localeTimeZoneUpdate(){
+    this.actualizadoEn = localeTimeFormatter(this.actualizadoEn);
+  }
 }

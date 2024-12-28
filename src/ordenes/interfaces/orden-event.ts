@@ -1,10 +1,11 @@
-import { Orden } from "../orden/entities/orden.entity";
-
 export class OrdenEvent {
-    orden:Orden;
+    ordenId:string;
+    evento:string;
     constructor(
-        orden:Orden
+        ordenId:string,
+        evento:string
     ){
-        this.orden = orden;
+        this.ordenId = ordenId;
+        this.evento = evento;
     }
 }

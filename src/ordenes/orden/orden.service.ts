@@ -416,13 +416,30 @@ export class OrdenService {
   }
 
   async mandarOrdenAFirmar(ordenId:string){
-    
-    const documentoFirmaDto:CreateFirmaDto = {
-      ordenOFacturaId:ordenId,
-      tipoDeDocumento:TipoDeDocumento.ORDEN_DE_SERVICIO,
-      estaFirmado:false,
+    try{
+      const ordenDb = await this.ordenRepository.findOneBy({id:ordenId});
+      if(!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
+      const documentoFirmaDto:CreateFirmaDto = {
+        ordenOFacturaId:ordenId,
+        tipoDeDocumento:TipoDeDocumento.ORDEN_DE_SERVICIO,
+        estaFirmado:false,
+      }
+
+      try{
+        const documentoEnFirma = await this.firmaService.findOne(ordenId);
+        if(documentoEnFirma) throw new BadRequestException({ 
+          status: '406',
+          message:'EL DOCUMENTO YA SE ENCUENTRA EN ESPERA DE FIRMA'
+        });
+      }catch(error){
+        if(error.response.status === '404'){
+          return await this.firmaService.create(documentoFirmaDto);
+        }
+        throw error;
+      }
+    }catch(error){
+      handleExeptions(error);
     }
-    return await this.firmaService.create(documentoFirmaDto);
   }
 
   async obtenerOrdenEnPdf(id:string) {
