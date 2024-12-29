@@ -18,8 +18,6 @@ export class CreateOrdenDto {
     @IsUUID()
     campaniaId:string;
 
-    @IsString()
-    @IsUUID()
     @IsOptional()
     contratoId:string;
 
