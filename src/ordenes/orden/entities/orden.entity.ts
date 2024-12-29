@@ -12,6 +12,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
@@ -125,10 +126,10 @@ export class Orden {
   })
   creadoEn: Date;
 
-  @CreateDateColumn({
+  @UpdateDateColumn({
     name: 'actualizado_en',
   })
-  acutalizadoEn: Date;
+  actualizadoEn: Date;
 
   @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.id)
   contratoMaestro: ContratoMaestro;
@@ -153,13 +154,16 @@ export class Orden {
   serviciosContratados: ServicioContratado[];
 
   @BeforeInsert()
-  localeTimeZoneInsert(){
-    this.creadoEn = localeTimeFormatter(this.creadoEn);
+  localeTimeZoneInsert() {
+    const value = new Date();
+    this.creadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = localeTimeFormatter(value);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate(){
-    this.acutalizadoEn = localeTimeFormatter(this.acutalizadoEn);
+    const value = new Date();
+    this.actualizadoEn = localeTimeFormatter(value);
   }
   
 }
