@@ -158,12 +158,14 @@ export class Orden {
     const value = new Date();
     this.creadoEn = localeTimeFormatter(value);
     this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaDeEmision = localeTimeFormatter(value);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate(){
     const value = new Date();
     this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaDeAprobacion = localeTimeFormatter(this.fechaDeAprobacion);
   }
   
 }

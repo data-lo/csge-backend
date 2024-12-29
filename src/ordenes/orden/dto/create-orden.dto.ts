@@ -13,12 +13,14 @@ export class CreateOrdenDto {
     @IsUUID()
     proveedorId:string;
     
+    @IsOptional()
     @IsString()
     @IsUUID()
     campaniaId:string;
 
     @IsString()
     @IsUUID()
+    @IsOptional()
     contratoId:string;
 
     @IsOptional()
