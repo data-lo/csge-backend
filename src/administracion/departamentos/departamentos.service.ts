@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,7 @@ import { Departamento } from './entities/departamento.entity';
 import { Repository } from 'typeorm';
 import { PaginationSetter } from '../../helpers/pagination.getter'
 import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { object } from 'joi';
 
 
 
@@ -60,14 +61,16 @@ export class DepartamentosService{
 
   async update(id: string, updateDepartamentoDto: UpdateDepartamentoDto) {
     try{
-      const departamento = await this.findOne(id);
-      if(departamento){
-        const updateResult = await this.departamentoRepository.update(id,updateDepartamentoDto);
-        if(updateResult.affected === 0){
-          throw new NotFoundException('Departamento no encontrado');
-        }
-        return await this.findOne(id);
-      }
+      const departamentoDb = await this.departamentoRepository.findOne({
+        where:{id:id}
+      })
+      if(!
+        departamentoDb) throw new NotFoundException('NO SE ENCUENTRA EL DEPARTAMENTO');
+      
+      Object.assign(departamentoDb,updateDepartamentoDto);
+      await this.departamentoRepository.save(departamentoDb);
+      return await this.findOne(id);
+    
     }catch(error){
       handleExeptions(error);
     }
