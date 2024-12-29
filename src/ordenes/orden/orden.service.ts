@@ -140,6 +140,7 @@ export class OrdenService {
           folio: true,
           tipoDeServicio: true,
           fechaDeEmision: true,
+          fechaDeAprobacion: true,
           estatus: true,
           campaña: {
             nombre: true,
@@ -427,9 +428,9 @@ export class OrdenService {
       iva = await this.ivaGetter.obtenerIva(subtotal, ivaFrontera);
       total = subtotal + iva;
 
-      orden.subtotal = parseFloat(subtotal.toFixed(4));
-      orden.iva = parseFloat(iva.toFixed(4));
-      orden.total = parseFloat(total.toFixed(4));
+      orden.subtotal = parseFloat(subtotal.toFixed(2));
+      orden.iva = parseFloat(iva.toFixed(2));
+      orden.total = parseFloat(total.toFixed(2));
 
       await this.ordenRepository.save(orden);
       return {
