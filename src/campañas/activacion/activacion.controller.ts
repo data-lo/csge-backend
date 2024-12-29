@@ -10,7 +10,6 @@ import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 @Controller('campanias/activaciones')
 export class ActivacionController {
   constructor(private readonly activacionService: ActivacionService) {}
-
   @Auth(...rolesCampanias)
   @Post()
   create(@Body() createActivacionDto: CreateActivacionDto) {

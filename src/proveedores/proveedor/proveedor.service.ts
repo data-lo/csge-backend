@@ -9,8 +9,9 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
-import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
+import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 
 @Injectable()
 export class ProveedorService {
@@ -27,6 +28,17 @@ export class ProveedorService {
 
   async create(createProveedorDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
+      
+      if(createProveedorDto.rfc.length < 12) throw new BadRequestException('El RFC debe de contener minimo 12 caracteres');
+      
+      if(createProveedorDto.rfc.length === 12 || createProveedorDto.rfc.length === 13){
+        const proveedorExistente = await this.findByRfc(createProveedorDto.rfc);
+        console.log(proveedorExistente);
+        if(proveedorExistente){
+          return proveedorExistente[0];
+        }
+      }
+
       const proveedor = this.proveedorRepository.create(createProveedorDto);
       await this.proveedorRepository.save(proveedor);
       return proveedor;
@@ -68,11 +80,10 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const proveedor = this.proveedorRepository.createQueryBuilder('proveedor')
+      const proveedor = await this.proveedorRepository.createQueryBuilder('proveedor')
       .where('proveedor.rfc LIKE :rfc',{rfc:`${rfc.toUpperCase()}%`})
       .getMany();
-
-      if (!proveedor) throw new NotFoundException('No se encuentra el proveedor');
+      if (proveedor.length === 0) return undefined;
       return proveedor;
     } catch (error) {
       handleExeptions(error);
@@ -87,7 +98,7 @@ export class ProveedorService {
         },
         relations: {
           contactos: true,
-          contratos:true,
+          contratosMaestros:true,
           estaciones: {
             municipios: true
           },
@@ -176,18 +187,29 @@ export class ProveedorService {
 
   async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
     try{
-      const estatusDeContrato = 'LIBERADO';
+      
       const contrato = await this.contratoRepository
-      .createQueryBuilder('contratos')
-      .where('contratos.proveedorId = :proveedorId', { proveedorId })
-      .andWhere('contratos.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
-      .andWhere('contratos.estatus_de_contrato = :estatusDeContrato', { estatusDeContrato })
-      .getOne();
-      
-      if(!contrato) throw new BadRequestException('No existe el contrato');
+      .createQueryBuilder('contrato')
+      .leftJoinAndSelect('contrato.contratoMaestro', 'contratoMaestro')
+      .where('contratoMaestro.proveedorId = :proveedorId', { proveedorId })
+      .andWhere('contrato.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
+      .getMany();
 
-      return contrato;
+      if (!contrato.length) {
+        throw new NotFoundException('NO SE ENCONTRARON CONTRATOS CON LOS CRITERIOS ESPECIFICADOS');
+      }
       
+      const contratoMaestroId = contrato.filter(contrato => {
+        if(contrato.contratoMaestro.estatusDeContrato === EstatusDeContrato.ADJUDICADO || EstatusDeContrato.LIBERADO){
+          return contrato.contratoMaestro.id;         
+        }
+      });
+
+      if(contratoMaestroId.length === 0){
+        throw new NotFoundException('EL PROVEEDOR NO CUENTA CON CONTRATOS ACTIVOS O ADJUDICADOS');
+      }
+      return contratoMaestroId.at(0);
+
     }catch(error){
       handleExeptions(error);
     }

@@ -27,6 +27,7 @@ import { rolesFactura } from './valid-facturas-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
+import { Stream } from 'stream';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -116,9 +117,13 @@ export class FacturaController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const pdfDoc = await this.facturaService.obtenerDocumentoDeFacturaPdf(id);
-    res.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.pipe(res);
-    pdfDoc.end();
+    if(pdfDoc.tipo = 'url'){
+      res.send(pdfDoc.url);
+    }else{
+      res.setHeader('Content-Type', 'application/pdf');
+      pdfDoc.pipe(res);
+      pdfDoc.end();
+    }
   }
 
   @Auth(...rolesFactura)

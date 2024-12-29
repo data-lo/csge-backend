@@ -20,6 +20,14 @@ export class CampañasController {
   }
 
   @Auth(...rolesCampanias)
+  @Post('mandar-aprobar/:id')
+  aprobarCampania(
+    @Param('id',ParseUUIDPipe) id:string
+  ){
+    return this.campañasService.mandarCampañaAAprobar(id);
+  }
+
+  @Auth(...rolesCampanias)
   @Get()
   findAll( @Query('pagina') pagina:string) {
     return this.campañasService.findAll(+pagina);
@@ -29,12 +37,6 @@ export class CampañasController {
   @Get('busqueda')
   findAllBusqueda() {
     return this.campañasService.findAllBusuqueda();
-  }
-
-  @Auth(...rolesCampanias)
-  @Get('estatus/:id')
-  estatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.campañasService.verificarEstatus(id);
   }
 
   @Auth(...rolesCampanias)

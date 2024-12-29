@@ -29,7 +29,7 @@ export class DocumentsService {
         campaña:true,
         proveedor:true,
         serviciosContratados:true,
-        contrato:true
+        contratoMaestro:true
       }
     });
     const textoEncabezado = await this.textosService.obtenerEncabezado();

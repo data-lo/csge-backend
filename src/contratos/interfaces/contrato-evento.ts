@@ -1,10 +1,8 @@
-import { Contrato } from "../contratos/entities/contrato.entity";
-
 export class ContratoEvent {
-    contrato:Contrato;
+    contratoMaestroId:string;
     constructor(
-        contrato:Contrato
+        contratoMaestroId:string
     ){
-        this.contrato = contrato;
+        this.contratoMaestroId = contratoMaestroId;
     }
 }

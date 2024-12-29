@@ -8,6 +8,7 @@ import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
 
+
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
   constructor(private readonly ordenService: OrdenService) {}
@@ -34,6 +35,13 @@ export class OrdenController {
   }
 
   @Auth(...rolesOrdenes)
+  @Get('rfc')
+  findByRfc(
+    @Query('rfc') rfc:string ) {
+    return this.ordenService.findByRfc(rfc);
+  }
+
+  @Auth(...rolesOrdenes)
   @Get('busqueda')
   findAllBusqueda() {
     return this.ordenService.findAllBusqueda();
@@ -52,9 +60,14 @@ export class OrdenController {
     @Param('id',ParseUUIDPipe) id:string
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
-    res.setHeader('Content-Type','application/pdf');
-    pdfDoc.pipe(res);
-    pdfDoc.end();
+    if(pdfDoc.tipo == 'url'){
+      res.send(pdfDoc.url);
+    }
+    else{
+      res.setHeader('Content-Type','application/pdf');
+      pdfDoc.pipe(res);
+      pdfDoc.end();
+    }
   }
 
   @Auth(...rolesOrdenes)

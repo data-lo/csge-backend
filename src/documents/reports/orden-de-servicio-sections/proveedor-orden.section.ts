@@ -1,52 +1,62 @@
 import { Content } from "pdfmake/interfaces"
-import { Contrato } from "src/contratos/contratos/entities/contrato.entity"
+import { ContratoMaestro } from "src/contratos/contratos/entities/contrato.maestro.entity"
 import { TipoProveedor } from "src/proveedores/proveedor/interfaces/tipo-proveedor.interface"
 
 
 export const proveedorOrdenSection = (proveedor:interfaceProveedorI):Content[] => {
+
+    const { rfc, razonSocial,tipoProveedor, domicilioFiscal, contratoMaestro } = proveedor;
+    const proveedorSectionContent = []
 
     const style = {
         font:'Poppins',
         fontSize:12,
     }
 
-
-    const titulo:Content =  {
+    const tituloC:Content =  {
         text:'INFORMACIÓN DEL PROVEEDOR',
         bold:true,
         marginBottom:5,
         style
     }
+    proveedorSectionContent.push(tituloC);
 
-    const rfc:Content = {
-        text:`RFC: ${proveedor.rfc}`,
-        style
+    if(rfc){
+        const rfcC:Content = {
+            text:`RFC: ${rfc}`,
+            style
+        }
+        proveedorSectionContent.push(rfcC);
     }
-    const razonSocial:Content = {
-        text:`RAZÓN SOCIAL: ${proveedor.razonSocial}`,
-        style
+    if(razonSocial){
+        const razonSocialC:Content = {
+            text:`RAZÓN SOCIAL: ${razonSocial}`,
+            style
+        }
+        proveedorSectionContent.push(razonSocialC);
     }
-    const tipoProveedor:Content = {
-        text:`TIPO DE PROVEEDOR: ${proveedor.tipoProveedor}`,
-        style
+    if(tipoProveedor){
+        const tipoProveedorC:Content = {
+            text:`TIPO DE PROVEEDOR: ${tipoProveedor}`,
+            style
+        }
+        proveedorSectionContent.push(tipoProveedorC);
     }
-
-    const numeroContrato:Content = {
-        text:`CONTRATO: ${proveedor.contrato.numeroDeContrato}`
+    
+    if(contratoMaestro){
+        const numeroContratoC:Content = {
+            text:`CONTRATO: ${contratoMaestro.numeroDeContrato}`
+        }
+        proveedorSectionContent.push(numeroContratoC);
     }
-
-    const domicilioFiscal:Content = {
-        text: `DOMICILIO FISCAL: ${proveedor.domicilioFiscal}`
+    
+    if(domicilioFiscal){
+        const domicilioFiscalC:Content = {
+            text: `DOMICILIO FISCAL: ${proveedor.domicilioFiscal}`
+        }
+        proveedorSectionContent.push(domicilioFiscalC);
     }
-
-    return [
-        titulo,
-        razonSocial,
-        rfc,
-        tipoProveedor,
-        numeroContrato,
-        domicilioFiscal,
-    ];
+    return proveedorSectionContent;
 }
 
 interface interfaceProveedorI {
@@ -54,5 +64,5 @@ interface interfaceProveedorI {
     razonSocial:string,
     tipoProveedor:TipoProveedor,
     domicilioFiscal:string,
-    contrato:Contrato
+    contratoMaestro:ContratoMaestro|null
 }

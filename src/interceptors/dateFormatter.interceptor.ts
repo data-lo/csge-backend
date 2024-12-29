@@ -21,17 +21,25 @@ export class DateFormatterInterceptor implements NestInterceptor{
     
     private formatDates(obj:any):void {
 
-        const idioma = 'es';
         const timeZone = 'America/Chihuahua'; 
 
         if(obj && typeof obj === 'object'){
             for(const key of Object.keys(obj)){
                 const value = obj[key];
                 if(typeof value === 'string' && this.isISODate(value)){
-                    console.log('Encontro una llave con fechas')
-                    obj[key] = tzDate(value,timeZone)
-                    console.log('Se formateo la fecha');
-                    console.log (obj[key]);
+
+                    const hasZeroTime = value.includes('T00:00:00.000Z');
+
+                    if(hasZeroTime){
+                        obj[key] = new Date(value);
+                    }
+
+                    const date = tzDate(value,timeZone)
+                    const day = date.getDate();
+                    const month = date.getMonth();
+                    const year = date.getFullYear();
+                    obj[key] = new Date(year,month,day);
+
                 } else if (typeof obj[key] === 'object'){
                     this.formatDates(obj[key]);
                 }

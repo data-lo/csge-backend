@@ -38,6 +38,8 @@ import { LoggerModule } from './logger/logger.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FirmamexModule } from './firma/firmamex/firmamex.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -54,6 +56,10 @@ import { WebhooksModule } from './webhooks/webhooks.module';
       }),
     EventEmitterModule.forRoot({
       delimiter:'.'
+    }),
+    ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal:true
     }),
     UsuariosModule, 
     PuestosModule, 

@@ -55,7 +55,7 @@ export class PartidaController {
   @Auth(...rolesCampanias)
   @Delete(':id')
   delete(@Param('id', ParseUUIDPipe) id:string){
-    return this.partidaService.delete(id);
+    return this.partidaService.remove(id);
   }
 
 }

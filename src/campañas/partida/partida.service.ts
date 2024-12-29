@@ -7,22 +7,29 @@ import { Repository } from 'typeorm';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
+import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 
 @Injectable()
 export class PartidaService {
   constructor(
+    
     @InjectRepository(Partida)
     private partidaRepository:Repository<Partida>,
+    
     @InjectRepository(Campaña)
-    private campañaRepository:Repository<Campaña>
+    private campañaRepository:Repository<Campaña>,
+    
+    @InjectRepository(Orden)
+    private ordenRepository:Repository<Orden>
+
   ){}
   
   
   async create(createPartidaDto: CreatePartidaDto) {
     try{
-      const partida = this.partidaRepository.create(createPartidaDto);
-      await this.partidaRepository.save(partida);
-      return partida;
+      const partidaDb = this.partidaRepository.create(createPartidaDto);
+      await this.partidaRepository.save(partidaDb);
+      return partidaDb;
     }catch(error){
       handleExeptions(error);
     }
@@ -41,10 +48,10 @@ export class PartidaService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(partidaId: string) {
     try{
       const partida = await this.partidaRepository.findOne({
-        where:{id:id},
+        where:{id:partidaId},
       });
       if(!partida) throw new NotFoundException('La partida no exisite');
       return partida;
@@ -53,25 +60,26 @@ export class PartidaService {
     }
   }
 
-  async update(id: string, updatePartidaDto: UpdatePartidaDto) {
+  async update(partidaId: string, updatePartidaDto: UpdatePartidaDto) {
     try{
-      const partida = await this.findOne(id);
-      if(partida){
-        await this.partidaRepository.update(id,updatePartidaDto);
-        return await this.findOne(id);
-      }
+      const partidaDb = await this.partidaRepository.findOne({
+        where:{id:partidaId}
+      });  
+      if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
+      Object.assign(partidaDb,updatePartidaDto)
+      await this.partidaRepository.save(partidaDb);
+      return {message:'Partida actualziada correctamente'};
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  async desactivarPartida(id:string){
+  async desactivarPartida(partidaId:string){
     try{
-      console.log('here');
-      const partida = await this.findOne(id);
-      partida.estatus = false;
-      await this.partidaRepository.save(partida);
-      return await this.findOne(id);
+      const partidaDb = await this.partidaRepository.findOneBy({id:partidaId})
+      partidaDb.estatus = false;
+      await this.partidaRepository.save(partidaDb);
+      return {message:'Partida desactivada correctamente'};
     }catch(error){
       handleExeptions(error);
     }
@@ -99,28 +107,35 @@ export class PartidaService {
     }
   }
 
-  async delete(id:string){
+  async remove(id:string){
     try{
-      const partida = await this.findOne(id);
-      if(partida){
-        await this.partidaRepository.delete(id);
-        return {message:'Partida eliminada exitosamente'};
-      }
+      const partidaDb = await this.partidaRepository.findOneBy({id:id});
+      if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
+      await this.partidaRepository.remove(partidaDb);
+      return {message:'Partida eliminada exitosamente'};
     }catch(error){
       handleExeptions(error);
     }
   }
 
-  async actualizarMontos(campañaId:string,total:number,evento:string){
+  async actualizarMontos(ordenId:string,evento:string){
     try{
+
+      const ordenDb = await this.ordenRepository.findOne({
+          where:{id:ordenId},
+          relations:{campaña:true}
+        }
+      );
+
       const campania = await this.campañaRepository.findOne({
-        where:{id:campañaId},
+        where:{id:ordenDb.campaña.id},
         relations:{
           activaciones:{
             partida:true
           }
         }
       });
+      
       if(!campania) throw new NotFoundException('No se encuentra la campaña para actualizr los montos');
       const partidaDb = campania.activaciones.at(-1).partida;
       if(!partidaDb.estatus)throw new BadRequestException('Error, se esta tratando de actualizar una partida desactivada');
@@ -131,25 +146,25 @@ export class PartidaService {
 
       switch(evento){
         case 'orden.aprobada':
-          console.log(partidaDb.montoActivo, total, 'ok');
-          partidaDb.montoActivo = partidaDb.montoActivo + total;
+          console.log(partidaDb.montoActivo, ordenDb.total, 'ok');
+          partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
           break;
         case 'orden.canelada':   
-          partidaDb.montoActivo = partidaDb.montoActivo - total;
+          partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
           break;
         
         case 'orden.cotejada':
-          partidaDb.montoActivo = partidaDb.montoActivo - total;
-          partidaDb.montoEjercido = partidaDb.montoEjercido + total;
+          partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
+          partidaDb.montoEjercido = (partidaDb.montoEjercido + ordenDb.total);
           break;
         
         case 'factura.pagada':
-          partidaDb.montoPagado = partidaDb.montoPagado = total;
+          partidaDb.montoPagado = (partidaDb.montoPagado = ordenDb.total);
           break;
         
         case 'factura.cancelada':
-          partidaDb.montoPagado = partidaDb.montoPagado - total;
-          partidaDb.montoEjercido = partidaDb.montoEjercido - total;
+          partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
+          partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
       }
       await this.partidaRepository.save(partidaDb);
       return;

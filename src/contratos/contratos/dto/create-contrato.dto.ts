@@ -4,6 +4,7 @@ import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
 import {
   IsArray,
   IsBoolean,
+  IsDate,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -13,6 +14,7 @@ import {
 } from 'class-validator';
 
 export class CreateContratoDto {
+
   @IsOptional()
   @IsUUID()
   proveedorId: string;
@@ -27,65 +29,40 @@ export class CreateContratoDto {
   @IsEnum(TipoDeContrato)
   tipoDeContrato: TipoDeContrato;
 
-  @IsEnum(TipoDeServicio)
-  tipoDeServicio: TipoDeServicio;
+  @IsArray()
+  tipoDeServicios: TipoDeServicio[];
 
   @IsString()
   objetoContrato: string;
 
   @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
+  @Min(0)
   montoMinimoContratado: number;
 
-  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
+  @Min(0)
   montoMaximoContratado: number;
 
   @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
+  @Min(0)
   ivaMontoMinimoContratado: number;
 
-  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
+  @Min(0)
   ivaMontoMaximoContratado: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoEjercido: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoPagado: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  montoDisponible: number;
 
   @IsOptional()
   @IsBoolean({})
   ivaFrontera: boolean;
 
   @IsOptional()
+  @IsDate()
   fechaInicial: Date;
 
   @IsOptional()
+  @IsDate()
   fechaFinal: Date;
-
-  @IsUUID()
-  @IsOptional()
-  @IsArray({ each: true })
-  contratoModificatorioId: string[];
-
-  @IsUUID()
-  @IsOptional()
-  @IsArray({ each: true })
-  ordenesDeServicioId: string[];
-
+  
   @IsString()
   @IsOptional()
   motivoCancelacion: string;

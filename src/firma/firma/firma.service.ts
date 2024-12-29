@@ -29,6 +29,9 @@ import {
   coordenadasCotejador,
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
+import { Stream } from 'stream';
+import { AprobacionDeCampaniaDto } from './interfaces/aprobacion-de-campania.dto';
+import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 
 @Injectable()
 export class FirmaService {
@@ -45,13 +48,16 @@ export class FirmaService {
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
 
+    @InjectRepository(Campaña)
+    private campaniaRepository: Repository<Campaña>,
+
     private readonly firmamexService: FirmamexService,
     private readonly documentsService: DocumentsService,
   ) {}
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { ordenOFacturaId, tipoDeDocumento} = createFirmaDto;
+      const { ordenOFacturaId, tipoDeDocumento } = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         ordenOFacturaId,
@@ -75,7 +81,44 @@ export class FirmaService {
     }
   }
 
-  async findAll(usuarioId: string) {
+  async findAllOrdenes(usuarioId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id: usuarioId },
+        relations: ['documentosParaFirmar'],
+      });
+
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      
+      const ordenesConDocumentosPorFirmar = await this.ordenRepository
+        .createQueryBuilder('orden')
+        .leftJoinAndMapOne(
+          'orden.documento',
+          Firma,
+          'documento',
+          'documento.orden_o_factura_id = orden.id',
+        )
+        .innerJoin(
+          'usuarios_documentos_firma',
+          'usuario_documento',
+          'usuario_documento.documento_firma_id = documento.id',
+        )
+        .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
+        .andWhere('documento.esta_firmado = :estaFirmado', {
+          estaFirmado: false,
+        })
+        .andWhere('documento.tipo_de_documento = :tipoDocumento', {
+          tipoDocumento: TipoDeDocumento.ORDEN_DE_SERVICIO,
+        })
+        .getMany();
+        
+        return ordenesConDocumentosPorFirmar;
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async findAllFacturas(usuarioId: string) {
     try {
       const usuario = await this.usuarioRepository.findOne({
         where: { id: usuarioId },
@@ -97,7 +140,79 @@ export class FirmaService {
         })
         .getMany();
 
-      return documentosPorFirmar;
+      const campanias = [];
+      const ordenes = [];
+      const facturas = [];
+
+      documentosPorFirmar.map((documento) => {
+        if (documento.tipoDeDocumento === TipoDeDocumento.CAMPAÑA) {
+          campanias.push(documento);
+        }
+        if (documento.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+          ordenes.push(documento);
+        }
+        if (
+          documento.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA
+        ) {
+          ordenes.push(documento);
+        }
+      });
+
+      return {
+        campanias: campanias,
+        ordenes: ordenes,
+        facturas: facturas,
+      };
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async findAllCampanias(usuarioId: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { id: usuarioId },
+        relations: ['documentosParaFirmar'],
+      });
+
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+      const documentosPorFirmar = await this.firmaRepository
+        .createQueryBuilder('documentosPorFirmar')
+        .innerJoin(
+          'documentosPorFirmar.usuariosFirmadores',
+          'usuario',
+          'usuario.id = :usuarioId',
+          { usuarioId },
+        )
+        .where('documentosPorFirmar.estaFirmado = :estaFirmado', {
+          estaFirmado: false,
+        })
+        .getMany();
+
+      const campanias = [];
+      const ordenes = [];
+      const facturas = [];
+
+      documentosPorFirmar.map((documento) => {
+        if (documento.tipoDeDocumento === TipoDeDocumento.CAMPAÑA) {
+          campanias.push(documento);
+        }
+        if (documento.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+          ordenes.push(documento);
+        }
+        if (
+          documento.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA
+        ) {
+          ordenes.push(documento);
+        }
+      });
+
+      return {
+        campanias: campanias,
+        ordenes: ordenes,
+        facturas: facturas,
+      };
     } catch (error) {
       handleExeptions(error);
     }
@@ -172,7 +287,7 @@ export class FirmaService {
         where: { id: documentoId },
         relations: {
           usuariosFirmadores: true,
-        }
+        },
       });
 
       if (!usuario) throw new NotFoundException('No se encontró el usuario');
@@ -187,7 +302,7 @@ export class FirmaService {
       const stickers = await this.crearStickers(
         [usuario],
         documento.tipoDeDocumento,
-        documento.usuariosFirmadores
+        documento.usuariosFirmadores,
       );
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
       const response = await this.enviarDocumentoAFirmamexSDK(
@@ -204,7 +319,6 @@ export class FirmaService {
       handleExeptions(error);
     }
   }
-
 
   private async construir_pdf(
     documentoId,
@@ -227,7 +341,11 @@ export class FirmaService {
     }
   }
 
-  async crearStickers(usuarios: Usuario[], tipoDeDocumento: TipoDeDocumento, usuariosFirmadores: Usuario[]): Promise<Sticker[]> {
+  async crearStickers(
+    usuarios: Usuario[],
+    tipoDeDocumento: TipoDeDocumento,
+    usuariosFirmadores: Usuario[],
+  ): Promise<Sticker[]> {
     try {
       let rect = {};
       const stickers = [];
@@ -244,8 +362,8 @@ export class FirmaService {
           data: usuariosFirmadores[0].rfc,
           imageType: 'hash',
           page: 0,
-          rect: coordenadasAprobacionFactura, 
-        }
+          rect: coordenadasAprobacionFactura,
+        };
         stickers.push(stickerAprobador);
       }
 
@@ -301,10 +419,40 @@ export class FirmaService {
     }
   }
 
+  async crearExpedienteDeCampania(
+    aprobacionDeCampania: AprobacionDeCampaniaDto,
+  ) {
+    try {
+      const { nombreDeCampania, campaniaId } = aprobacionDeCampania;
+      const campania = await this.campaniaRepository.findOneBy({
+        id: campaniaId,
+      });
+      const ordenes = await this.ordenRepository.find({
+        where: {
+          campaña: { id: campania.id },
+          esCampania: false,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return {
+        nombreDeCampania: nombreDeCampania,
+        ordenesDeLaCampania: ordenes,
+      };
+
+      //const serviciosFirmamex = await this.firmamexService.getServices();
+      //const {documentSet} = await serviciosFirmamex.createDocuemntSet(nombreDeCampania);
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
   async obtenerDocumentosDeFrimamex() {
     try {
       const from = new Date('2024-11-27').getTime();
-      const to = new Date('2024-11-28').getTime();
+      const to = new Date().getTime();
       const serviciosFirmamex = await this.firmamexService.getServices();
       let documentos = await serviciosFirmamex.listDocuments(from, to);
       return documentos;
@@ -331,36 +479,27 @@ export class FirmaService {
       const documentoEnFirma = await this.firmaRepository.findOne({
         where: { ordenOFacturaId: ordenOFacturaId },
       });
-      
-      console.log('documento en firma ',documentoEnFirma);
       if (!documentoEnFirma) {
         documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
-        console.log('regresa en construir pdf')
         return documento;
       }
-      
-      console.log(documentoEnFirma.ticket +'ok');
       if (!documentoEnFirma.ticket) {
         documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
         return documento;
       }
-      
-      const serviciosFirmamex = await this.firmamexService.getServices();
-      const documentoEnB64 = await serviciosFirmamex.getDocument(
-        'original',
-        documentoEnFirma.ticket,
-      );
-      
-      const informacionDocumento = await serviciosFirmamex.getReport(
-        documentoEnFirma.ticket,
-      );
 
-      documento = await this.deBase64aPdf(
-        documentoEnB64.original,
-        informacionDocumento.document.name,
-      );
-      
-      return documento;
+      //NO FUNCIONA EL DOCUMENTO EN B64 DEL API DE FIRMAMEX
+
+      //const serviciosFirmamex = await this.firmamexService.getServices();
+      //const documentoEnB64 = await serviciosFirmamex.getDocument(
+      //  'original',
+      //  documentoEnFirma.ticket,
+      //);
+      //return {
+      //  tipo:'stream',
+      //  documento:this.base64aStream(documentoEnB64.original)
+      //}
+      return { tipo: 'url', url: documentoEnFirma.documentoUrlFirmamex };
     } catch (error) {
       console.log(error);
       handleExeptions(error);
@@ -380,6 +519,18 @@ export class FirmaService {
     });
   }
 
+  private base64aStream(base64Data: string) {
+    try {
+      const bufferStream = new Stream.Readable();
+      const buffer = Buffer.from(base64Data, 'base64');
+      bufferStream.push(buffer);
+      bufferStream.push(null);
+      return bufferStream;
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
   async crearArchivoEnBase64(documento: PDFKit.PDFDocument) {
     const chunks: Uint8Array[] = [];
     return new Promise((resolve, reject) => {
@@ -394,10 +545,20 @@ export class FirmaService {
     });
   }
 
-
-
-  findOne(id: number) {
-    return `This action returns a #${id} firma`;
+  async findOne(ordenOFacturaId: string) {
+    try {
+      const documentoDb = await this.firmaRepository.findOneBy({
+        ordenOFacturaId: ordenOFacturaId,
+      });
+      if (!documentoDb)
+        throw new BadRequestException({
+          status: '404',
+          message: 'EL DOCUMENTO NO SE ENCUENTRA EN ESPERA DE FIRMA',
+        });
+      return documentoDb;
+    } catch (error) {
+      throw error;
+    }
   }
 
   update(id: number, updateFirmaDto: UpdateFirmaDto) {
@@ -407,5 +568,4 @@ export class FirmaService {
   remove(id: number) {
     return `This action removes a #${id} firma`;
   }
-
 }

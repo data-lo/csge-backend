@@ -20,8 +20,8 @@ export const firmasDeRecepcionSection = ():Content => {
                         {text:''}
                     ],
                     [
-                        {text:'', style}
-                    ]
+                        {text:'APROBACIÓN', style}
+                    ],
                 ]
         }
     }

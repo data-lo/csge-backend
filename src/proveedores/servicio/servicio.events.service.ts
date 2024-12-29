@@ -11,9 +11,7 @@ export class EstacionEventosService {
 
     @OnEvent('contrato.desactivado',{async:true})
     async desactivarServicioTipo(contrato:ContratoEvent){
-        const proveedor = contrato.contrato.proveedor;
-        console.log(proveedor);
-        console.log('evento contrato desactivado recibido en el servicio');
+        
     }
 
 }

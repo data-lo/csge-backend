@@ -1,9 +1,10 @@
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
-import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ServicioContratado } from 'src/ordenes/servicio_contratado/entities/servicio_contratado.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,9 +12,12 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
@@ -64,7 +68,7 @@ export class Orden {
     name: 'subtotal_orden_de_servicio',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   subtotal: number;
@@ -73,7 +77,7 @@ export class Orden {
     name: 'iva_orden_de_servicio',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   iva: number;
@@ -82,7 +86,7 @@ export class Orden {
     name: 'total',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   total: number;
@@ -110,18 +114,25 @@ export class Orden {
   })
   motivoDeCancelacion: string;
 
+  @Column({
+    name:'cotizada_en_campania',
+    nullable:false,
+    default:false,
+  })
+  esCampania:boolean
+
   @CreateDateColumn({
     name: 'creado_en',
   })
   creadoEn: Date;
 
-  @CreateDateColumn({
+  @UpdateDateColumn({
     name: 'actualizado_en',
   })
-  acutalizadoEn: Date;
+  actualizadoEn: Date;
 
-  @ManyToOne(() => Contrato, (contrato) => contrato.id)
-  contrato: Contrato;
+  @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.id)
+  contratoMaestro: ContratoMaestro;
 
   @ManyToOne(() => Campaña, (campaña) => campaña.id)
   campaña: Campaña;
@@ -141,4 +152,20 @@ export class Orden {
     }
   )
   serviciosContratados: ServicioContratado[];
+
+  @BeforeInsert()
+  localeTimeZoneInsert() {
+    const value = new Date();
+    this.creadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaDeEmision = localeTimeFormatter(value);
+  }
+
+  @BeforeUpdate()
+  localeTimeZoneUpdate(){
+    const value = new Date();
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaDeAprobacion = localeTimeFormatter(this.fechaDeAprobacion);
+  }
+  
 }

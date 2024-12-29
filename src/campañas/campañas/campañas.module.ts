@@ -9,6 +9,7 @@ import { ActivacionModule } from '../activacion/activacion.module';
 import { PartidaModule } from '../partida/partida.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { FirmaModule } from 'src/firma/firma/firma.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PassportModule } from '@nestjs/passport';
     PartidaModule,
     AuthModule,
     PassportModule,
+    FirmaModule
   ],
   controllers: [CampañasController],
   providers: [CampañasService],
