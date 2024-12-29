@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { Partida } from '../partida/entities/partida.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Injectable()
 export class ActivacionService {
@@ -36,7 +35,7 @@ export class ActivacionService {
       const activacion = this.activacionRepository.create({
         partida:partidaDb,
         campaña:campañaDb,
-        fechaDeCreacion:localeTimeFormatter(fechaDeCreacion),
+        fechaDeCreacion:fechaDeCreacion,
         ...rest
       });
 
