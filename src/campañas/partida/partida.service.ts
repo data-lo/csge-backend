@@ -64,10 +64,10 @@ export class PartidaService {
     try{
       const partidaDb = await this.partidaRepository.findOne({
         where:{id:partidaId}
-      });
-      
+      });  
       if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
-      await this.partidaRepository.update(partidaId,updatePartidaDto);
+      Object.assign(partidaDb,updatePartidaDto)
+      await this.partidaRepository.save(partidaDb);
       return {message:'Partida actualziada correctamente'};
     }catch(error){
       handleExeptions(error);

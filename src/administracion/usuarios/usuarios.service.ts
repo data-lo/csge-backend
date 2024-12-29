@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -13,7 +13,6 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ActualizarPermisosDto } from './dto/actualizar-permisos.dto';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
-import { userInfo } from 'os';
 
 @Injectable()
 export class UsuariosService {
@@ -114,13 +113,10 @@ export class UsuariosService {
   async update(userId: string, updateUsuarioDto: UpdateUsuarioDto) {
     try {
       const usuarioDb = await this.findOne(userId);
-      if (usuarioDb) {
-        const updateResult = await this.usuarioRepository.update(userId, updateUsuarioDto);
-        if (updateResult.affected === 0) {
-          throw new NotFoundException('Usuario no encontrado');
-        }
-        return this.findOne(userId);
-      }
+      Object.assign(usuarioDb,updateUsuarioDto);
+      const updatedResult = await this.usuarioRepository.save(usuarioDb);
+      if(!updatedResult) throw new InternalServerErrorException('NO SE ENCUENTRA EL USUARIO');
+      return updatedResult;
     } catch (error) {
       handleExeptions(error);
     }
@@ -128,13 +124,12 @@ export class UsuariosService {
 
   async deactivate(id: string) {
     try {
-      const deactivate = false;
+      
       const usuarioDb = await this.findOne(id);
-      if (usuarioDb) {
-        await this.usuarioRepository.update(id,
-          { estatus: deactivate });
-        return { message: 'usuario desactivado' }
-      }
+      usuarioDb.estatus = false;
+      await this.usuarioRepository.save(usuarioDb);
+      return { message: 'usuario desactivado' }
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -145,12 +140,12 @@ export class UsuariosService {
       const { userId, newPassword } = updatePasswordDto;
       const updatedPassword = bcrypt.hashSync(newPassword, 10)
       const usuarioDb = await this.findOne(userId);
-      if (usuarioDb) {
-        await this.usuarioRepository.update(userId, {
-          password: updatedPassword
-        });
-        return { "message": "contraseña actualizada" }
-      }
+      
+      usuarioDb.password = updatedPassword;
+
+      await this.usuarioRepository.save(usuarioDb)
+      return { message: "CONTRASEÑA ACTUALIADA EXISTOSAMENTE" };
+      
     } catch (error) {
       handleExeptions(error);
     }
@@ -215,12 +210,9 @@ export class UsuariosService {
 
   async reestablecer(userId: string) {
     try {
-      const updateResult = await this.usuarioRepository.update(userId, {
-        password: bcrypt.hashSync(defaultPassowrd, 10)
-      });
-      if (updateResult.affected === 0) {
-        throw new NotFoundException('Departamento no encontrado');
-      }
+      const usuarioDb = await this.usuarioRepository.findOneBy({id:userId});
+      usuarioDb.password = bcrypt.hashSync(defaultPassowrd,10);
+      await this.usuarioRepository.save(usuarioDb);
       return { message: "Contraseña reestablecida" };
     } catch (error) {
       handleExeptions(error);
@@ -230,18 +222,17 @@ export class UsuariosService {
   async removerPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
     try {
       const { id, permisos } = actualizarPermisosDto;
-      const usuarioDb = await this.findOne(id);
-
-      if (usuarioDb.estatus === false) {
-        return { message: "Usuario desactivado. Activar usuario para hacer cambios" }
-      }
+      const usuarioDb = await this.usuarioRepository.findOneBy({id:id});
+      if(!usuarioDb) throw new NotFoundException('NO SE ENCUENTRA EL USUARIO');
+      if (usuarioDb.estatus === false) throw new BadRequestException('EL USUARIO SE ENCUENTRA DESACTIVADO, ACTIVAR USUARIO');
 
       const permisosActualizados = usuarioDb.permisos.filter(
         (permiso) => !permisos.includes(permiso),
       );
-
-      await this.usuarioRepository.update(id, { permisos: permisosActualizados });
-      return { message: "Permisos removidos exitosamente", permisos_activos: permisosActualizados }
+      
+      usuarioDb.permisos = permisosActualizados;
+      await this.usuarioRepository.save(usuarioDb);
+      return {message:'PERMISOS REMOVIDOS EXITOSAMENTE'};
 
     } catch (error) {
       handleExeptions(error);
@@ -253,20 +244,16 @@ export class UsuariosService {
       const { id, permisos } = actualizarPermisosDto;
       const usuarioDb = await this.findOne(id);
 
-      if (!usuarioDb) {
-        return { message: "Usuario no encontrado" };
-      }
+      if (!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
+      if (!usuarioDb.estatus) throw new BadRequestException('EL USUARIO SE ENCUENTRA DESACTIVADO');
 
-      if (usuarioDb.estatus === false) {
-        return { message: "Usuario desactivado. Activar usuario para hacer cambios" };
-      }
-
-      // Combinar los permisos existentes con los nuevos sin duplicados
       const permisosActualizadosSet = new Set([...usuarioDb.permisos, ...permisos]);
       const permisosActualizados = Array.from(permisosActualizadosSet);
 
-      await this.usuarioRepository.update(id, { permisos: permisosActualizados });
-      return { message: "Permisos agregados exitosamente", permisos: permisosActualizados };
+      usuarioDb.permisos = permisosActualizados;
+      await this.usuarioRepository.save(usuarioDb);
+      return {message:'PERMISOS ACTUALIZADOS EXITOSAMENTE'};
+      
     } catch (error) {
       handleExeptions(error);
     }

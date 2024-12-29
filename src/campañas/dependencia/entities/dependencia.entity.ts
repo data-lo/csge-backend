@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { localeTimeFormatter } from "src/helpers/localeTimeZoneFormater.function";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, Generated, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('dependencias')
 export class Dependencia {
@@ -23,4 +24,17 @@ export class Dependencia {
         name:'actualizado_en'
     })
     actualizadoEn:Date;
+
+    @BeforeInsert()
+    localeTimeZoneInsert() {
+      const value = new Date();
+      this.creadoEn = localeTimeFormatter(value);
+      this.actualizadoEn = localeTimeFormatter(value);
+    }
+
+    @BeforeUpdate()
+    localeTimeZoneUpdate() {
+      const value = new Date();
+      this.actualizadoEn = localeTimeFormatter(value);
+    }
 }
