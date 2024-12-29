@@ -120,102 +120,47 @@ export class FirmaService {
 
   async findAllFacturas(usuarioId: string) {
     try {
-      const usuario = await this.usuarioRepository.findOne({
-        where: { id: usuarioId },
-        relations: ['documentosParaFirmar'],
-      });
-
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-      const documentosPorFirmar = await this.firmaRepository
-        .createQueryBuilder('documentosPorFirmar')
-        .innerJoin(
-          'documentosPorFirmar.usuariosFirmadores',
-          'usuario',
-          'usuario.id = :usuarioId',
-          { usuarioId },
-        )
-        .where('documentosPorFirmar.estaFirmado = :estaFirmado', {
-          estaFirmado: false,
-        })
-        .getMany();
-
-      const campanias = [];
-      const ordenes = [];
-      const facturas = [];
-
-      documentosPorFirmar.map((documento) => {
-        if (documento.tipoDeDocumento === TipoDeDocumento.CAMPAÑA) {
-          campanias.push(documento);
-        }
-        if (documento.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-          ordenes.push(documento);
-        }
-        if (
-          documento.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA
-        ) {
-          ordenes.push(documento);
-        }
-      });
-
-      return {
-        campanias: campanias,
-        ordenes: ordenes,
-        facturas: facturas,
-      };
+      try {
+        const usuario = await this.usuarioRepository.findOne({
+          where: { id: usuarioId },
+          relations: ['documentosParaFirmar'],
+        });
+  
+        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        
+        const facturasConDocumentosPorFirmar = await this.facturaRepository
+          .createQueryBuilder('factura')
+          .leftJoinAndMapOne(
+            'factura.documento',
+            Firma,
+            'documento',
+            'documento.orden_o_factura_id = factura.id',
+          )
+          .innerJoin(
+            'usuarios_documentos_firma',
+            'usuario_documento',
+            'usuario_documento.documento_firma_id = documento.id',
+          )
+          .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
+          .andWhere('documento.esta_firmado = :estaFirmado', {
+            estaFirmado: false,
+          })
+          .andWhere('documento.tipo_de_documento = :tipoDocumento', {
+            tipoDocumento: TipoDeDocumento.APROBACION_DE_FACTURA,
+          })
+          .getMany();
+          
+          return facturasConDocumentosPorFirmar;
+      } catch (error) {
+        handleExeptions(error);
+      }
     } catch (error) {
       handleExeptions(error);
     }
   }
 
   async findAllCampanias(usuarioId: string) {
-    try {
-      const usuario = await this.usuarioRepository.findOne({
-        where: { id: usuarioId },
-        relations: ['documentosParaFirmar'],
-      });
-
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
-      const documentosPorFirmar = await this.firmaRepository
-        .createQueryBuilder('documentosPorFirmar')
-        .innerJoin(
-          'documentosPorFirmar.usuariosFirmadores',
-          'usuario',
-          'usuario.id = :usuarioId',
-          { usuarioId },
-        )
-        .where('documentosPorFirmar.estaFirmado = :estaFirmado', {
-          estaFirmado: false,
-        })
-        .getMany();
-
-      const campanias = [];
-      const ordenes = [];
-      const facturas = [];
-
-      documentosPorFirmar.map((documento) => {
-        if (documento.tipoDeDocumento === TipoDeDocumento.CAMPAÑA) {
-          campanias.push(documento);
-        }
-        if (documento.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-          ordenes.push(documento);
-        }
-        if (
-          documento.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA
-        ) {
-          ordenes.push(documento);
-        }
-      });
-
-      return {
-        campanias: campanias,
-        ordenes: ordenes,
-        facturas: facturas,
-      };
-    } catch (error) {
-      handleExeptions(error);
-    }
+    
   }
 
   async obtenerUsuariosFirmantes(
