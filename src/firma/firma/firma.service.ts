@@ -89,11 +89,12 @@ export class FirmaService {
       });
 
       if (!usuario) throw new NotFoundException('Usuario no encontrado');
-
+      
       const ordenesConDocumentosPorFirmar = await this.ordenRepository
         .createQueryBuilder('orden')
-        .innerJoin(
-          'documentos_firma',
+        .leftJoinAndMapOne(
+          'orden.documento',
+          Firma,
           'documento',
           'documento.orden_o_factura_id = orden.id',
         )
@@ -109,18 +110,8 @@ export class FirmaService {
         .andWhere('documento.tipo_de_documento = :tipoDocumento', {
           tipoDocumento: TipoDeDocumento.ORDEN_DE_SERVICIO,
         })
-        .select([
-          'orden.id',
-          'orden.folio',
-          'orden.estatus',
-          'orden.fechaDeEmision',
-          'orden.total',
-          'documento.id as documentoId',
-          'documento.estatusDeFirma',
-          'documento.documentoUrlFirmamex',
-        ])
         .getMany();
-
+        
         return ordenesConDocumentosPorFirmar;
     } catch (error) {
       handleExeptions(error);
