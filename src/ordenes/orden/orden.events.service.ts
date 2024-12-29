@@ -1,10 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable} from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { DocumentoEvent } from "../interfaces/documento-event";
 import { EstatusOrdenDeServicio } from "./interfaces/estatus-orden-de-servicio";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Orden } from "./entities/orden.entity";
-import { Repository } from "typeorm";
 import { OrdenEvent } from "../interfaces/orden-event";
 import { OrdenService } from './orden.service';
 import { handleExeptions } from "src/helpers/handleExceptions.function";
@@ -13,8 +10,7 @@ import { handleExeptions } from "src/helpers/handleExceptions.function";
 @Injectable()
 export class OrdenEventosService {
     constructor(
-        @InjectRepository(Orden)
-        private ordenService:OrdenService,
+        private readonly ordenService:OrdenService,
         private eventEmitter:EventEmitter2
     ){}
 
@@ -40,6 +36,5 @@ export class OrdenEventosService {
             EVENTO,
             new OrdenEvent(ordenId,EVENTO)
         );
-    
     }
 }

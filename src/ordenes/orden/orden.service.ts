@@ -282,6 +282,7 @@ export class OrdenService {
   
   async findByRfc(rfc: string) {
     try {
+
       const estatus = EstatusOrdenDeServicio.ACTIVA
       const ordenes = await this.ordenRepository.createQueryBuilder('ordenes')
       .innerJoinAndSelect('ordenes.proveedor','proveedor')
@@ -291,16 +292,24 @@ export class OrdenService {
 
       if(ordenes.length === 0) throw new BadRequestException('EL PROVEEDOR NO CUENTA CON ORDENES ACTIVAS');
       
-      const proveedorDb = ordenes.at(0).proveedor;
-      const ordenesDb = ordenes.map((orden) => {
-        delete orden.proveedor;
-        return orden;
-      });
-      
-      return {
-        proveedor:proveedorDb,
-        ordenes:ordenesDb
-      }
+      const ordenesPorProveedor = ordenes.reduce((acc,orden) => {
+        const proveedorId = orden.proveedor.id;
+        if(!acc[proveedorId]){
+          acc[proveedorId] = {
+            proveedor:orden.proveedor,
+            ordenes: []
+          }
+        }
+
+        const ordenSinProveedor = {...orden};
+        delete ordenSinProveedor.proveedor;
+        acc[proveedorId].ordenes.push(ordenSinProveedor);
+        return acc;
+      },{});
+
+      const result = Object.values(ordenesPorProveedor);
+      return result;
+
     } catch (error) {
       handleExeptions(error);
     }
