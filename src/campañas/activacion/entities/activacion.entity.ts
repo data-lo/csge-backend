@@ -85,11 +85,16 @@ export class Activacion {
   actualizadoEn: Date;
 
   @BeforeInsert()
-  localeTimeZoneInsert(){
-    this.creadoEn = localeTimeFormatter(this.creadoEn);
+  localeTimeZoneInsert() {
+    const value = new Date();
+    this.creadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = localeTimeFormatter(value);
   }
+
   @BeforeUpdate()
-  localeTimeZoneUpdate(){
-    this.actualizadoEn = localeTimeFormatter(this.actualizadoEn);
+  localeTimeZoneUpdate() {
+    const value = new Date();
+    this.actualizadoEn = localeTimeFormatter(value);
   }
+
 }

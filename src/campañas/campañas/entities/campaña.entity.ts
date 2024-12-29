@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,6 +15,7 @@ import { EstatusCampaña } from '../interfaces/estatus-campaña.enum';
 import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.entity';
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { TipoCampaña } from '../interfaces/tipo-campaña.enum';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Entity('campanias')
 export class Campaña {
@@ -62,4 +65,17 @@ export class Campaña {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
+
+  //@BeforeInsert()
+  //localeTimeZoneInsert() {
+  //  const value = new Date();
+  //  this.creadoEn = localeTimeFormatter(value);
+  //  this.actualizadoEn = localeTimeFormatter(value);
+  //}
+
+  //@BeforeUpdate()
+  //localeTimeZoneUpdate() {
+  //  const value = new Date();
+  //  this.actualizadoEn = localeTimeFormatter(value);
+  //}
 }

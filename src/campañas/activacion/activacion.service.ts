@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Partida } from '../partida/entities/partida.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Injectable()
 export class ActivacionService {
@@ -35,7 +36,7 @@ export class ActivacionService {
       const activacion = this.activacionRepository.create({
         partida:partidaDb,
         campaña:campañaDb,
-        fechaDeCreacion:fechaDeCreacion,
+        fechaDeCreacion:localeTimeFormatter(fechaDeCreacion),
         ...rest
       });
 
@@ -73,11 +74,10 @@ export class ActivacionService {
 
   async update(id:string, updateActivacionDto: UpdateActivacionDto) {
     try{
-      const activacion = await this.findOne(id);
-      if(activacion){
-        await this.activacionRepository.update(id,updateActivacionDto);
-        return await this.findOne(id);
-      }
+      const activacionDb = await this.findOne(id);
+      Object.assign(activacionDb,updateActivacionDto);
+      const updatedActivacion = await this.activacionRepository.save(activacionDb);
+      return updatedActivacion;
     }catch(error){
       handleExeptions(error);
     }
@@ -86,10 +86,8 @@ export class ActivacionService {
   async remove(id:string) {
     try{
       const activacion = await this.findOne(id);
-      if(activacion){
-        await this.activacionRepository.delete(id);
-        return {message:'Activacion eliminada correctamente'};
-      }
+      await this.activacionRepository.remove(activacion);
+      return {message:'Activacion eliminada correctamente'};
     }catch(error){
       handleExeptions(error);
     }

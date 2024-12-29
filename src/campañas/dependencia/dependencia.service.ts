@@ -66,11 +66,10 @@ export class DependenciaService {
 
   async update(id: string, updateDependenciaDto: UpdateDependenciaDto) {
     try{
-      const dependencia = await this.findOne(id);
-      if(dependencia){
-        await this.dependenciaRepository.update(id,updateDependenciaDto);
-        return this.findOne(id); 
-      }
+      const dependenciaDb = await this.findOne(id);
+      Object.assign(dependenciaDb,updateDependenciaDto);
+      await this.dependenciaRepository.save(dependenciaDb);
+      return {message:'DEPENDENCIA ACTUALZIADA CORRECTAMENTE'};
     }catch(error){
       handleExeptions(error);
     }
@@ -78,11 +77,9 @@ export class DependenciaService {
 
   async remove(id: string) {
     try{
-      const dependencia = await this.findOne(id);
-      if(dependencia){
-        await this.dependenciaRepository.delete(id);
-        return {message:"Dependencia eliminada correctamente"};
-      }
+      const dependenciaDb = await this.findOne(id);
+      await this.dependenciaRepository.remove(dependenciaDb);
+      return {message:"Dependencia eliminada correctamente"};
     }catch(error){
       handleExeptions(error);
     }
