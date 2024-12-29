@@ -89,6 +89,7 @@ export class Activacion {
     const value = new Date();
     this.creadoEn = localeTimeFormatter(value);
     this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaDeCreacion = localeTimeFormatter(this.fechaDeCreacion);
   }
 
   @BeforeUpdate()

@@ -3,6 +3,8 @@ import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato'
 import { TipoDeContrato } from 'src/contratos/interfaces/tipo-de-contrato';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,6 +15,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Contrato } from './contrato.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Entity({ name: 'contrato_maestro' })
 export class ContratoMaestro {
@@ -183,4 +186,21 @@ export class ContratoMaestro {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
+
+  @BeforeInsert()
+  localeTimeZoneInsert() {
+    const value = new Date();
+    this.creadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
+    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+  }
+  
+  @BeforeUpdate()
+  localeTimeZoneUpdate() {
+    const value = new Date();
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
+    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+  }
 }

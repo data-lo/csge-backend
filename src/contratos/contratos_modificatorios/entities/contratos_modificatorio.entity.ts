@@ -1,5 +1,7 @@
 import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -9,8 +11,8 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Contrato } from '../../contratos/entities/contrato.entity';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 @Entity()
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
@@ -143,4 +145,21 @@ export class ContratoModificatorio {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
+
+  @BeforeInsert()
+  localeTimeZoneInsert() {
+    const value = new Date();
+    this.creadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
+    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+  }
+  
+  @BeforeUpdate()
+  localeTimeZoneUpdate() {
+    const value = new Date();
+    this.actualizadoEn = localeTimeFormatter(value);
+    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
+    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+  }
 }

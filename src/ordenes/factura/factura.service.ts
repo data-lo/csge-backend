@@ -52,7 +52,7 @@ export class FacturaService {
       
       const validacionBool = Boolean(validacionTestigo);
       if (!validacionBool)
-        throw new BadRequestException({ message: 'Validar testigo', id: id });
+        throw new BadRequestException({ message: 'VALIDAR TESTIGO', id: id });
 
       let ordenes: Orden[] = [];
       let subtotalDeOrdenes: number = 0.0;
@@ -62,10 +62,10 @@ export class FacturaService {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
         if (!orden)
           throw new NotFoundException({
-            message: `La orden con el Id ${ordenId} no se encuentra`,
+            message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA`,
             id: id,
           });
-        if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('Solo de pueden agregar ') 
+        if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
         subtotalDeOrdenes = orden.subtotal + subtotalDeOrdenes;
         ordenes.push(orden);
       }
@@ -75,7 +75,7 @@ export class FacturaService {
       });
       if (!proveedor)
         throw new NotFoundException({
-          message: 'No se encuentra el proveedor',
+          message: 'NO SE ENCUENTRA EL PROVEEDOR',
           id: id,
         });
 
@@ -83,13 +83,13 @@ export class FacturaService {
 
       if (proveedor.rfc !== facturaXmlData.rfc)
         throw new BadRequestException({
-          message: 'RFC de la factura y RFC del proveedor no coinciden',
+          message: 'EL RFC DE LA FACTURA INGRESADA, Y DEL PROVEEDOR NO COINCIDEN',
           id: id,
         });
 
       if (subtotalDeOrdenes != facturaXmlData.subtotal)
         throw new BadRequestException({
-          message: `El monto de las ordenes y el subtotal de la factura no coinciden monto total de ordenes: ${subtotalDeOrdenes}, total de factura ${facturaXmlData.subtotal}`,
+          message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
           id: id,
         });
 
@@ -109,7 +109,8 @@ export class FacturaService {
       await this.facturaRepository.save(factura);
       return factura;
     } catch (error) {
-      //await this.eliminarArchivoDeFactura(error.id);
+      setTimeout(()=>{},1000);
+      await this.eliminarArchivoDeFactura(error.id);
       handleExeptions(error);
     }
   }
@@ -194,7 +195,6 @@ export class FacturaService {
     try {
       const rutaCompletaXml = this.rutaDeCarga + rutaXml;
       const filePath = path.resolve(rutaCompletaXml);
-
       const xml = await fs.readFileSync(filePath, 'utf-8');
       const facturaJsonString = xmls2js.xml2json(xml, {
         compact: true,
@@ -202,7 +202,6 @@ export class FacturaService {
       });
 
       const facturaXml: FacturaXml = JSON.parse(facturaJsonString);
-
       const rfc = facturaXml['cfdi:Comprobante']['cfdi:Emisor']._attributes.Rfc;
       const subtotal = facturaXml['cfdi:Comprobante']._attributes.SubTotal;
       const total = facturaXml['cfdi:Comprobante']._attributes.Total;
@@ -211,18 +210,17 @@ export class FacturaService {
           .TotalImpuestosTrasladados;
 
       let conceptos = facturaXml['cfdi:Comprobante']['cfdi:Conceptos'];
-
       if (!Array.isArray(conceptos)) {
         conceptos = [conceptos];
       }
 
       const conceptosPrecargados = conceptos.map((concepto) => {
-        const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
-        const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
-        return {
-          cantidad: cantidad,
-          concepto: conceptoData,
-        };
+      const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
+      const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
+      return {
+        cantidad: cantidad,
+        concepto: conceptoData,
+      };
       });
 
       return {
