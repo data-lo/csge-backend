@@ -3,6 +3,8 @@ import { Partida } from 'src/campañas/partida/entities/partida.entity';
 import { ServicioContratado } from 'src/ordenes/servicio_contratado/entities/servicio_contratado.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -14,6 +16,7 @@ import {
 import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
 import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
@@ -148,4 +151,15 @@ export class Orden {
     }
   )
   serviciosContratados: ServicioContratado[];
+
+  @BeforeInsert()
+  localeTimeZoneInsert(){
+    this.creadoEn = localeTimeFormatter(this.creadoEn);
+  }
+
+  @BeforeUpdate()
+  localeTimeZoneUpdate(){
+    this.acutalizadoEn = localeTimeFormatter(this.acutalizadoEn);
+  }
+  
 }

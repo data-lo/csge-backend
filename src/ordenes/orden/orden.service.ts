@@ -290,11 +290,13 @@ export class OrdenService {
       .getMany();
 
       if(ordenes.length === 0) throw new BadRequestException('EL PROVEEDOR NO CUENTA CON ORDENES ACTIVAS');
+      
       const proveedorDb = ordenes.at(0).proveedor;
       const ordenesDb = ordenes.map((orden) => {
         delete orden.proveedor;
         return orden;
-      })
+      });
+      
       return {
         proveedor:proveedorDb,
         ordenes:ordenesDb
