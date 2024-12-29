@@ -301,11 +301,8 @@ export class OrdenService {
         .andWhere('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
         .getMany();
 
-      if (ordenes.length === 0)
-        throw new BadRequestException(
-          'EL PROVEEDOR NO CUENTA CON ORDENES ACTIVAS',
-        );
-
+      if (ordenes.length === 0) return null;
+      
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {
         const proveedorId = orden.proveedor.id;
         if (!acc[proveedorId]) {
