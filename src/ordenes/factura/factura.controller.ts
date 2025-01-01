@@ -56,6 +56,10 @@ export class FacturaController {
     @Body() createFacturaDto: CreateFacturaDto,
     @GetUser() usuario:Usuario
   ) {
+    setTimeout(()=>{
+      console.log('ESPERANDO 2 SEGUNDOS');
+    },2000);
+    
     const uuid = archivosFactura[0].filename.split('.')[0];
 
     if (!uuid)

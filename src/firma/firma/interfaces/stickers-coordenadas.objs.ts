@@ -18,3 +18,10 @@ export  const coordenadasAprobacionFactura = {
     tx:550,
     ty:180,
 }
+
+export const coordenadasCancelador = {
+    lx:120,
+    ly:250,
+    tx:590,
+    ty:700,        
+}

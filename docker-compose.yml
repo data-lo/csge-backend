@@ -1,12 +1,22 @@
 services:
-  db: 
-    container_name: SW-CSGE-DB
-    image: postgres:16.3
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+  minio:
+    image: minio/minio
     ports:
-      - "5432:5432"
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server --console-address ":9001" /data
+    networks:
+      - app-network
+
+volumes:
+  minio_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

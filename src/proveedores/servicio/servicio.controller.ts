@@ -37,6 +37,14 @@ export class ServicioController {
   }
 
   @Auth(...rolesServicios)
+  @Get('proveedor/:id')
+  findServiciosDelProveedor(
+    @Param('id',ParseUUIDPipe) proveedorId:string
+  ) {
+    return this.servicioService.findServiciosDelProveedor(proveedorId);
+  }
+
+  @Auth(...rolesServicios)
   @Get('estatus/:id')
   obtenerEstatus(@Param('id',ParseUUIDPipe) id: string) {
     return this.servicioService.obtenerEstatus(id);

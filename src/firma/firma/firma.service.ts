@@ -26,6 +26,7 @@ import { Firma } from './entities/firma.entity';
 import { EstatusOrdenDeServicio } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import {
   coordenadasAprobacionFactura,
+  coordenadasCancelador,
   coordenadasCotejador,
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
@@ -298,6 +299,7 @@ export class FirmaService {
       if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
         rect = coordenadasOrden;
       }
+
       if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
         rect = coordenadasCotejador;
         const stickerAprobador = {
@@ -488,6 +490,39 @@ export class FirmaService {
       documento.on('error', (error) => reject(error));
       documento.end();
     });
+  }
+
+  async cancelarDocumento(usuarioId:string,ordenOFacturaId:string){
+    
+    try{
+      const usuarioDb = await this.usuarioRepository.findOne({where:{id:usuarioId}});
+      if(!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
+      const documentoEnFirmaDb = await this.firmaRepository.findOne({
+        where:{ordenOFacturaId:ordenOFacturaId},
+        relations:{usuariosFirmadores:true}
+      });
+      if(!documentoEnFirmaDb) throw new NotFoundException('NO SE ENCUENTRA EL DOCUMENTO EN FIRMA');
+      if(documentoEnFirmaDb.estaFirmado) throw new BadRequestException('EL DOCUMENTO DEBE ENCONTRARSE FIRMADO PARA CANCELARC')
+      const serviciosFirmamex = await this.firmamexService.getServices();
+      
+      const documentoEnB64 = await serviciosFirmamex.getDocument(
+        'original',
+         documentoEnFirmaDb.ticket,
+      );
+      
+      const stickerCancelacion = {
+        authority: 'chihuahua',
+        stickerType: 'rect',
+        dataType: 'rfc',
+        data: usuarioDb.rfc,
+        imageType: 'hash',
+        page: 0,
+        rect: coordenadasCancelador
+      }
+      
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   async findOne(ordenOFacturaId: string) {
