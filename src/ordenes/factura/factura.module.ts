@@ -9,12 +9,14 @@ import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { FirmaModule } from 'src/firma/firma/firma.module';
 import { FacturaEventosService } from './factura.events.service';
+import { MinioModule } from 'src/minio/minio.module';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Factura,Orden,Proveedor]),
   AuthModule,
   PassportModule,
-  FirmaModule
+  FirmaModule,
+  MinioModule
 ],
   controllers: [FacturaController],
   providers: [FacturaService,FacturaEventosService],

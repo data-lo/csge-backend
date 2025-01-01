@@ -5,11 +5,8 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseInterceptors,
   UploadedFiles,
-  BadRequestException,
-  InternalServerErrorException,
   Query,
   ParseUUIDPipe,
   Res,
@@ -19,19 +16,23 @@ import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { fileFilter } from 'src/helpers/fileFilter';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { fileNamer } from 'src/helpers/fileNamer';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesFactura } from './valid-facturas-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
-import { Stream } from 'stream';
+import { randomUUID } from 'crypto';
+import { MinioService } from 'src/minio/minio.service';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
-  constructor(private readonly facturaService: FacturaService) {}
+  constructor(
+    private readonly facturaService: FacturaService,
+    private readonly minioService: MinioService
+  ) {}
+  
   private readonly logger = new LoggerService(FacturaController.name);
 
   @Auth(...rolesFactura)
@@ -39,16 +40,6 @@ export class FacturaController {
   @UseInterceptors(
     FilesInterceptor('archivosFactura', 2, {
       fileFilter: fileFilter,
-      storage: diskStorage({
-        destination: (req, file, callback) => {
-          const isPdf = file.mimetype === 'application/pdf';
-          const folder = isPdf
-            ? './static/uploads/pdf'
-            : './static/uploads/xml';
-          callback(null, folder);
-        },
-        filename: fileNamer,
-      }),
     }),
   )
   async create(
@@ -56,16 +47,6 @@ export class FacturaController {
     @Body() createFacturaDto: CreateFacturaDto,
     @GetUser() usuario:Usuario
   ) {
-    setTimeout(()=>{
-      console.log('ESPERANDO 2 SEGUNDOS');
-    },2000);
-    
-    const uuid = archivosFactura[0].filename.split('.')[0];
-
-    if (!uuid)
-      throw new InternalServerErrorException(
-        'No se logro generar el UUID para los archivos',
-      );
 
     const pdfFile = archivosFactura.find(
       (file) => file.mimetype === 'application/pdf',
@@ -74,16 +55,31 @@ export class FacturaController {
       (file) => file.mimetype === 'application/xml',
     );
 
-    if (!pdfFile || !xmlFile) {
-      throw new BadRequestException(
-        'Ambos archivos (XML Y PDF) son requeridos',
-      );
+    const uuid = randomUUID();
+    const minioFiles = [
+      {
+        name:`pdf/${uuid}.pdf`,
+        file:pdfFile.buffer
+      },
+      {
+        name:`xml/${uuid}.xml`,
+        file:xmlFile.buffer
+      }
+    ]
+    try{
+      const response = await this.minioService.subirArchivosAMinio(minioFiles);
+      console.log(response);
+    }catch(error){
+      this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
+      handleExeptions(error);
     }
 
     createFacturaDto.id = uuid;
-    createFacturaDto.xml = xmlFile.path;
-    createFacturaDto.pdf = pdfFile.path;
-    return this.facturaService.create(createFacturaDto,usuario);
+    createFacturaDto.pdf = minioFiles[0].name;
+    createFacturaDto.xml = minioFiles[1].name;
+    return {message:'success'};
+
+    //return this.facturaService.create(createFacturaDto,usuario);
   }
 
   @Auth(...rolesFactura) 
