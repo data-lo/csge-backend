@@ -55,6 +55,7 @@ export class UsuariosService {
           'usuario.segundoApellido',
           'usuario.correo',
           'usuario.permisos',
+          'usuario.documentosDeFirma',
           'departamento.nombre',
           'puesto.nombre'
         ])
@@ -80,6 +81,7 @@ export class UsuariosService {
           segundoApellido: true,
           correo: true,
           permisos: true,
+          documentosDeFirma:true,
           puesto: {
             nombre: true
           },
