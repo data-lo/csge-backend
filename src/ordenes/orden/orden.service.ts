@@ -26,6 +26,8 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
+import { OrdenModule } from './orden.module';
+import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 
 @Injectable()
 export class OrdenService {
@@ -40,7 +42,7 @@ export class OrdenService {
     private readonly proveedorService: ProveedorService,
     private readonly contratoService: ContratosService,
     private readonly servicioContratadoService: ServicioContratadoService,
-  ) {}
+  ) { }
 
   async create(createOrdenDto: CreateOrdenDto) {
     try {
@@ -55,19 +57,19 @@ export class OrdenService {
 
       let campania = null;
       let contratoMaestro = null;
-      
-      if(campaniaId){
+
+      if (campaniaId) {
         campania = await this.campañaService.findOne(campaniaId);
       }
 
-      if(contratoId){
+      if (contratoId) {
         contratoMaestro = await this.contratoService.findOne(contratoId);
       }
 
       const proveedor = await this.proveedorService.findOne(proveedorId);
 
-      if(!contratoMaestro){
-        if(proveedor.tipoProveedor !== TipoProveedor.SERVICIOS){
+      if (!contratoMaestro) {
+        if (proveedor.tipoProveedor !== TipoProveedor.SERVICIOS) {
           throw new BadRequestException('SOLO LOS PROVEEDORES DE SERVICIOS SE PUEDEN AGREGAR SIN CONTRATO');
         }
       }
@@ -216,59 +218,64 @@ export class OrdenService {
         ...rest
       } = updateOrdenDto;
 
-      const orden = await this.findOne(id);
+      let newServices = [];
 
-      if (!orden) {
+      const currentlyOrder = await this.ordenRepository.findOne(
+        {
+          where: {
+            id: id,
+          }, relations: {
+            serviciosContratados: true
+          }
+        });
+
+      if (!currentlyOrder) {
         throw new NotFoundException('No se encuentra la orden');
       }
 
       if (campaniaId) {
-        orden.campaña = await this.campañaService.findOne(campaniaId);
+        currentlyOrder.campaña = await this.campañaService.findOne(campaniaId);
       }
       if (proveedorId) {
-        orden.proveedor = await this.proveedorService.findOne(proveedorId);
+        currentlyOrder.proveedor = await this.proveedorService.findOne(proveedorId);
       }
       if (contratoId) {
-        orden.contratoMaestro = await this.contratoService.findOne(contratoId);
+        currentlyOrder.contratoMaestro = await this.contratoService.findOne(contratoId);
       }
 
-      Object.assign(orden, rest);
+      Object.assign(currentlyOrder, { ...rest },);
 
       if (tipoDeServicio) {
-        orden.tipoDeServicio = tipoDeServicio;
-        for (const servicioContratado of orden.serviciosContratados) {
+        currentlyOrder.tipoDeServicio = tipoDeServicio;
+        currentlyOrder.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
+      }
+
+      if (currentlyOrder.serviciosContratados) {
+        for (const servicioContratado of currentlyOrder.serviciosContratados) {
           await this.servicioContratadoService.remove(servicioContratado.id);
         }
-        orden.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
       }
 
       if (serviciosContratados) {
-        for (const servicioContratado of orden.serviciosContratados) {
-          await this.servicioContratadoService.remove(servicioContratado.id);
-        }
-        for (const servicioContratado of serviciosContratados) {
-          await this.servicioContratadoService.create({
-            ...servicioContratado,
-            ordenId: orden.id,
-          });
-        }
+        newServices = await Promise.all(
+          serviciosContratados.map(async (updateService) => {
+            return await this.servicioContratadoService.create({
+              ...updateService,
+              ordenId: currentlyOrder.id,
+            });
+          }),
+        );
+
+        currentlyOrder.serviciosContratados = newServices;
       }
 
-      await this.ordenRepository.save(orden);
-      await this.calcularMontosDeOrden(orden.id);
 
-      const ordenModificada = await this.findOne(id);
+      await this.ordenRepository.save(currentlyOrder);
+      await this.calcularMontosDeOrden(currentlyOrder.id);
 
-      delete ordenModificada.contratoMaestro;
-      delete ordenModificada.campaña.activaciones;
-      delete ordenModificada.campaña.dependencias;
-      delete ordenModificada.campaña.creadoEn;
-      delete ordenModificada.campaña.actualizadoEn;
-      delete ordenModificada.partida;
-      delete ordenModificada.proveedor;
-
-      return ordenModificada;
+      return { message: 'ORDEN ACTUALIZADA CON EXITO' };
     } catch (error) {
+      console.log(error);
       handleExeptions(error);
     }
   }
@@ -303,7 +310,7 @@ export class OrdenService {
         .getMany();
 
       if (ordenes.length === 0) return null;
-      
+
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {
         const proveedorId = orden.proveedor.id;
         if (!acc[proveedorId]) {
