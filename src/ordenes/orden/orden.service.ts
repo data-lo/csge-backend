@@ -193,6 +193,7 @@ export class OrdenService {
         where: { id: id },
         relations: {
           proveedor: true,
+          contratoMaestro: true,
           serviciosContratados: true,
           campaña: true,
         },
