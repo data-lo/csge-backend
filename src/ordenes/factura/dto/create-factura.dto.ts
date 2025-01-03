@@ -10,8 +10,6 @@ export class CreateFacturaDto {
     id:string;
     
     @IsOptional()
-    @IsUUID()
-    @IsArray({each:true})
     ordenesDeServicioIds:string[];
 
     @IsUUID()

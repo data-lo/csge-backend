@@ -40,6 +40,7 @@ import { FirmamexModule } from './firma/firmamex/firmamex.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -96,7 +97,8 @@ import { CacheModule } from '@nestjs/cache-manager';
     LoggerModule,
     DocumentsModule,
     FirmamexModule,
-    WebhooksModule
+    WebhooksModule,
+    MinioModule
   ],
 })
 export class AppModule {}

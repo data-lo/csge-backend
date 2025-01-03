@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  ParseFloatPipe,
 } from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -109,8 +108,8 @@ export class FacturaService {
       await this.facturaRepository.save(factura);
       return factura;
     } catch (error) {
-      setTimeout(()=>{},1000);
-      await this.eliminarArchivoDeFactura(error.id);
+      //setTimeout(()=>{},1000);
+      //await this.eliminarArchivoDeFactura(error.id);
       handleExeptions(error);
     }
   }

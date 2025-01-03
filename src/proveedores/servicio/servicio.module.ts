@@ -7,11 +7,12 @@ import { Estacion } from '../estacion/entities/estacion.entity';
 import { EstacionModule } from '../estacion/estacion.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { Proveedor } from '../proveedor/entities/proveedor.entity';
 
 @Module({
   controllers: [ServicioController],
   providers: [ServicioService],
-  imports:[TypeOrmModule.forFeature([Servicio,Estacion]), 
+  imports:[TypeOrmModule.forFeature([Servicio,Estacion,Proveedor]), 
   EstacionModule,
   AuthModule,
   PassportModule

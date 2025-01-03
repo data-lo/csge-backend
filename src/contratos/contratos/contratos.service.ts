@@ -18,7 +18,7 @@ import { LoggerService } from 'src/logger/logger.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { TipoDeServicio } from '../interfaces/tipo-de-servicio';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+
 
 @Injectable()
 export class ContratosService {
@@ -237,7 +237,6 @@ export class ContratosService {
         ivaMontoMaximoContratado,
         ...rest
       } = updateContratoDto;
-      
       const { estatusDeContrato } = contratoMaestroDb;
       
       const estatusPermitidos = [

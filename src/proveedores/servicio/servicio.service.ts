@@ -9,6 +9,7 @@ import { EstacionService } from '../estacion/estacion.service';
 import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ServicioEvent } from './interfaces/servicio-event';
+import { Proveedor } from '../proveedor/entities/proveedor.entity';
 
 @Injectable()
 export class ServicioService {
@@ -16,6 +17,10 @@ export class ServicioService {
   constructor(
     @InjectRepository(Servicio)
     private servicioRepository: Repository<Servicio>,
+    
+    @InjectRepository(Proveedor)
+    private proveedorRepository:Repository<Proveedor>,
+    
     private estacionService: EstacionService,
     private eventEmitter: EventEmitter2,
   ) { }
@@ -32,6 +37,37 @@ export class ServicioService {
       await this.servicioRepository.save(servicio);
       delete servicio.estacion;
       return servicio;
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+  
+  async findServiciosDelProveedor(proveedorId: string) {
+    try {
+      const servicios = await this.proveedorRepository.findOne({
+        where: { id: proveedorId },
+        relations: {
+          estaciones: {
+            servicios: true
+          },
+        },
+      });
+      
+      const serviciosArry = [];
+      
+      servicios.estaciones.forEach((estacion) => {
+        estacion.servicios.forEach(servicio => {
+          serviciosArry.push(servicio);
+        });
+      });
+
+      const serviciosDB = [];
+      for(const servicio of serviciosArry){
+        serviciosDB.push(await this.findOne(servicio.id));  
+      }
+      
+      return serviciosDB;
+
     } catch (error) {
       handleExeptions(error);
     }

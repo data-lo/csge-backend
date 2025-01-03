@@ -4,21 +4,15 @@ import {
     NotFoundException,
     ConflictException,
   } from "@nestjs/common";
-import { LoggerService } from "src/logger/logger.service";
   
   export const handleExeptions = (error: any) => {
 
-    const logger = new LoggerService('HANDLE EXCEPTIONS FUNCTION');
-    
-    logger.error(error.response,'handleExceptions');    
-    
+
     if(error.message){
-      logger.error(error.message,'handleExceptions');
       throw new BadRequestException(error.message);
 
     }
     if (error.detail) {
-      logger.error(error.detail,'handleExceptions');
       throw new BadRequestException(error.detail);
     }
   

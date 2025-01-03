@@ -119,55 +119,63 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
   const especificaciones: Array<any[]> = [];
 
   if (versionesSpot) {
-    especificaciones.push([
-      { text: 'VERSIONES SPOTS:', bold: true, font: 'Poppins', fontSize: 8 },
-      versionesSpot.toString(),
-    ]);
+    if(versionesSpot != 0){
+      especificaciones.push([
+        { text: 'VERSIONES SPOTS:', bold: true, font: 'Poppins', fontSize: 8 },
+        versionesSpot.toString(),
+      ]);
+    }
   }
 
   if (impactosVersionSpot) {
-    especificaciones.push([
-      {
-        text: 'IMPACTOS POR VERSION:',
-        bold: true,
-        font: 'Poppins',
-        fontSize: 8,
-      },
-      impactosVersionSpot.toString(),
-    ]);
+    console.log(versionesSpot)
+    if(impactosVersionSpot != 0){
+      especificaciones.push([
+        {
+          text: 'IMPACTOS POR VERSION:',
+          bold: true,
+          font: 'Poppins',
+          fontSize: 8,
+        },
+        impactosVersionSpot.toString(),
+      ]);
+    }
   }
   
   if (numeroDiasSpot) {
-    especificaciones.push([
-      {
-        text: 'NÚMERO DE DÍAS DEL SPOT:',
-        bold: true,
-        font: 'Poppins',
-        fontSize: 8,
-      },
-      numeroDiasSpot.toString(),
-    ]);
+    console.log(numeroDiasSpot)
+    if(numeroDiasSpot != 0){
+      especificaciones.push([
+        {
+          text: 'NÚMERO DE DÍAS DEL SPOT:',
+          bold: true,
+          font: 'Poppins',
+          fontSize: 8,
+        },
+        numeroDiasSpot.toString(),
+      ]);
+    }
   }
   
   if(servicio.tipoFormato){
-    especificaciones.push([
-      {
-        text:'FORMATO',
-        bold:true,
-        font:'Poppins',
-        fontSize:8
-      },
-      servicio.tipoFormato
-    ])
+    if(servicio.tipoFormato !== 'NO APLICA'){
+      especificaciones.push([
+        {
+          text:'FORMATO',
+          bold:true,
+          font:'Poppins',
+          fontSize:8
+        },
+        servicio.tipoFormato
+      ])
+    }
   }
 
-  if (calendarizacion?.length) {
+  if (calendarizacion?.length > 2) {
     const diasMarcados = calendarizacion.map((fecha) => fecha.getDate());
     const mes = calendarizacion[0].getMonth();
     const anio = calendarizacion[0].getFullYear();
-
     const svgCalendario = generarSVGCalendario(diasMarcados, mes, anio);
-
     especificaciones.push([
       { text: 'CALENDARIZACIÓN:', bold: true, font: 'Poppins', fontSize: 8},
       { svg: svgCalendario, aligment:'center'},
@@ -187,7 +195,6 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
       `UBICACIÓN: ${cartelera.ubicacion || ''}, ID CARTELERA: ${cartelera.idCartelera || ''}`,
     ]);
   }
-  console.log(especificaciones.length)
   return especificaciones;
 };
 
