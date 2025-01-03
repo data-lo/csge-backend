@@ -11,7 +11,7 @@ import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
-  constructor(private readonly ordenService: OrdenService) {}
+  constructor(private readonly ordenService: OrdenService) { }
   private readonly logger = new LoggerService(OrdenController.name);
 
   @Auth(...rolesOrdenes)
@@ -19,25 +19,25 @@ export class OrdenController {
   create(@Body() createOrdenDto: CreateOrdenDto) {
     return this.ordenService.create(createOrdenDto);
   }
-  
+
   @Auth(...rolesOrdenes)
   @Post('mandar-aprobar/:id')
   aprobarOrdern(
-    @Param('id',ParseUUIDPipe) id:string,
+    @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.ordenService.mandarOrdenAFirmar(id);
   }
 
   @Auth(...rolesOrdenes)
   @Get()
-  findAll(@Query('pagina') pagina:string ) {
+  findAll(@Query('pagina') pagina: string) {
     return this.ordenService.findAll(+pagina);
   }
 
   @Auth(...rolesOrdenes)
   @Get('rfc')
   findByRfc(
-    @Query('rfc') rfc:string ) {
+    @Query('rfc') rfc: string) {
     return this.ordenService.findByRfc(rfc);
   }
 
@@ -56,15 +56,15 @@ export class OrdenController {
   @Auth(...rolesOrdenes)
   @Get('pdf/:id')
   async obtenerOrdenEnPdf(
-    @Res() res:Response,
-    @Param('id',ParseUUIDPipe) id:string
+    @Res() res: Response,
+    @Param('id', ParseUUIDPipe) id: string
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
-    if(pdfDoc.tipo == 'url'){
+    if (pdfDoc.tipo == 'url') {
       res.send(pdfDoc.url);
     }
-    else{
-      res.setHeader('Content-Type','application/pdf');
+    else {
+      res.setHeader('Content-Type', 'application/pdf');
       pdfDoc.pipe(res);
       pdfDoc.end();
     }
@@ -78,25 +78,25 @@ export class OrdenController {
 
   @Auth(...rolesOrdenes)
   @Patch('actualizar-estatus/:id')
-  actualizarEstatus(@Param('id',ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
+  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
     return this.ordenService.actualizarEstatusOrden(id, estatus);
   }
 
   @Auth(...rolesOrdenes)
   @Patch('cancelar/:id')
-  cancelarOrden(@Param('id',ParseUUIDPipe) id: string) {
+  cancelarOrden(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenService.cancelarOrden(id);
   }
 
   @Auth(...rolesOrdenes)
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateOrdenDto: UpdateOrdenDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateOrdenDto: UpdateOrdenDto) {
     return this.ordenService.update(id, updateOrdenDto);
   }
 
   @Auth(...rolesOrdenes)
   @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenService.remove(id);
   }
 

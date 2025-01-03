@@ -245,10 +245,10 @@ export class OrdenService {
 
       Object.assign(currentlyOrder, { ...rest },);
 
-      if (tipoDeServicio) {
-        currentlyOrder.tipoDeServicio = tipoDeServicio;
-        currentlyOrder.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
-      }
+      // if (tipoDeServicio) {
+      //   currentlyOrder.tipoDeServicio = tipoDeServicio;
+      //   currentlyOrder.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
+      // }
 
       if (currentlyOrder.serviciosContratados) {
         for (const servicioContratado of currentlyOrder.serviciosContratados) {

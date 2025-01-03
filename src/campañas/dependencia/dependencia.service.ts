@@ -26,12 +26,10 @@ export class DependenciaService {
     }
   }
 
-  async findAll(pagina:number) {
+  async findAll() {
     try{
       const paginationSetter = new PaginationSetter()
       const dependencias = await this.dependenciaRepository.find({
-        take:paginationSetter.castPaginationLimit(),
-        skip:paginationSetter.getSkipElements(pagina),
         order:{
           nombre:'ASC'
         }
