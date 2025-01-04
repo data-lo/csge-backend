@@ -245,11 +245,6 @@ export class OrdenService {
 
       Object.assign(currentlyOrder, { ...rest },);
 
-      // if (tipoDeServicio) {
-      //   currentlyOrder.tipoDeServicio = tipoDeServicio;
-      //   currentlyOrder.folio = await this.obtenerFolioDeOrden(tipoDeServicio);
-      // }
-
       if (currentlyOrder.serviciosContratados) {
         for (const servicioContratado of currentlyOrder.serviciosContratados) {
           await this.servicioContratadoService.remove(servicioContratado.id);
@@ -482,5 +477,15 @@ export class OrdenService {
       TipoDeDocumento.ORDEN_DE_SERVICIO,
     );
     return documento;
+  }
+
+
+
+  async getOrdersByCampaignId(campaignId: string) {
+    return await this.ordenRepository.find({
+      where: {
+        campaña: { id: campaignId }
+      }
+    })
   }
 }
