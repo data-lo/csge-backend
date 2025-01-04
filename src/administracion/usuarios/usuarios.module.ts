@@ -12,7 +12,7 @@ import { PassportModule } from '@nestjs/passport';
   imports: [TypeOrmModule.forFeature([Usuario]),
     AuthModule,
     PassportModule,
-    JwtModule.registerAsync({
+  JwtModule.registerAsync({
     imports: [ConfigModule],
     inject: [ConfigService],
     useFactory: (configService: ConfigService) => {
