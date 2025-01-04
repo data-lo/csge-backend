@@ -1,6 +1,6 @@
 services:
   backend:
-    image: dataloplatforms/csge-backend-minio:1.0.2
+    image: dataloplatforms/csge-backend-minio:1.0.3
     ports:
       - "4000:4000"
     env_file:
