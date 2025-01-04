@@ -56,20 +56,6 @@ export class Factura {
   total: number;
 
   @Column({
-    name: 'ruta_al_archivo_pdf',
-    nullable: false,
-    default: false,
-  })
-  pdf: string;
-
-  @Column({
-    name: 'ruta_al_archivo_xml',
-    nullable: false,
-    default: false,
-  })
-  xml: string;
-
-  @Column({
     name: 'validacion_testigo',
     type: 'boolean',
     nullable: false,

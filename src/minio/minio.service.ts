@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as Minio from 'minio';
 import { MinioFileI } from './interfaces/minio.file.interface';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
@@ -10,9 +10,6 @@ export class MinioService {
     bucket:any;
 
     private setMinioClient(){
-        console.log(process.env.MINIO_ACCESS_KEY);
-        console.log(process.env.MINIO_SECRET_KEY);
-
         if(!process.env.MINIO_ACCESS_KEY || !process.env.MINIO_SECRET_KEY){
             throw new Error('LAS API KEYS DE MINIO SERVICE NO ESTAN CONFIGURADAS');
         }
@@ -55,6 +52,49 @@ export class MinioService {
         }catch(error){
             handleExeptions(error);
         }
+    }
+
+    async obtenerArchivosDescarga(id: string, tipoArchivo: string): Promise<Buffer> {
+        try {
+            
+            if (tipoArchivo !== 'xml' && tipoArchivo !== 'pdf') {
+                throw new BadRequestException('Archivo no admitido');
+            }  
+            const minioClient = this.getMinioClient();
+            const bucket = this.bucket;
+            const exists = await minioClient.bucketExists(bucket);
+            
+            if (!exists) {
+                throw new Error('EL BUCKET DECLARADO EN LAS VARIABLES NO EXISTE');
+            }
+
+            const rutaCompleta = `${tipoArchivo}/${id}.${tipoArchivo}`;
+
+            try {
+                await minioClient.statObject(bucket,rutaCompleta);
+            } catch (error) {
+                throw new BadRequestException('No se encontró el archivo en el servidor');
+            }
+
+            const dataStream = await minioClient.getObject(bucket,rutaCompleta);
+            
+            return new Promise((resolve, reject) => {
+                const chunks: any[] = [];
+                
+                dataStream.on('data', (chunk) => chunks.push(chunk));
+                dataStream.on('end', () => resolve(Buffer.concat(chunks)));
+                dataStream.on('error', (error) => reject(error));
+            });
+    
+        } catch (error) {
+            handleExeptions(error);
+        }
+    }
+
+    async eliminarArchivos(id){
+
+        return {message:'ARCHIVOS ELIMINADOS EXITOSAMENTE',value:true}
+
     }
 }
 

@@ -67,19 +67,15 @@ export class FacturaController {
       }
     ]
     try{
-      const response = await this.minioService.subirArchivosAMinio(minioFiles);
-      console.log(response);
+      await this.minioService.subirArchivosAMinio(minioFiles);
     }catch(error){
       this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
       handleExeptions(error);
     }
 
     createFacturaDto.id = uuid;
-    createFacturaDto.pdf = minioFiles[0].name;
-    createFacturaDto.xml = minioFiles[1].name;
-    return {message:'success'};
-
-    //return this.facturaService.create(createFacturaDto,usuario);
+    console.log(createFacturaDto);
+    return this.facturaService.create(createFacturaDto,usuario);
   }
 
   @Auth(...rolesFactura) 
@@ -132,20 +128,20 @@ export class FacturaController {
     return this.facturaService.findOne(id);
   }
 
-  @Auth(...rolesFactura)
-  @Get('descargar/:id/:type')
-  async descargarArchivo(@Param() params, @Res() res: Response) {
-    const id = params.id;
-    const tipoArchivo = params.type;
-    const path = await this.facturaService.obtenerArchivosDescarga(
-      id,
-      tipoArchivo,
-    );
-    if (path === null) {
-      res.send({ message: null });
-    } else {
-      res.sendFile(path);
-    }
+  @Get('descargar/:id')
+  async descargarArchivo(
+    @Param('id') id: string,
+    @Query('tipo') tipoArchivo: string,
+    @Res() res: Response
+  ){
+    const buffer = await this.minioService.obtenerArchivosDescarga(id,tipoArchivo);
+    const contentType = tipoArchivo === 'xml' ? 'application/xml' : 'application/pdf';  
+    res.set({
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${id}.${tipoArchivo}"`
+    });
+    
+    res.send(buffer);
   }
 
   @Auth(...rolesFactura)
