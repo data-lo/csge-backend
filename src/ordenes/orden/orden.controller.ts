@@ -77,6 +77,12 @@ export class OrdenController {
   }
 
   @Auth(...rolesOrdenes)
+  @Get('campanias/:campaignId')
+  GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
+    return this.ordenService.getOrdersByCampaignId(id);
+  }
+
+  @Auth(...rolesOrdenes)
   @Patch('actualizar-estatus/:id')
   actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
     return this.ordenService.actualizarEstatusOrden(id, estatus);
@@ -100,4 +106,5 @@ export class OrdenController {
     return this.ordenService.remove(id);
   }
 
+ 
 }
