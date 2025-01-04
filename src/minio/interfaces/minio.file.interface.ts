@@ -1,4 +1,4 @@
 export interface MinioFileI {
-    file:Buffer,
+    file:Express.Multer.File,
     name:string
 }

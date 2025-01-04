@@ -9,7 +9,6 @@ export class CreateFacturaDto {
     id:string;
     
     @IsOptional()
-    @IsArray()
     ordenesDeServicioIds:string[];
 
     @IsString()

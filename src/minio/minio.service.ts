@@ -35,7 +35,6 @@ export class MinioService {
 
     async subirArchivosAMinio(files:MinioFileI[]){
         try{
-
             const minioClient = this.getMinioClient();
             const bucket = this.bucket;
             const exists = await minioClient.bucketExists(bucket);
@@ -43,7 +42,7 @@ export class MinioService {
             if(!exists) throw new Error('EL BUCKET DECLARADO EN LAS VARIABLES NO EXISTE, CREAR BUCKET');
             
             for(const file of files){
-                await minioClient.putObject(bucket,file.name,file.file,function(err,etag){
+                await minioClient.putObject(bucket,file.name,file.file.buffer,function(err,etag){
                     return;
                 });
             }

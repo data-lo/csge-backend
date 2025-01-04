@@ -25,6 +25,7 @@ import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { randomUUID } from 'crypto';
 import { MinioService } from 'src/minio/minio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { memoryStorage } from 'multer';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -38,34 +39,27 @@ export class FacturaController {
   @Auth(...rolesFactura)
   @Post()
   @UseInterceptors(
-    FilesInterceptor('archivosFactura', 2, {
-      fileFilter: fileFilter,
-    }),
+    FilesInterceptor('files'),
   )
   async create(
-    @UploadedFiles() archivosFactura: Express.Multer.File[],
+    @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() createFacturaDto: CreateFacturaDto,
     @GetUser() usuario:Usuario
   ) {
 
-    const pdfFile = archivosFactura.find(
-      (file) => file.mimetype === 'application/pdf',
-    );
-    const xmlFile = archivosFactura.find(
-      (file) => file.mimetype === 'application/xml',
-    );
-
+    console.log(files);
     const uuid = randomUUID();
     const minioFiles = [
       {
         name:`pdf/${uuid}.pdf`,
-        file:pdfFile.buffer
+        file:files[0]
       },
       {
         name:`xml/${uuid}.xml`,
-        file:xmlFile.buffer
+        file:files[1]
       }
     ]
+
     try{
       await this.minioService.subirArchivosAMinio(minioFiles);
     }catch(error){
