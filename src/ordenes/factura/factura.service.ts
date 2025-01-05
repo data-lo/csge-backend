@@ -21,6 +21,7 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
+import { refCount } from 'rxjs';
 
 @Injectable()
 export class FacturaService {
@@ -47,6 +48,13 @@ export class FacturaService {
         folio,
       } = createFacturaDto;
       
+      let ordenesIds = []
+      if(typeof ordenesDeServicioIds === 'string'){
+        ordenesIds.push(ordenesDeServicioIds);
+      }else{
+        ordenesIds = ordenesDeServicioIds 
+      }
+
       const validacionBool = Boolean(validacionTestigo);
       
       if (!validacionBool){
@@ -55,9 +63,8 @@ export class FacturaService {
       }
       
       let ordenes: Orden[] = [];
-      let subtotalDeOrdenes: number = 0.0;
+      let subtotalDeOrdenes: Number = 0.0;
 
-      const ordenesIds = ordenesDeServicioIds;
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
         if (!orden){
@@ -67,8 +74,9 @@ export class FacturaService {
             id: id,
           });
         }
+
         if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
-        subtotalDeOrdenes = orden.subtotal + subtotalDeOrdenes;
+        subtotalDeOrdenes = Number(orden.subtotal) + Number(subtotalDeOrdenes);
         ordenes.push(orden);
       }
 
@@ -91,30 +99,42 @@ export class FacturaService {
           id: id,
         });
 
-      if (subtotalDeOrdenes != facturaXmlData.subtotal)
+      if (subtotalDeOrdenes != facturaXmlData.subtotal){
         throw new BadRequestException({
           message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
           id: id,
         });
+      }
+      try{
+        const factura = this.facturaRepository.create({
+          id: id,
+          ordenesDeServicio: ordenes,
+          proveedor: proveedor,
+          subtotal: facturaXmlData.subtotal,
+          iva: facturaXmlData.iva,
+          total: facturaXmlData.total,
+          validacionTestigo: validacionBool,
+          usuarioTestigo:usuarioTestigo,
+          folio:folio
+        });
+        await this.facturaRepository.save(factura);
+        console.log(facturaXmlData);
+        return {
+          rfc:facturaXmlData.rfc,
+          subtotal:facturaXmlData.subtotal,
+          iva:facturaXmlData.iva,
+          total:facturaXmlData.total,
+          conceptos:facturaXmlData.conceptos
+        }
 
-      const factura = this.facturaRepository.create({
-        id: id,
-        ordenesDeServicio: ordenes,
-        proveedor: proveedor,
-        subtotal: facturaXmlData.subtotal,
-        iva: facturaXmlData.iva,
-        total: facturaXmlData.total,
-        validacionTestigo: validacionBool,
-        usuarioTestigo:usuarioTestigo,
-        folio:folio
-      });
-
-      await this.facturaRepository.save(factura);
-      return factura;
+      }catch(error){
+        console.log('ERROR EN FACTURA CREATE')
+        throw error;
+      }    
     } catch (error) {
       handleExeptions(error);
     }
-  }
+  }d
 
   async findAllBusqueda() {
     try {

@@ -7,7 +7,7 @@ export class CreateFacturaDto {
     
     @IsOptional()
     id:string;
-    
+
     @IsOptional()
     ordenesDeServicioIds:string[];
 
@@ -31,13 +31,6 @@ export class CreateFacturaDto {
     @IsOptional()
     validacionTestigo:string;
 
-    @IsDate()
-    @IsOptional()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaValidacion:string;
 
     @IsOptional()
     @IsDate()
@@ -46,14 +39,6 @@ export class CreateFacturaDto {
         return new Date(`${year}-${month}-${day}`)
     })
     fechaAprobacion:string;
-
-    @IsOptional()
-    @IsDate()
-    @Transform(({value}) => {
-        const [day, month, year] = value.split('-');
-        return new Date(`${year}-${month}-${day}`)
-    })
-    fechaRecepcion:string;
     
     @IsOptional()
     @IsDate()

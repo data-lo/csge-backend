@@ -51,6 +51,7 @@
     "rxjs": "^7.8.1",
     "sharp": "^0.33.5",
     "typeorm": "^0.3.20",
+    "uuid": "^11.0.4",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
