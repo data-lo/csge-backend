@@ -17,8 +17,8 @@ export class DependenciaController {
 
   @Auth(...rolesCampanias)
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.dependenciaService.findAll(+pagina);
+  findAll() {
+    return this.dependenciaService.findAll();
   }
 
   @Auth(...rolesCampanias)

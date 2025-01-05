@@ -55,6 +55,7 @@ export class UsuariosService {
           'usuario.segundoApellido',
           'usuario.correo',
           'usuario.permisos',
+          'usuario.documentosDeFirma',
           'departamento.nombre',
           'puesto.nombre'
         ])
@@ -80,6 +81,7 @@ export class UsuariosService {
           segundoApellido: true,
           correo: true,
           permisos: true,
+          documentosDeFirma: true,
           puesto: {
             nombre: true
           },
@@ -113,9 +115,9 @@ export class UsuariosService {
   async update(userId: string, updateUsuarioDto: UpdateUsuarioDto) {
     try {
       const usuarioDb = await this.findOne(userId);
-      Object.assign(usuarioDb,updateUsuarioDto);
+      Object.assign(usuarioDb, updateUsuarioDto);
       const updatedResult = await this.usuarioRepository.save(usuarioDb);
-      if(!updatedResult) throw new InternalServerErrorException('NO SE ENCUENTRA EL USUARIO');
+      if (!updatedResult) throw new InternalServerErrorException('NO SE ENCUENTRA EL USUARIO');
       return updatedResult;
     } catch (error) {
       handleExeptions(error);
@@ -124,7 +126,7 @@ export class UsuariosService {
 
   async deactivate(id: string) {
     try {
-      
+
       const usuarioDb = await this.findOne(id);
       usuarioDb.estatus = false;
       await this.usuarioRepository.save(usuarioDb);
@@ -140,12 +142,12 @@ export class UsuariosService {
       const { userId, newPassword } = updatePasswordDto;
       const updatedPassword = bcrypt.hashSync(newPassword, 10)
       const usuarioDb = await this.findOne(userId);
-      
+
       usuarioDb.password = updatedPassword;
 
       await this.usuarioRepository.save(usuarioDb)
       return { message: "CONTRASEÑA ACTUALIADA EXISTOSAMENTE" };
-      
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -177,15 +179,20 @@ export class UsuariosService {
       }
 
       delete dbUser.password;
-      
+      const currentTime = new Date();
+
+      const gmtMinus6Offset = -6 * 60;
+
+      const expirationTimeGMTMinus6 = new Date(currentTime.getTime() + 6 * 60 * 60 * 1000 + gmtMinus6Offset * 60 * 1000);
+
       return {
         user: {
-          id:dbUser.id
+          id: dbUser.id,
         },
-        token: {
-          token: this.getJwtToken({ id: dbUser.id })
-        }
-      }
+        token: this.getJwtToken({ id: dbUser.id }),
+        expiresIn: expirationTimeGMTMinus6.toISOString(),
+
+      };
     } catch (error) {
       handleExeptions(error);
     }
@@ -210,8 +217,8 @@ export class UsuariosService {
 
   async reestablecer(userId: string) {
     try {
-      const usuarioDb = await this.usuarioRepository.findOneBy({id:userId});
-      usuarioDb.password = bcrypt.hashSync(defaultPassowrd,10);
+      const usuarioDb = await this.usuarioRepository.findOneBy({ id: userId });
+      usuarioDb.password = bcrypt.hashSync(defaultPassowrd, 10);
       await this.usuarioRepository.save(usuarioDb);
       return { message: "Contraseña reestablecida" };
     } catch (error) {
@@ -222,17 +229,17 @@ export class UsuariosService {
   async removerPermisos(actualizarPermisosDto: ActualizarPermisosDto) {
     try {
       const { id, permisos } = actualizarPermisosDto;
-      const usuarioDb = await this.usuarioRepository.findOneBy({id:id});
-      if(!usuarioDb) throw new NotFoundException('NO SE ENCUENTRA EL USUARIO');
+      const usuarioDb = await this.usuarioRepository.findOneBy({ id: id });
+      if (!usuarioDb) throw new NotFoundException('NO SE ENCUENTRA EL USUARIO');
       if (usuarioDb.estatus === false) throw new BadRequestException('EL USUARIO SE ENCUENTRA DESACTIVADO, ACTIVAR USUARIO');
 
       const permisosActualizados = usuarioDb.permisos.filter(
         (permiso) => !permisos.includes(permiso),
       );
-      
+
       usuarioDb.permisos = permisosActualizados;
       await this.usuarioRepository.save(usuarioDb);
-      return {message:'PERMISOS REMOVIDOS EXITOSAMENTE'};
+      return { message: 'PERMISOS REMOVIDOS EXITOSAMENTE' };
 
     } catch (error) {
       handleExeptions(error);
@@ -252,8 +259,8 @@ export class UsuariosService {
 
       usuarioDb.permisos = permisosActualizados;
       await this.usuarioRepository.save(usuarioDb);
-      return {message:'PERMISOS ACTUALIZADOS EXITOSAMENTE'};
-      
+      return { message: 'PERMISOS ACTUALIZADOS EXITOSAMENTE' };
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -266,7 +273,7 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-      if(!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
       return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
       handleExeptions(error);

@@ -5,11 +5,8 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseInterceptors,
   UploadedFiles,
-  BadRequestException,
-  InternalServerErrorException,
   Query,
   ParseUUIDPipe,
   Res,
@@ -19,66 +16,59 @@ import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { fileFilter } from 'src/helpers/fileFilter';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { fileNamer } from 'src/helpers/fileNamer';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesFactura } from './valid-facturas-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
-import { Stream } from 'stream';
+import { randomUUID } from 'crypto';
+import { MinioService } from 'src/minio/minio.service';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { memoryStorage } from 'multer';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
-  constructor(private readonly facturaService: FacturaService) {}
+  constructor(
+    private readonly facturaService: FacturaService,
+    private readonly minioService: MinioService
+  ) {}
+  
   private readonly logger = new LoggerService(FacturaController.name);
 
   @Auth(...rolesFactura)
   @Post()
   @UseInterceptors(
-    FilesInterceptor('archivosFactura', 2, {
-      fileFilter: fileFilter,
-      storage: diskStorage({
-        destination: (req, file, callback) => {
-          const isPdf = file.mimetype === 'application/pdf';
-          const folder = isPdf
-            ? './static/uploads/pdf'
-            : './static/uploads/xml';
-          callback(null, folder);
-        },
-        filename: fileNamer,
-      }),
-    }),
+    FilesInterceptor('files'),
   )
   async create(
-    @UploadedFiles() archivosFactura: Express.Multer.File[],
+    @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() createFacturaDto: CreateFacturaDto,
     @GetUser() usuario:Usuario
   ) {
-    const uuid = archivosFactura[0].filename.split('.')[0];
 
-    if (!uuid)
-      throw new InternalServerErrorException(
-        'No se logro generar el UUID para los archivos',
-      );
+    console.log(files);
+    const uuid = randomUUID();
+    const minioFiles = [
+      {
+        name:`pdf/${uuid}.pdf`,
+        file:files[0]
+      },
+      {
+        name:`xml/${uuid}.xml`,
+        file:files[1]
+      }
+    ]
 
-    const pdfFile = archivosFactura.find(
-      (file) => file.mimetype === 'application/pdf',
-    );
-    const xmlFile = archivosFactura.find(
-      (file) => file.mimetype === 'application/xml',
-    );
-
-    if (!pdfFile || !xmlFile) {
-      throw new BadRequestException(
-        'Ambos archivos (XML Y PDF) son requeridos',
-      );
+    try{
+      await this.minioService.subirArchivosAMinio(minioFiles);
+    }catch(error){
+      this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
+      handleExeptions(error);
     }
 
     createFacturaDto.id = uuid;
-    createFacturaDto.xml = xmlFile.path;
-    createFacturaDto.pdf = pdfFile.path;
+    console.log(createFacturaDto);
     return this.facturaService.create(createFacturaDto,usuario);
   }
 
@@ -132,20 +122,20 @@ export class FacturaController {
     return this.facturaService.findOne(id);
   }
 
-  @Auth(...rolesFactura)
-  @Get('descargar/:id/:type')
-  async descargarArchivo(@Param() params, @Res() res: Response) {
-    const id = params.id;
-    const tipoArchivo = params.type;
-    const path = await this.facturaService.obtenerArchivosDescarga(
-      id,
-      tipoArchivo,
-    );
-    if (path === null) {
-      res.send({ message: null });
-    } else {
-      res.sendFile(path);
-    }
+  @Get('descargar/:id')
+  async descargarArchivo(
+    @Param('id') id: string,
+    @Query('tipo') tipoArchivo: string,
+    @Res() res: Response
+  ){
+    const buffer = await this.minioService.obtenerArchivosDescarga(id,tipoArchivo);
+    const contentType = tipoArchivo === 'xml' ? 'application/xml' : 'application/pdf';  
+    res.set({
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${id}.${tipoArchivo}"`
+    });
+    
+    res.send(buffer);
   }
 
   @Auth(...rolesFactura)

@@ -1,20 +1,16 @@
-import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { EstatusFactura } from "../interfaces/estatus-factura";
 import { Transform } from "class-transformer";
 
 export class CreateFacturaDto {
     
     
-    @IsUUID()
     @IsOptional()
     id:string;
     
     @IsOptional()
-    @IsUUID()
-    @IsArray({each:true})
     ordenesDeServicioIds:string[];
 
-    @IsUUID()
     @IsString()
     @IsOptional()
     proveedorId:string;

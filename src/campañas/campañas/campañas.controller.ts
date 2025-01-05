@@ -11,7 +11,7 @@ import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 export class CampañasController {
   constructor(
     private readonly campañasService: CampañasService
-  ){}
+  ) { }
 
   @Auth(...rolesCampanias)
   @Post()
@@ -22,14 +22,14 @@ export class CampañasController {
   @Auth(...rolesCampanias)
   @Post('mandar-aprobar/:id')
   aprobarCampania(
-    @Param('id',ParseUUIDPipe) id:string
-  ){
+    @Param('id', ParseUUIDPipe) id: string
+  ) {
     return this.campañasService.mandarCampañaAAprobar(id);
   }
 
   @Auth(...rolesCampanias)
   @Get()
-  findAll( @Query('pagina') pagina:string) {
+  findAll(@Query('pagina') pagina: string) {
     return this.campañasService.findAll(+pagina);
   }
 
@@ -48,26 +48,26 @@ export class CampañasController {
   @Auth(...rolesCampanias)
   @Patch('actualizar-estatus/:id')
   actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusCampaña) {
-    return this.campañasService.actualizarEstatus(id,estatus);
+    return this.campañasService.actualizarEstatus(id, estatus);
   }
-  
+
   @Auth(...rolesCampanias)
   @Patch('activar/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
-    return this.campañasService.agregarActivacion(id,createActivacionDto);
+    return this.campañasService.agregarActivacion(id, createActivacionDto);
   }
 
   @Auth(...rolesCampanias)
   @Patch('cancelar')
-  cancelar(@Body('campañaId', ParseUUIDPipe) id:string) {
+  cancelar(@Body('campañaId', ParseUUIDPipe) id: string) {
     return this.campañasService.cancelarCampaña(id);
   }
-  
+
   @Auth(...rolesCampanias)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCampañaDto: UpdateCampañaDto) {
     return this.campañasService.update(id, updateCampañaDto);
-  }  
+  }
 
   @Auth(...rolesCampanias)
   @Delete(':id')

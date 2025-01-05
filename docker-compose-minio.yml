@@ -1,18 +1,4 @@
 services:
-  backend:
-    image: dataloplatforms/csge-backend-minio:1.0.3
-    ports:
-      - "4000:4000"
-    env_file:
-      - .env.cloud
-    environment:
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - MINIO_BUCKET=facturas
-      - MINIO_HOST=minio
-    depends_on:
-      - minio
-
   minio:
     image: minio/minio
     ports:

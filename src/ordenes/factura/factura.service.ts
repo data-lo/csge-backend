@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  ParseFloatPipe,
 } from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
@@ -12,8 +11,6 @@ import { Factura } from './entities/factura.entity';
 import { Repository } from 'typeorm';
 import { Orden } from '../orden/entities/orden.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
-import * as path from 'path';
-import * as fs from 'fs';
 import * as xmls2js from 'xml-js';
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
@@ -23,10 +20,10 @@ import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
+import { MinioService } from 'src/minio/minio.service';
 
 @Injectable()
 export class FacturaService {
-  private readonly rutaDeCarga = path.join(__dirname, '../../../');
 
   constructor(
     @InjectRepository(Factura)
@@ -37,6 +34,7 @@ export class FacturaService {
     private proveedrRepository: Repository<Proveedor>,
     
     private readonly firmaService:FirmaService,
+    private readonly minioService:MinioService,
   ) {}
 
   async create(createFacturaDto: CreateFacturaDto, usuarioTestigo:Usuario) {
@@ -45,26 +43,30 @@ export class FacturaService {
         ordenesDeServicioIds,
         proveedorId,
         validacionTestigo,
-        xml,
         id,
-        ...rest
+        folio,
       } = createFacturaDto;
       
       const validacionBool = Boolean(validacionTestigo);
-      if (!validacionBool)
+      
+      if (!validacionBool){
+        console.log('ERROR EN VALIDACIÓN')
         throw new BadRequestException({ message: 'VALIDAR TESTIGO', id: id });
-
+      }
+      
       let ordenes: Orden[] = [];
       let subtotalDeOrdenes: number = 0.0;
 
       const ordenesIds = ordenesDeServicioIds;
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
-        if (!orden)
+        if (!orden){
+          console.log('ERROR EN LOS IDS DE LAS ORDENES')
           throw new NotFoundException({
             message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA`,
             id: id,
           });
+        }
         if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
         subtotalDeOrdenes = orden.subtotal + subtotalDeOrdenes;
         ordenes.push(orden);
@@ -73,13 +75,15 @@ export class FacturaService {
       const proveedor = await this.proveedrRepository.findOneBy({
         id: proveedorId,
       });
-      if (!proveedor)
+      if (!proveedor){
+        console.log('ERROR EN EL PROVEEDOR')
         throw new NotFoundException({
           message: 'NO SE ENCUENTRA EL PROVEEDOR',
           id: id,
         });
-
-      const facturaXmlData = await this.obtenerDatosDeArchivoXML(xml);
+      }
+      
+      const facturaXmlData = await this.obtenerDatosDeArchivoXML(id);
 
       if (proveedor.rfc !== facturaXmlData.rfc)
         throw new BadRequestException({
@@ -97,20 +101,17 @@ export class FacturaService {
         id: id,
         ordenesDeServicio: ordenes,
         proveedor: proveedor,
-        xml: xml,
         subtotal: facturaXmlData.subtotal,
         iva: facturaXmlData.iva,
         total: facturaXmlData.total,
         validacionTestigo: validacionBool,
         usuarioTestigo:usuarioTestigo,
-        ...rest,
+        folio:folio
       });
 
       await this.facturaRepository.save(factura);
       return factura;
     } catch (error) {
-      setTimeout(()=>{},1000);
-      await this.eliminarArchivoDeFactura(error.id);
       handleExeptions(error);
     }
   }
@@ -191,12 +192,13 @@ export class FacturaService {
     }
   }
 
-  async obtenerDatosDeArchivoXML(rutaXml: string) {
+  async obtenerDatosDeArchivoXML(id: string) {
     try {
-      const rutaCompletaXml = this.rutaDeCarga + rutaXml;
-      const filePath = path.resolve(rutaCompletaXml);
-      const xml = await fs.readFileSync(filePath, 'utf-8');
-      const facturaJsonString = xmls2js.xml2json(xml, {
+      
+      const xml = await this.minioService.obtenerArchivosDescarga(id,'xml');
+      const xmlString = xml.toString('utf-8');
+      
+      const facturaJsonString = xmls2js.xml2json(xmlString, {
         compact: true,
         spaces: 4,
       });
@@ -236,53 +238,6 @@ export class FacturaService {
     }
   }
 
-  //Funcion Para descargar los archivos xml y pdf  de filesystem
-  async obtenerArchivosDescarga(id: string, tipoArchivo: string) {
-    try {
-      const factura = await this.facturaRepository.findOneBy({ id: id });
-      if (!factura) throw new BadRequestException('No se encuentra la factura');
-      if (tipoArchivo != 'xml' && tipoArchivo != 'pdf')
-        throw new BadRequestException('Archivo no admitido');
-      const rutaDeArchivo = tipoArchivo === 'xml' ? factura.xml : factura.pdf;
-
-      const pathArchivo = path.join(this.rutaDeCarga, rutaDeArchivo);
-      if (!fs.existsSync(pathArchivo))
-        throw new BadRequestException('No se encontro el archivo');
-      return pathArchivo;
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
-
-  //Elimina los archivos de la factura en filesystem
-  async eliminarArchivoDeFactura(id: string) {
-    try {
-      const pdf = path.join(
-        this.rutaDeCarga,
-        'static/uploads/pdf/',
-        `${id}.pdf`,
-      );
-      const xml = path.join(
-        this.rutaDeCarga,
-        'static/uploads/xml/',
-        `${id}.xml`,
-      );
-      if (!fs.existsSync(pdf))
-        throw new BadRequestException('archivo pdf no encontrado');
-      if (fs.existsSync(xml))
-        throw new BadRequestException('archivo xml no encontrado');
-
-      fs.unlinkSync(pdf);
-      fs.unlinkSync(xml);
-
-      return {
-        message: 'Archivos xml y pdf de la factura eliminados exitosamente',
-        value: true,
-      };
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
 
   //Canela la factura ingresada
   async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
@@ -296,7 +251,7 @@ export class FacturaService {
         );
 
       factura.motivoCancelacion = motivoDeCancelacion;
-      const { message, value } = await this.eliminarArchivoDeFactura(id);
+      const { message, value } = await this.minioService.eliminarArchivos(id);
 
       if (value) {
         await this.facturaRepository.save(factura);
