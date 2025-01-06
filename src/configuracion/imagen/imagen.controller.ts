@@ -1,66 +1,63 @@
 import { Controller, Get, Post, Res, 
          UseInterceptors,
          UploadedFile,
-         BadRequestException,
-         Delete} from '@nestjs/common';
-import { ImagenService } from './imagen.service';
-import { ConfigService } from '@nestjs/config';
+         Delete,
+         NotFoundException} from '@nestjs/common';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { fileFilter } from 'src/helpers/fileFilter';
-import { fileNamer } from 'src/helpers/fileNamer';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesImagen } from './valid-imagen-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { MinioService } from 'src/minio/minio.service';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 
 @Auth(...rolesImagen)
 @Controller('configuracion/imagen')
 export class ImagenController {
   constructor(
-    private readonly imagenService: ImagenService,
-    private readonly configService: ConfigService
+    private minioService:MinioService,
   ) {}
 
   private readonly logger = new LoggerService(ImagenController.name);
-  
-
+  private LOGO_NAME = 'GOBIERNO_DEL_ESTADO_LOGO';
   @Get()
-  findImage(
+  async findImage(
     @Res() res:Response,
   ){
-      const path = this.imagenService.getImagen();
-      if(path === null){
-        res.send({message:null});
-      }else{
-        
-        res.sendFile(path);
-      }
+    try{
+      const {buffer,contentType}= await this.minioService.obtenerImagen(this.LOGO_NAME);
+      res.setHeader('Content-Type',contentType);
+      res.send(buffer);
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   @Auth(...rolesImagen)
   @Post()
   @UseInterceptors( FileInterceptor ('imagen',{
     fileFilter:fileFilter,
-    storage: diskStorage({
-      destination:'./static/uploads/imagen',
-      filename:fileNamer
-    }),
   }))
   async uploadProductImage(
     @UploadedFile() imagen:Express.Multer.File,
   ){
-      if(!imagen){
-        throw new BadRequestException('Formatos de Imágen Aceptadas: jpg, png, jpeg');
-      }
-      await this.imagenService.eliminarImagenExistente();
-      const secureUrl = `${this.configService.get('HOST_API')}/files/imagenes/${imagen.filename}`
-      return{secureUrl};  
+      if(!imagen) throw new NotFoundException('NO SE ENCUENTRA LA IMAGEN');
+      const extension = imagen.originalname.split('.').pop().toLowerCase();
+      await this.minioService.eliminarImagenAnterior(this.LOGO_NAME);
+      const minioFile = [{
+        file: imagen,
+        name: `${this.LOGO_NAME}.${extension}`
+      }];
+      await this.minioService.subirArchivosAMinio(minioFile);
+      return { message: 'IMAGEN SUBIDA EXITOSAMENTE' };
+      
   }
 
   @Delete()
   async eliminarImagen(){
-    await this.imagenService.eliminarImagen();
+    await this.minioService.eliminarImagenAnterior(this.LOGO_NAME);
+    return {message:'IMAGEN ELIMINADA EXITOSAMENTE'};
   }
 }
