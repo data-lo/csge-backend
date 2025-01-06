@@ -9,6 +9,5 @@ export const fileNamer = (req:Express.Request,file:Express.Multer.File, callback
 
     const fileExtension = file.mimetype.split('/')[1];
     const fileName = `${req['fileUuid']}.${fileExtension}`
-    console.log(fileName);
     callback(null, fileName);
 }
