@@ -79,7 +79,7 @@ export class OrdenController {
   @Auth(...rolesOrdenes)
   @Get('campanias/:campaignId')
   GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
-    return this.ordenService.getOrdersByCampaignId(id);
+    return this.ordenService.obtenerOrdenesPorCampaniaId(id);
   }
 
   @Auth(...rolesOrdenes)

@@ -8,7 +8,7 @@ import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orden } from './entities/orden.entity';
-import { Raw, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
@@ -26,8 +26,6 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
-import { OrdenModule } from './orden.module';
-import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 
 @Injectable()
 export class OrdenService {
@@ -144,6 +142,7 @@ export class OrdenService {
           fechaDeEmision: true,
           fechaDeAprobacion: true,
           estatus: true,
+          esCampania:true,
           campaña: {
             nombre: true,
           },
@@ -152,8 +151,11 @@ export class OrdenService {
             razonSocial: true,
           },
         },
+        where: {
+          esCampania:false
+        },
         order: {
-          fechaDeEmision: 'ASC',
+          fechaDeEmision: 'DESC',
         },
       });
       return ordenes;
@@ -175,6 +177,7 @@ export class OrdenService {
           tipoDeServicio: true,
           fechaDeEmision: true,
           estatus: true,
+          esCampania:true,
           campaña: {
             nombre: true,
           },
@@ -182,6 +185,9 @@ export class OrdenService {
             nombreComercial: true,
           },
         },
+        where:{
+          esCampania:false
+        }
       });
       return ordenes;
     } catch (error) {
@@ -348,7 +354,9 @@ export class OrdenService {
       const serviciosParaFolio = new ServiciosParaFolio();
       const abreviacionFolio =
         serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
-      return `${numeroDeFolio}-${abreviacionFolio}-${year}`;
+      const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}` 
+      console.log(folio);
+      return folio;
     } catch (error) {
       handleExeptions(error);
     }
@@ -479,13 +487,14 @@ export class OrdenService {
     return documento;
   }
 
-
-
-  async getOrdersByCampaignId(campaignId: string) {
+  async obtenerOrdenesPorCampaniaId(campaignId: string) {
     return await this.ordenRepository.find({
       where: {
         campaña: { id: campaignId }
-      }
-    })
+      },
+      relations:{
+        proveedor:true
+      },
+    });
   }
 }
