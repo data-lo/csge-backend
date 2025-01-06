@@ -13,23 +13,25 @@ import { MinioService } from 'src/minio/minio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 
-@Auth(...rolesImagen)
+
 @Controller('configuracion/imagen')
 export class ImagenController {
+  
   constructor(
     private minioService:MinioService,
   ) {}
 
   private readonly logger = new LoggerService(ImagenController.name);
   private LOGO_NAME = 'GOBIERNO_DEL_ESTADO_LOGO';
+
   @Get()
-  async findImage(
-    @Res() res:Response,
-  ){
+  async findImage(){
     try{
-      const {buffer,contentType}= await this.minioService.obtenerImagen(this.LOGO_NAME);
-      res.setHeader('Content-Type',contentType);
-      res.send(buffer);
+      const ruta = await this.minioService.obtenerImagen();
+      if(ruta){
+        return ruta
+      }
+      return {url:'url/no_imagen'};
     }catch(error){
       handleExeptions(error);
     }
@@ -45,7 +47,7 @@ export class ImagenController {
   ){
       if(!imagen) throw new NotFoundException('NO SE ENCUENTRA LA IMAGEN');
       const extension = imagen.originalname.split('.').pop().toLowerCase();
-      await this.minioService.eliminarImagenAnterior(this.LOGO_NAME);
+      await this.minioService.eliminarImagenAnterior();
       const minioFile = [{
         file: imagen,
         name: `${this.LOGO_NAME}.${extension}`
@@ -55,9 +57,10 @@ export class ImagenController {
       
   }
 
+  @Auth(...rolesImagen)
   @Delete()
   async eliminarImagen(){
-    await this.minioService.eliminarImagenAnterior(this.LOGO_NAME);
+    await this.minioService.eliminarImagenAnterior();
     return {message:'IMAGEN ELIMINADA EXITOSAMENTE'};
   }
 }
