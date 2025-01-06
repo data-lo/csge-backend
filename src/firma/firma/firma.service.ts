@@ -31,7 +31,6 @@ import {
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
-import exp from 'constants';
 
 
 @Injectable()
@@ -382,14 +381,14 @@ export class FirmaService {
     }
   }
 
-  async firmarCampania(usuarioId:string,documentoId:string) {
+  async firmarCampania(usuarioId:string,firmaId:string) {
     try {
 
       const serviciosFirmamex = await this.firmamexService.getServices(); 
       const usuarioDb = await this.usuarioRepository.findOneBy({id:usuarioId});
       if(!usuarioDb) throw new NotFoundException('NO SE ENCUENTRA EL USUARIO');
 
-      const campaniaFirma = await this.firmaRepository.findOneBy({ordenOFacturaId: documentoId});
+      const campaniaFirma = await this.firmaRepository.findOneBy({id:firmaId});
       if(!campaniaFirma) throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA EN EL MODULO DE FIRMA');
 
       const campaniaDb = await this.campaniaRepository.findOneBy({id: campaniaFirma.ordenOFacturaId});
@@ -405,11 +404,10 @@ export class FirmaService {
       const QR = QROrden;     
       console.log(ordenesDb);
       if(!ordenesDb) throw new NotFoundException('NO SE ENCONTRARON ORDENES DE SERVICIO');
-      return {message: 'NO FUNCIONA FIRMAMEX CON EXPEDIENTES :('};
-
       const expediente = await this.crearExpediente(campaniaDb.nombre);
       campaniaFirma.ticket = expediente;
       await this.firmaRepository.save(campaniaFirma);
+
       let url:string;
       for(const ordenDb of ordenesDb){
         const ordenEnPdf = await this.construir_pdf(ordenDb.id,TipoDeDocumento.ORDEN_DE_SERVICIO);
