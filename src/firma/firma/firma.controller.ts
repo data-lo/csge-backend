@@ -30,6 +30,15 @@ export class FirmaController {
   }
 
   @Auth(...rolesFirma)
+  @Get('firmar-campania/:campaniaId')
+  firmarCampania(
+    @Param('campaniaId',ParseUUIDPipe) campaniaId: string,
+    @GetUser() usuario:Usuario
+  ) {
+    return this.firmaService.firmarCampania(usuario.id,campaniaId);
+  }
+
+  @Auth(...rolesFirma)
   @Get('documentos-firmamex')
   findAllDocumentosFirmamex() {
     return this.firmaService.obtenerDocumentosDeFrimamex();
