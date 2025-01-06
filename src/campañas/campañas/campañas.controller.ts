@@ -46,12 +46,6 @@ export class CampañasController {
   }
 
   @Auth(...rolesCampanias)
-  @Patch('actualizar-estatus/:id')
-  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusCampaña) {
-    return this.campañasService.actualizarEstatus(id, estatus);
-  }
-
-  @Auth(...rolesCampanias)
   @Patch('activar/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
     return this.campañasService.agregarActivacion(id, createActivacionDto);
