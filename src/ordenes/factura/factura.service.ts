@@ -21,7 +21,6 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
-import { refCount } from 'rxjs';
 
 @Injectable()
 export class FacturaService {

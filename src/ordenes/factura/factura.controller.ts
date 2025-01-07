@@ -96,13 +96,13 @@ export class FacturaController {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
 
-  @Auth(...rolesFactura)
   @Get('pdf/:id')
   async obtenerDocumentoEnPdf(
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const pdfDoc = await this.facturaService.obtenerDocumentoDeFacturaPdf(id);
+    console.log(pdfDoc);
     if(pdfDoc.tipo = 'url'){
       res.send(pdfDoc.url);
     }else{
