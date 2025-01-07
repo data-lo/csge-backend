@@ -25,6 +25,10 @@ export class Orden {
   @PrimaryColumn('uuid')
   id: string;
 
+  @Generated('increment')
+  @Column()
+  indice:number;
+
   @Column({
     type: 'enum',
     name: 'estatus_de_orden',

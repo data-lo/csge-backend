@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res, ParseEnumPipe } from '@nestjs/common';
 import { OrdenService } from './orden.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
+import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
 
 
 @Controller('ordenes/ordenes-de-servicio')
@@ -39,6 +40,13 @@ export class OrdenController {
   findByRfc(
     @Query('rfc') rfc: string) {
     return this.ordenService.findByRfc(rfc);
+  }
+
+  @Get('folios')
+  obtenerFolios(
+    @Query('servicio',new ParseEnumPipe(TipoDeServicio)) servicio:TipoDeServicio
+  ){
+    return this.ordenService.obtenerFolioDeOrden(servicio);
   }
 
   @Auth(...rolesOrdenes)
@@ -106,5 +114,6 @@ export class OrdenController {
     return this.ordenService.remove(id);
   }
 
- 
+
+
 }

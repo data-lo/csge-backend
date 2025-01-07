@@ -337,25 +337,21 @@ export class OrdenService {
   async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
     try {
       const year = new Date().getFullYear();
-      const ultimosFolios = await this.ordenRepository
+      const ultimoFolio = await this.ordenRepository
         .createQueryBuilder('orden')
         .select(
-          "MAX((SPLIT_PART(orden.folio,'-',1) AS INTEGER))",
-          'maxFolio',
+          "MAX(orden.folio)",
+          "maxFolio",
         )
         .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
-        .getRawMany();
+        .getRawOne();
       
-      
-      console.log(ultimosFolios)
-      const ultimoFolio = ultimosFolios[-1];
-      console.log(ultimoFolio);
       const numeroDeFolio = ultimoFolio.maxFolio ? parseInt(ultimoFolio.maxFolio) + 1: 1;
       const serviciosParaFolio = new ServiciosParaFolio();
       const abreviacionFolio = serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
       const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}` 
-      console.log(folio);
+      
       return folio;
     } catch (error) {
       handleExeptions(error);
