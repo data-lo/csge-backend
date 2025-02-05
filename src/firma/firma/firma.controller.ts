@@ -35,7 +35,7 @@ export class FirmaController {
     @Param('campaniaId',ParseUUIDPipe) campaniaId: string,
     @GetUser() usuario:Usuario
   ) {
-    return this.firmaService.firmarCampania(usuario.id,campaniaId);
+    return this.firmaService.signCampaign(usuario.id,campaniaId);
   }
 
   @Auth(...rolesFirma)

@@ -18,7 +18,7 @@ export class WebhooksService {
     @InjectRepository(Firma)
     private readonly firmaRepository: Repository<Firma>,
     private eventEmitter: EventEmitter2,
-  ){}
+  ) { }
 
   recibirWebHook(
     firmamexWebhook:
@@ -44,7 +44,7 @@ export class WebhooksService {
       default:
         //console.log('Unhandled notification type:', firmamexWebhook);  
         return;
-        
+
     }
   }
 
@@ -52,20 +52,20 @@ export class WebhooksService {
     try {
       const { firmamex_id } = webhook;
       const documentoDeFirma = await this.firmaRepository.findOneBy({
-        ticket:firmamex_id
+        ticket: firmamex_id
       });
 
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
-      if(tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO){
+      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
 
         documentoDeFirma.estaFirmado = true;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.APROBADA;
-        this.emitter(documentoId,'aprobacion.orden');
-      
-      }else if(tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
-        this.emitter(documentoId,'aprobacion.factura');
+        this.emitter(documentoId, 'aprobacion.orden');
+
+      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        this.emitter(documentoId, 'aprobacion.factura');
       }
       await this.firmaRepository.save(documentoDeFirma);
     } catch (error) {
@@ -73,49 +73,47 @@ export class WebhooksService {
     }
   }
 
-  private async handleOriginalSigned(webhook:OriginalSigned){
-    try{
+  private async handleOriginalSigned(webhook: OriginalSigned) {
+    try {
       const { firmamex_id } = webhook;
       const documentoDeFirma = await this.firmaRepository.findOneBy({
-        ticket:firmamex_id
+        ticket: firmamex_id
       });
 
       const documentoId = documentoDeFirma.ordenOFacturaId;
 
-      if(documentoDeFirma.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
+      if (documentoDeFirma.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
         documentoDeFirma.estaFirmado = false;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.PENDIENTE_DE_FIRMA;
         await this.firmaRepository.save(documentoDeFirma);
-        this.emitter(documentoId,'cotejada.facura');
+        this.emitter(documentoId, 'cotejada.facura');
       }
-    }catch(error){
+    } catch (error) {
       //eliminar documento de firmamex
       handleExeptions(error);
     }
   }
 
   private async handleDocumentRejected(webhook: DocumentRejected) {
-    try{
+    try {
       const { firmamex_id } = webhook;
       const documentoDeFirma = await this.firmaRepository.findOneBy({
-        ticket:firmamex_id
+        ticket: firmamex_id
       });
 
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
-      if(tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO){
-
+      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
         documentoDeFirma.estaFirmado = true;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.CANCELADA;
-        this.emitter(documentoId,'cancelacion.orden');
-      
-      }else if(tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA){
-        this.emitter(documentoId,'cancelacion.factura');
+        this.emitter(documentoId, 'cancelacion.orden');
+      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        this.emitter(documentoId, 'cancelacion.factura');
       }
       await this.firmaRepository.save(documentoDeFirma);
 
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
@@ -124,7 +122,7 @@ export class WebhooksService {
     // Tu lógica aquí
   }
 
-  private emitter(documentoId:string, evento:string) {
+  private emitter(documentoId: string, evento: string) {
     this.eventEmitter.emit(
       `${evento}`,
       new DocumentoEvent(documentoId)
