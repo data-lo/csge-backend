@@ -21,9 +21,14 @@ import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function
 
 @Entity('ordenes_de_servicio')
 export class Orden {
+  
   @Generated('uuid')
   @PrimaryColumn('uuid')
   id: string;
+
+  @Generated('increment')
+  @Column()
+  indice:number;
 
   @Column({
     type: 'enum',

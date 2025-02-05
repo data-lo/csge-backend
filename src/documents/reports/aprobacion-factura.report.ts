@@ -69,7 +69,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
             }
         },
         header: await headerSection({
-            showLogo:true,
+            showLogo:false,
             showTitle:true,
             textoEncabezado:textoEncabezado,
             folio:folio

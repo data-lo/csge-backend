@@ -56,6 +56,7 @@ export class UsuariosService {
           'usuario.correo',
           'usuario.permisos',
           'usuario.documentosDeFirma',
+          'usuario.tipoOrdenDeServicio',
           'departamento.nombre',
           'puesto.nombre'
         ])
@@ -82,6 +83,7 @@ export class UsuariosService {
           correo: true,
           permisos: true,
           documentosDeFirma: true,
+          tipoOrdenDeServicio:true,
           puesto: {
             nombre: true
           },

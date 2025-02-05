@@ -26,6 +26,7 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
+import { foliosResponse } from './interfaces/folios-interface';
 
 @Injectable()
 export class OrdenService {
@@ -207,6 +208,7 @@ export class OrdenService {
         },
       });
       if (!orden) throw new NotFoundException('No se encuentra la orden');
+      delete orden.indice;
       return orden;
     } catch (error) {
       handleExeptions(error);
@@ -336,29 +338,36 @@ export class OrdenService {
 
   async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
     try {
+      let ultimosFolios: foliosResponse[];
       const year = new Date().getFullYear();
-
-      const ultimoFolio = await this.ordenRepository
+      ultimosFolios = await this.ordenRepository
         .createQueryBuilder('orden')
-        .select(
-          "MAX(CAST(SUBSTRING(orden.folio, '^[0-9]+') AS INTEGER))",
-          'maxFolio',
-        )
+        .select("orden.folio", "folio")
         .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
-        .getRawOne();
-
-      const numeroDeFolio = ultimoFolio.maxFolio
-        ? parseInt(ultimoFolio.maxFolio) + 1
-        : 1;
+        .getRawMany();
+  
+      console.log(ultimosFolios);
+  
+      // Verificar si ultimosFolios es nulo o vacío
+      let numeroDeFolio: number;
+      if (!ultimosFolios || ultimosFolios.length === 0) {
+        numeroDeFolio = 1;
+      } else {
+        const ultimoFolio = ultimosFolios[ultimosFolios.length - 1];
+        console.log(ultimoFolio);
+        const numero = ultimoFolio.folio.split('-')[0];
+        numeroDeFolio = parseInt(numero) + 1;
+      }
+  
       const serviciosParaFolio = new ServiciosParaFolio();
-      const abreviacionFolio =
-        serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
-      const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}` 
-      console.log(folio);
+      const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
+      const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}`;
+  
       return folio;
     } catch (error) {
-      handleExeptions(error);
+      console.error("Error al obtener el folio de orden:", error);
+      throw new Error("No se pudo generar el folio de orden");
     }
   }
 

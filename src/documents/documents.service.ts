@@ -22,25 +22,29 @@ export class DocumentsService {
   ) {}
 
   async construirOrdenDeServicio(id:string) {
-
-    const orden = await this.ordenDeServicioRepository.findOne({
-      where:{id:id},
-      relations:{
-        campaña:true,
-        proveedor:true,
-        serviciosContratados:true,
-        contratoMaestro:true
-      }
-    });
-    const textoEncabezado = await this.textosService.obtenerEncabezado();
-    const textoPieDePagina = await this.textosService.obtenerPieDePagina();
-    const definicionDeOrden = await ordenDeServicioPdf({
-      ordenDeServicio:orden,
-      textoEncabezado:textoEncabezado.texto,
-      textoPieDePagina:textoPieDePagina.texto,
-    });
-    const document = this.printerService.createPdf(definicionDeOrden);
-    return document;
+    try{
+      const orden = await this.ordenDeServicioRepository.findOne({
+        where:{id:id},
+        relations:{
+          campaña:true,
+          proveedor:true,
+          serviciosContratados:true,
+          contratoMaestro:true
+        }
+      });
+  
+      const textoEncabezado = await this.textosService.obtenerEncabezado();
+      const textoPieDePagina = await this.textosService.obtenerPieDePagina();
+      const definicionDeOrden = await ordenDeServicioPdf({
+        ordenDeServicio:orden,
+        textoEncabezado:textoEncabezado.texto,
+        textoPieDePagina:textoPieDePagina.texto,
+      });
+      const document = this.printerService.createPdf(definicionDeOrden);
+      return document;
+    }catch(error){
+      handleExeptions(error);
+    }
   }
 
   async construirAprobacionDeFactura(id:string){

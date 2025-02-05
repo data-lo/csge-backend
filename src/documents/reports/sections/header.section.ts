@@ -1,7 +1,8 @@
-import { readdirSync } from 'fs';
-import { join } from 'path';
+import axios from 'axios';
 import { Content } from 'pdfmake/interfaces';
 import sharp from 'sharp';
+import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { MinioService } from 'src/minio/minio.service';
 
 interface HeaderOptions {
   showTitle: boolean;
@@ -10,25 +11,18 @@ interface HeaderOptions {
   folio: string;
 }
 
-const refreshRoute = () => {
+const fetchImaageFromUrl = async () => {
   try {
-    const rutaDeCarga = join(__dirname, '../../../../static/uploads/imagen');
-    const imagen = readdirSync(rutaDeCarga);
-    const path = join(rutaDeCarga, imagen[0]);
-    return path;
+    const minioService = new MinioService();
+    const minioImageUrl = await minioService.obtenerImagen();
+    const imagen = await axios.get(minioImageUrl, {
+      responseType: 'arraybuffer',
+    });
+    const buffer = Buffer.from(imagen.data);
+    return buffer;
   } catch (error) {
     return null;
   }
-};
-
-const getImageDimensions = async (
-  imagePath: string,
-): Promise<{ width: number; height: number }> => {
-  const metadata = await sharp(imagePath).metadata();
-  return {
-    width: metadata.width || 0,
-    height: metadata.height || 0,
-  };
 };
 
 const dividirTextoPorEspacios = (texto: string, longitud: number): string => {
@@ -51,41 +45,49 @@ const dividirTextoPorEspacios = (texto: string, longitud: number): string => {
 export const headerSection = async (
   options: HeaderOptions,
 ): Promise<Content> => {
-  let logo: Content = null;
+  try {
+    let logo: Content = null;
+    const { showTitle, showLogo, textoEncabezado, folio } = options;
 
-  const { showTitle, showLogo, textoEncabezado, folio } = options;
+    if (showLogo) {
+      const imageBuffer = await fetchImaageFromUrl();
+      if (imageBuffer) {
+        const metadata = await sharp(imageBuffer).metadata();
+        const maxWidth = 150;
+        const maxheight = 100;
+        const scale = Math.min(
+          maxWidth / metadata.width,
+          maxheight / metadata.height,
+        );
 
-  if (showLogo) {
-    const imagePath = refreshRoute();
-    if (imagePath) {
-      const { width, height } = await getImageDimensions(imagePath);
+        const contentType = `image/${metadata.format}`;
 
-      const maxWidth = 150;
-      const maxheight = 100;
-      const scale = Math.min(maxWidth / width, maxheight / height);
-
-      logo = {
-        image: imagePath,
-        width: width * scale,
-        height: height * scale,
-        alignment: 'left',
-        margin: [30, 20, 10, 10],
-      };
-    } else {
-      logo = {text:''}
+        logo = {
+          image: `data:${contentType};base64;${imageBuffer.toString('base64')}`,
+          width: metadata.width * scale,
+          height: metadata.height * scale,
+          alignment: 'left',
+          margin: [30, 20, 10, 10],
+        };
+      } else {
+        logo = { text: '' };
+      }
     }
-  }
-  
-  const headerText: Content = {
-    text: `${dividirTextoPorEspacios(textoEncabezado, 50)}\n${folio}`,
-    alignment: 'center',
-    font: 'Poppins',
-    bold: true,
-    margin: [30, 30, 0, 20],
-  };
 
-  return {
-    columns: [showLogo ? logo : null, showTitle ? headerText : null],
-    margin: [0, 0, 0, 20],
-  };
+    const headerText: Content = {
+      text: `${dividirTextoPorEspacios(textoEncabezado, 50)}\n${folio}`,
+      alignment: 'center',
+      font: 'Poppins',
+      bold: true,
+      margin: [30, 30, 0, 20],
+    };
+
+    return {
+      columns: [showLogo ? logo : null, showTitle ? headerText : null],
+      margin: [0, 0, 0, 20],
+    };
+  } catch (error) {
+    console.log('ERROR EN CONSTRUCCION DE IMAGE BUFFER');
+    handleExeptions(error);
+  }
 };
