@@ -11,7 +11,7 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 
 @Controller('firma')
 export class FirmaController {
-  constructor(private readonly firmaService: FirmaService) {}
+  constructor(private readonly firmaService: FirmaService) { }
   private readonly logger = new LoggerService(FirmaController.name);
 
   @Auth(...rolesFirma)
@@ -23,19 +23,19 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('firmar-documento/:documentoId')
   firmarDocumento(
-    @Param('documentoId',ParseUUIDPipe) documentoId: string,
-    @GetUser() usuario:Usuario
+    @Param('documentoId', ParseUUIDPipe) documentoId: string,
+    @GetUser() usuario: Usuario
   ) {
-    return this.firmaService.firmarDocumento(usuario.id,documentoId);
+    return this.firmaService.firmarDocumento(usuario.id, documentoId);
   }
 
   @Auth(...rolesFirma)
   @Get('firmar-campania/:campaniaId')
   firmarCampania(
-    @Param('campaniaId',ParseUUIDPipe) campaniaId: string,
-    @GetUser() usuario:Usuario
+    @Param('campaniaId', ParseUUIDPipe) campaniaId: string,
+    @GetUser() usuario: Usuario
   ) {
-    return this.firmaService.signCampaign(usuario.id,campaniaId);
+    return this.firmaService.firmarCampania(usuario.id, campaniaId);
   }
 
   @Auth(...rolesFirma)
@@ -47,16 +47,16 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
-    @Param('id',ParseUUIDPipe) ordenOFacturaId:string,
-    @Query('tipo-de-documento',new ParseEnumPipe(TipoDeDocumento)) tipoDeDocumento:TipoDeDocumento
+    @Param('id', ParseUUIDPipe) ordenOFacturaId: string,
+    @Query('tipo-de-documento', new ParseEnumPipe(TipoDeDocumento)) tipoDeDocumento: TipoDeDocumento
   ) {
-    return this.firmaService.descargarDocumento(ordenOFacturaId,tipoDeDocumento);
+    return this.firmaService.descargarDocumento(ordenOFacturaId, tipoDeDocumento);
   }
 
   @Auth(...rolesFirma)
   @Get('ordenes')
   findAllOrdebes(
-    @GetUser() usuario:Usuario
+    @GetUser() usuario: Usuario
   ) {
     return this.firmaService.findAllOrdenes(usuario.id);
   }
@@ -64,7 +64,7 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('facturas')
   findAllFacturas(
-    @GetUser() usuario:Usuario
+    @GetUser() usuario: Usuario
   ) {
     return this.firmaService.findAllFacturas(usuario.id);
   }
@@ -72,7 +72,7 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('campanias')
   findAllCampanias(
-    @GetUser() usuario:Usuario
+    @GetUser() usuario: Usuario
   ) {
     return this.firmaService.findAllCampanias(usuario.id);
   }
@@ -85,7 +85,7 @@ export class FirmaController {
 
   @Auth(...rolesFirma)
   @Delete('eliminar-de-firmamex/:id')
-  removeDocumentoFirmamex(@Param('id',ParseUUIDPipe) id: string) {
+  removeDocumentoFirmamex(@Param('id', ParseUUIDPipe) id: string) {
     return this.firmaService.eliminarDocumentoDeFimrmamex(id);
   }
 
