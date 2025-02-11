@@ -128,7 +128,6 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
   }
 
   if (impactosVersionSpot) {
-    console.log(versionesSpot)
     if(impactosVersionSpot != 0){
       especificaciones.push([
         {

@@ -101,6 +101,7 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
+      console.log(documentoDeFirma.ordenOFacturaId);
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 

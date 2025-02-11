@@ -143,7 +143,7 @@ export class OrdenService {
           fechaDeEmision: true,
           fechaDeAprobacion: true,
           estatus: true,
-          esCampania:true,
+          esCampania: true,
           campaña: {
             nombre: true,
           },
@@ -153,7 +153,7 @@ export class OrdenService {
           },
         },
         where: {
-          esCampania:false
+          esCampania: false
         },
         order: {
           fechaDeEmision: 'DESC',
@@ -178,7 +178,7 @@ export class OrdenService {
           tipoDeServicio: true,
           fechaDeEmision: true,
           estatus: true,
-          esCampania:true,
+          esCampania: true,
           campaña: {
             nombre: true,
           },
@@ -186,8 +186,8 @@ export class OrdenService {
             nombreComercial: true,
           },
         },
-        where:{
-          esCampania:false
+        where: {
+          esCampania: false
         }
       });
       return ordenes;
@@ -303,6 +303,7 @@ export class OrdenService {
   }
 
   async findByRfc(rfc: string) {
+    console.log(rfc)
     try {
       const estatus = EstatusOrdenDeServicio.ACTIVA;
       const ordenes = await this.ordenRepository
@@ -312,6 +313,7 @@ export class OrdenService {
         .andWhere('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
         .getMany();
 
+        console.log(ordenes)
       if (ordenes.length === 0) return null;
 
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {
@@ -346,9 +348,9 @@ export class OrdenService {
         .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
         .getRawMany();
-  
+
       console.log(ultimosFolios);
-  
+
       // Verificar si ultimosFolios es nulo o vacío
       let numeroDeFolio: number;
       if (!ultimosFolios || ultimosFolios.length === 0) {
@@ -359,11 +361,11 @@ export class OrdenService {
         const numero = ultimoFolio.folio.split('-')[0];
         numeroDeFolio = parseInt(numero) + 1;
       }
-  
+
       const serviciosParaFolio = new ServiciosParaFolio();
       const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
       const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}`;
-  
+
       return folio;
     } catch (error) {
       console.error("Error al obtener el folio de orden:", error);
@@ -501,8 +503,8 @@ export class OrdenService {
       where: {
         campaña: { id: campaignId }
       },
-      relations:{
-        proveedor:true
+      relations: {
+        proveedor: true
       },
     });
   }

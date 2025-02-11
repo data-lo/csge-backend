@@ -32,12 +32,12 @@ export class FacturaService {
     private ordenRepository: Repository<Orden>,
     @InjectRepository(Proveedor)
     private proveedrRepository: Repository<Proveedor>,
-    
-    private readonly firmaService:FirmaService,
-    private readonly minioService:MinioService,
-  ) {}
 
-  async create(createFacturaDto: CreateFacturaDto, usuarioTestigo:Usuario) {
+    private readonly firmaService: FirmaService,
+    private readonly minioService: MinioService,
+  ) { }
+
+  async create(createFacturaDto: CreateFacturaDto, usuarioTestigo: Usuario) {
     try {
       const {
         ordenesDeServicioIds,
@@ -46,27 +46,27 @@ export class FacturaService {
         id,
         folio,
       } = createFacturaDto;
-      
+
       let ordenesIds = []
-      if(typeof ordenesDeServicioIds === 'string'){
+      if (typeof ordenesDeServicioIds === 'string') {
         ordenesIds.push(ordenesDeServicioIds);
-      }else{
-        ordenesIds = ordenesDeServicioIds 
+      } else {
+        ordenesIds = ordenesDeServicioIds
       }
 
       const validacionBool = Boolean(validacionTestigo);
-      
-      if (!validacionBool){
+
+      if (!validacionBool) {
         console.log('ERROR EN VALIDACIÓN')
         throw new BadRequestException({ message: 'VALIDAR TESTIGO', id: id });
       }
-      
+
       let ordenes: Orden[] = [];
       let subtotalDeOrdenes: Number = 0.0;
 
       for (const ordenId of ordenesIds) {
         const orden = await this.ordenRepository.findOneBy({ id: ordenId });
-        if (!orden){
+        if (!orden) {
           console.log('ERROR EN LOS IDS DE LAS ORDENES')
           throw new NotFoundException({
             message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA`,
@@ -74,7 +74,7 @@ export class FacturaService {
           });
         }
 
-        if(orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
+        if (orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
         subtotalDeOrdenes = Number(orden.subtotal) + Number(subtotalDeOrdenes);
         ordenes.push(orden);
       }
@@ -82,14 +82,14 @@ export class FacturaService {
       const proveedor = await this.proveedrRepository.findOneBy({
         id: proveedorId,
       });
-      if (!proveedor){
+      if (!proveedor) {
         console.log('ERROR EN EL PROVEEDOR')
         throw new NotFoundException({
           message: 'NO SE ENCUENTRA EL PROVEEDOR',
           id: id,
         });
       }
-      
+
       const facturaXmlData = await this.obtenerDatosDeArchivoXML(id);
 
       if (proveedor.rfc !== facturaXmlData.rfc)
@@ -98,14 +98,14 @@ export class FacturaService {
           id: id,
         });
 
-      if (subtotalDeOrdenes != facturaXmlData.subtotal){
+      if (subtotalDeOrdenes != facturaXmlData.subtotal) {
         throw new BadRequestException({
           message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
           id: id,
         });
       }
-      try{
-        const factura = this.facturaRepository.create({
+      try {
+        const factura =await this.facturaRepository.create({
           id: id,
           ordenesDeServicio: ordenes,
           proveedor: proveedor,
@@ -113,27 +113,28 @@ export class FacturaService {
           iva: facturaXmlData.iva,
           total: facturaXmlData.total,
           validacionTestigo: validacionBool,
-          usuarioTestigo:usuarioTestigo,
-          folio:folio
+          usuarioTestigo: usuarioTestigo,
+          folio: folio
         });
         await this.facturaRepository.save(factura);
-        console.log(facturaXmlData);
+
         return {
-          rfc:facturaXmlData.rfc,
-          subtotal:facturaXmlData.subtotal,
-          iva:facturaXmlData.iva,
-          total:facturaXmlData.total,
-          conceptos:facturaXmlData.conceptos
+          factura: factura.id,
+          rfc: facturaXmlData.rfc,
+          subtotal: facturaXmlData.subtotal,
+          iva: facturaXmlData.iva,
+          total: facturaXmlData.total,
+          conceptos: facturaXmlData.conceptos
         }
 
-      }catch(error){
+      } catch (error) {
         console.log('ERROR EN FACTURA CREATE')
         throw error;
-      }    
+      }
     } catch (error) {
       handleExeptions(error);
     }
-  }d
+  } d
 
   async findAllBusqueda() {
     try {
@@ -213,10 +214,10 @@ export class FacturaService {
 
   async obtenerDatosDeArchivoXML(id: string) {
     try {
-      
-      const xml = await this.minioService.obtenerArchivosDescarga(id,'xml');
+
+      const xml = await this.minioService.obtenerArchivosDescarga(id, 'xml');
       const xmlString = xml.toString('utf-8');
-      
+
       const facturaJsonString = xmls2js.xml2json(xmlString, {
         compact: true,
         spaces: 4,
@@ -236,12 +237,12 @@ export class FacturaService {
       }
 
       const conceptosPrecargados = conceptos.map((concepto) => {
-      const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
-      const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
-      return {
-        cantidad: cantidad,
-        concepto: conceptoData,
-      };
+        const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
+        const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
+        return {
+          cantidad: cantidad,
+          concepto: conceptoData,
+        };
       });
 
       return {
@@ -308,25 +309,25 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const documento = await this.firmaService.descargarDocumento(id,TipoDeDocumento.APROBACION_DE_FACTURA);
+      const documento = await this.firmaService.descargarDocumento(id, TipoDeDocumento.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
       handleExeptions(error);
     }
   }
-  
 
-  async cotejarFactura(facturaId:string,usuario:Usuario){
-    
-    const documentoFirmaDto:CreateFirmaDto = {
-      ordenOFacturaId:facturaId,
-      tipoDeDocumento:TipoDeDocumento.APROBACION_DE_FACTURA,
-      estaFirmado:false,
+
+  async cotejarFactura(facturaId: string, usuario: Usuario) {
+
+    const documentoFirmaDto: CreateFirmaDto = {
+      ordenOFacturaId: facturaId,
+      tipoDeDocumento: TipoDeDocumento.APROBACION_DE_FACTURA,
+      estaFirmado: false,
     }
 
     const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);
-    const linkDeFacturaACotejar = await this.firmaService.firmarDocumento(usuario.id,documentoFirma.id);
-    const factura = await this.facturaRepository.findOneBy({id:facturaId});
+    const linkDeFacturaACotejar = await this.firmaService.firmarDocumento(usuario.id, documentoFirma.id);
+    const factura = await this.facturaRepository.findOneBy({ id: facturaId });
     factura.usuarioTestigo = usuario;
     await this.facturaRepository.save(factura);
     return linkDeFacturaACotejar;

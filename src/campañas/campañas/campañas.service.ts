@@ -36,7 +36,7 @@ export class CampañasService {
     private readonly activacionService: ActivacionService,
     private readonly partidaService: PartidaService,
     private readonly firmaService: FirmaService,
-  ) {}
+  ) { }
 
   async create(createCampañaDto: CreateCampañaDto) {
     try {
@@ -71,7 +71,7 @@ export class CampañasService {
           campaniaId: campañaDb.id,
         });
 
-      activacion.campañaId = campaña.id;
+      activacion.campaniaId = campaña.id;
       activacion.partidaId = partidaDb.id;
 
       const activacionDb = await this.activacionService.create(activacion);
@@ -198,24 +198,31 @@ export class CampañasService {
 
   async update(campañaId: string, updateCampañaDto: UpdateCampañaDto) {
     try {
-      const campañaDb = await this.campañaRepository.findOneBy({
-        id: campañaId,
+
+      const campaign = await this.campañaRepository.findOne({
+        where: { id: campañaId },
+        relations: ['activaciones'],
       });
-      if (!campañaDb) throw new NotFoundException('No se encuentra la campaña');
-      if (
-        campañaDb.estatus === EstatusCampaña.CREADA ||
-        campañaDb.estatus === EstatusCampaña.COTIZANDO
-      ) {
-        await this.campañaRepository.update(campañaId, updateCampañaDto);
-        return { message: 'Campaña actualizada exitosamente' };
-      }
-      throw new BadRequestException(
-        'Estatus de campaña no valido para actualizar, cancelar campaña',
-      );
+
+      console.log(campaign.activaciones);
+
+      // if (!campaign) throw new NotFoundException('No se ha encontrado la campaña solicitada.');
+
+      // if (campaign.estatus === EstatusCampaña.CREADA || campaign.estatus === EstatusCampaña.COTIZANDO) {
+
+      //   const campaignUpdateData = this.campañaRepository.merge(campaign, updateCampañaDto);
+
+      //   await this.campañaRepository.save(campaignUpdateData);
+
+      //   return { message: 'Campaña actualizada exitosamente' };
+      // }
+
+      // throw new BadRequestException('Estatus de campaña no válido para actualizar o cancelar.');
     } catch (error) {
       handleExeptions(error);
     }
   }
+
 
   async remove(campaniaId: string) {
     try {
@@ -257,12 +264,11 @@ export class CampañasService {
           activaciones: true,
         },
       });
-      if (!campañaDb) throw new NotFoundException('No se encuentra la campaña');
-      if (campañaDb.estatus !== EstatusCampaña.INACTIVA) {
-        throw new BadRequestException(
-          'Estatus de campaña no valido para reactivar, estatus valido: INACTIVA',
-        );
-      }
+
+      if (!campañaDb) throw new NotFoundException('¡La campaña no fue encontrada!');
+
+      if (campañaDb.estatus !== EstatusCampaña.INACTIVA) throw new BadRequestException('El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser INACTIVA.');
+
       const activaciones = campañaDb.activaciones;
       const index = activaciones.length;
       const ultimaActivacion = activaciones[index - 1];
@@ -287,7 +293,7 @@ export class CampañasService {
 
       const activacionDb = await this.activacionService.create({
         partidaId: partidaDb.id,
-        campañaId: campañaDb.id,
+        campaniaId: campañaDb.id,
         ...createActivacionDto,
       });
 
@@ -316,28 +322,28 @@ export class CampañasService {
   async mandarCampañaAAprobar(id: string) {
     try {
       const campaniaDb = await this.campañaRepository.findOneBy({ id: id });
-      
+
       if (!campaniaDb)
         throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA');
-      
+
       const estatusValidos = [
         EstatusCampaña.CREADA,
         EstatusCampaña.COTIZANDO,
         EstatusCampaña.REACTIVADA,
       ];
-      
+
       if (!estatusValidos.includes(campaniaDb.estatus)) {
         throw new BadRequestException(
           'LA CAMPAÑA NO CUENTA CON ESTATUS PARA SER APROBADA',
         );
       }
-      const firmaDto = {
+      const signatureObject = {
         estaFirmado: false,
         ordenOFacturaId: campaniaDb.id,
         tipoDeDocumento: TipoDeDocumento.CAMPAÑA,
       };
 
-      await this.firmaService.create(firmaDto);
+      await this.firmaService.create(signatureObject);
       campaniaDb.estatus = EstatusCampaña.PENDIENTE;
       await this.campañaRepository.save(campaniaDb);
       return { message: 'CAMPAÑA ESPERANDO APROBACIÓN' };
