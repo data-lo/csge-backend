@@ -299,15 +299,20 @@ export class FirmaService {
         documento.usuariosFirmadores,
       );
       const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
+
       const response = await this.enviarDocumentoAFirmamexSDK(
         documentoEnBase64,
         documentoEnPdf.info.Title,
         stickers,
         documento.tipoDeDocumento,
       );
+
       documento.ticket = response.document_ticket;
+
       documento.documentoUrlFirmamex = response.document_url;
+
       await this.firmaRepository.save(documento);
+
       return documento.documentoUrlFirmamex;
     } catch (error) {
       handleExeptions(error);
@@ -384,20 +389,21 @@ export class FirmaService {
   async firmarCampania(usuarioId: string, firmaId: string) {
     try {
 
-      const serviciosFirmamex = await this.firmamexService.getServices();
-      const usuarioDb = await this.usuarioRepository.findOneBy({ id: usuarioId });
+      const firmamexService = await this.firmamexService.getServices();
 
-      if (!usuarioDb) throw new NotFoundException('NO SE ENCUENTRA EL USUARIO');
+      const user = await this.usuarioRepository.findOneBy({ id: usuarioId });
 
-      const campaniaFirma = await this.firmaRepository.findOneBy({ id: firmaId });
+      if (!user) throw new NotFoundException('¡No se encuentra el usuario!');
 
-      if (!campaniaFirma) throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA EN EL MODULO DE FIRMA');
+      const signatureCampaign = await this.firmaRepository.findOneBy({ id: firmaId });
 
-      const campaing = await this.campaniaRepository.findOneBy({ id: campaniaFirma.ordenOFacturaId });
+      if (!signatureCampaign) throw new NotFoundException('¡No se encuentra la campaña en el módulo de firma!');
 
-      if (!campaing) throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA');
+      const campaing = await this.campaniaRepository.findOneBy({ id: signatureCampaign.ordenOFacturaId });
 
-      const ordenesDb = await this.ordenRepository
+      if (!campaing) throw new NotFoundException('¡No se encuentra la campaña!');
+
+      const orders = await this.ordenRepository
         .createQueryBuilder('orden')
         .where('orden.campañaId = :campaniaId', { campaniaId: campaing.id })
         .andWhere('orden.cotizada_en_campania = :esCampania', { esCampania: true })
@@ -405,45 +411,57 @@ export class FirmaService {
 
       const QR = QROrden;
 
-      if (!ordenesDb) throw new NotFoundException('NO SE ENCONTRARON ORDENES DE SERVICIO');
-     
-      const data = {
-        name: campaing.nombre
-      }
+      if (!orders) throw new NotFoundException('¡No se encontraron órdenes de servicio!');
 
-      const expediente = await this.crearExpediente(data);
+      const dossier = await this.crearExpediente({ name: campaing.nombre });
 
-      campaniaFirma.ticket = expediente;
+      console.log(dossier);
 
-      // await this.firmaRepository.save(campaniaFirma);
+      signatureCampaign.ticket = dossier;
+
+      const response = await this.firmaRepository.save(signatureCampaign);
+
+      console.log(response);
 
       // let url: string;
-      // for (const ordenDb of ordenesDb) {
-      //   const ordenEnPdf = await this.construir_pdf(ordenDb.id, TipoDeDocumento.ORDEN_DE_SERVICIO);
-      //   const stickers = await this.crearStickers([usuarioDb], TipoDeDocumento.ORDEN_DE_SERVICIO, campaniaFirma.usuariosFirmadores);
-      //   const docBase64 = await this.crearArchivoEnBase64(ordenEnPdf);
-      //   const response = await serviciosFirmamex.request({
-      //     b64_doc: {
-      //       data: docBase64,
-      //       name: ordenDb.folio
-      //     },
-      //     qr: [QR],
-      //     stickers: stickers,
-      //     document_set: expediente
-      //   });
-      //   url = response.document_url;
-      // }
 
-      // await serviciosFirmamex.closeDocumentSet({
-      //   documentSet: expediente,
-      //   workflow: {
-      //     remind_every: '1d',
-      //     language: 'es',
-      //     ordered: true
-      //   }
-      // });
+      for (const order of orders) {
+        const orderPDF = await this.construir_pdf(order.id, TipoDeDocumento.ORDEN_DE_SERVICIO);
 
-      // return url;
+        console.log(orderPDF);
+
+        const stickers = await this.crearStickers([user], TipoDeDocumento.ORDEN_DE_SERVICIO, signatureCampaign.usuariosFirmadores);
+
+        const documentInBase64 = await this.crearArchivoEnBase64(orderPDF);
+
+        const response = await firmamexService.request({
+          b64_doc: {
+            data: documentInBase64,
+            name: order.folio
+          },
+          qr: [QR],
+          document_set: dossier,
+          stickers: stickers,
+        });
+
+        console.log(response)
+
+        // url = response;
+
+      }
+
+      const closeDossier = await firmamexService.closeDocumentSet({
+        documentSet: dossier,
+        workflow: {
+          remind_every: '1d',
+          language: 'es',
+          ordered: true
+        }
+      });
+
+      console.log(closeDossier);
+
+      return "Ok" ;
 
     } catch (error) {
       handleExeptions(error);
@@ -483,12 +501,13 @@ export class FirmaService {
     }
   }
 
-  async crearExpediente(nombreDeCampania: any) {
+  async crearExpediente(nombreDeCampania: { name: string }) {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
-      const { documentSet } = await serviciosFirmamex.createDocumentSet(nombreDeCampania);
-      console.log(documentSet)
-      return documentSet;
+
+      const { document_set } = await serviciosFirmamex.createDocumentSet(nombreDeCampania);
+
+      return document_set;
     } catch (error) {
       console.log('ERROR EN CREAR EXPEDIENTE', error.message);
       console.log(error);
