@@ -190,6 +190,8 @@ export class UsuariosService {
       return {
         user: {
           id: dbUser.id,
+          rol: dbUser.rol,
+          permisos: dbUser.permisos
         },
         token: this.getJwtToken({ id: dbUser.id }),
         expiresIn: expirationTimeGMTMinus6.toISOString(),

@@ -372,6 +372,7 @@ export class FirmaService {
           authority: 'chihuahua',
           stickerType: 'rect',
           dataType: 'rfc',
+          email: 'bmsaenz@chihuahua.gob.mx',
           data: usuario.rfc,
           imageType: 'hash',
           page: 0,
@@ -428,8 +429,6 @@ export class FirmaService {
       for (const order of orders) {
         const orderPDF = await this.construir_pdf(order.id, TipoDeDocumento.ORDEN_DE_SERVICIO);
 
-        console.log(orderPDF);
-
         const stickers = await this.crearStickers([user], TipoDeDocumento.ORDEN_DE_SERVICIO, signatureCampaign.usuariosFirmadores);
 
         const documentInBase64 = await this.crearArchivoEnBase64(orderPDF);
@@ -444,22 +443,26 @@ export class FirmaService {
           stickers: stickers,
         });
 
-        console.log(response)
-
-        // url = response;
-
+        console.log(response);
       }
 
-      const closeDossier = await firmamexService.closeDocumentSet({
-        documentSet: dossier,
-        workflow: {
-          remind_every: '1d',
-          language: 'es',
-          ordered: true
-        }
-      });
+      const file = 
 
-      console.log(closeDossier);
+      console.log("Si llega aquí");
+
+      // const documentSetData = await services.getDocumentSet(documentSet);
+
+
+      // const closeDossier = await firmamexService.closeDocumentSet({
+      //   documentSet: dossier,
+      //   workflow: {
+      //     remind_every: '1d',
+      //     language: 'es',
+      //     ordered: true
+      //   }
+      // });
+
+      // console.log(closeDossier);
 
       return "Ok" ;
 
