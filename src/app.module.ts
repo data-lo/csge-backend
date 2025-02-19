@@ -45,13 +45,13 @@ import { MinioModule } from './minio/minio.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.cloud',
+      envFilePath: '.env',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
       url:process.env.DATABASE_URL,
-      ssl:true,
+      ssl:false,
       synchronize:true,
       autoLoadEntities:true
       }),

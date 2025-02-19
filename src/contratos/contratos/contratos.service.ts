@@ -37,11 +37,11 @@ export class ContratosService {
 
     @InjectRepository(Orden)
     private readonly ordenRepository: Repository<Orden>,
-  ) {}
+  ) { }
 
   async create(createContratoDto: CreateContratoDto) {
     try {
-      let montoDisponible: number = 0.0;
+      let montoDisponible = 0.0;
       let montoMinVar = 0;
       let ivaMontoMin = 0;
 
@@ -88,6 +88,7 @@ export class ContratosService {
           await this.contratoRepository.save(contrato);
         }
       } catch (error) {
+        console.log("Error")
         await this.remove(contratoMaestro.id);
       }
       return contratoMaestro;
@@ -238,7 +239,7 @@ export class ContratosService {
         ...rest
       } = updateContratoDto;
       const { estatusDeContrato } = contratoMaestroDb;
-      
+
       const estatusPermitidos = [
         EstatusDeContrato.ADJUDICADO,
         EstatusDeContrato.PENDIENTE,
@@ -285,7 +286,7 @@ export class ContratosService {
         linkContrato: linkContrato,
         contratos: contratos,
         proveedor: proveedorDb,
-        
+
       });
 
       await this.contratoMaestroRepository.save(contratoMaestroDb);
@@ -437,7 +438,7 @@ export class ContratosService {
     }
   }
 
-  async descargarReporte() {}
+  async descargarReporte() { }
 
   async emitter(contratoMaestroId: string, evento: string) {
     this.eventEmitter.emit(

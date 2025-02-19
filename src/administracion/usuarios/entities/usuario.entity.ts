@@ -106,6 +106,7 @@ export class Usuario {
     type: 'enum',
     enum: ValidPermises,
     array: true,
+    nullable: true
   })
   permisos: ValidPermises[];
 
