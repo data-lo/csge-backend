@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateContratoDto } from './dto/create-contrato.dto';
@@ -13,11 +14,12 @@ import { PaginationSetter } from '../../helpers/pagination.getter';
 import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ContratoEvent } from '../interfaces/contrato-evento';
+
 import { LoggerService } from 'src/logger/logger.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { TipoDeServicio } from '../interfaces/tipo-de-servicio';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
+import { EventsService } from 'src/events/events.service';
 
 
 @Injectable()
@@ -25,7 +27,9 @@ export class ContratosService {
   private readonly logger = new LoggerService(ContratosService.name);
 
   constructor(
+
     private eventEmitter: EventEmitter2,
+
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
 
@@ -41,61 +45,56 @@ export class ContratosService {
 
   async create(createContratoDto: CreateContratoDto) {
     try {
-      let montoDisponible = 0.0;
-      let montoMinVar = 0;
-      let ivaMontoMin = 0;
-
       const {
-        montoMaximoContratado,
-        montoMinimoContratado,
-        ivaMontoMaximoContratado,
-        ivaMontoMinimoContratado,
-        tipoDeServicios,
-        proveedorId,
-        ...rest
+        montoMaximoContratado, montoMinimoContratado, ivaMontoMaximoContratado,
+        ivaMontoMinimoContratado, tipoDeServicios, proveedorId, ...rest
       } = createContratoDto;
 
-      montoDisponible = montoMaximoContratado + ivaMontoMaximoContratado;
+      const montoDisponible = montoMaximoContratado + ivaMontoMaximoContratado;
+      const proveedor = await this.proveedorRepository.findOne({ where: { id: proveedorId } });
 
-      const proveedor = await this.proveedorRepository.findOne({
-        where: { id: proveedorId },
-      });
+      if (!proveedor) throw new NotFoundException('¡El proveedor especificado no existe!');
 
-      if (montoMinimoContratado !== 0) {
-        montoMinVar = montoMinimoContratado;
-        ivaMontoMin = ivaMontoMinimoContratado;
-      }
-
-      const contratoMaestro = await this.contratoMaestroRepository.create({
-        ivaMontoMaximoContratado: ivaMontoMaximoContratado,
-        ivaMontoMinimoContratado: ivaMontoMin,
-        montoMinimoContratado: montoMinVar,
-        montoMaximoContratado: montoMaximoContratado,
-        montoDisponible: montoDisponible,
-        proveedor: proveedor,
+      const contratoMaestro = this.contratoMaestroRepository.create({
+        ivaMontoMaximoContratado,
+        ivaMontoMinimoContratado: montoMinimoContratado ? ivaMontoMinimoContratado : 0,
+        montoMinimoContratado: montoMinimoContratado || 0,
+        montoMaximoContratado,
+        montoDisponible,
+        proveedor,
         ...rest,
       });
 
       await this.contratoMaestroRepository.save(contratoMaestro);
 
       try {
-        for (let i = 0; i < tipoDeServicios.length; i++) {
-          const contrato = this.contratoRepository.create({
-            tipoDeServicio: tipoDeServicios[i],
-            contratoMaestro: contratoMaestro,
+        const contratos = tipoDeServicios.map(tipoDeServicio =>
+          this.contratoRepository.create({
+            tipoDeServicio,
+            contratoMaestro,
             numeroDeContrato: contratoMaestro.numeroDeContrato,
-          });
-          await this.contratoRepository.save(contrato);
-        }
+          })
+        );
+
+        await this.contratoRepository.save(contratos);
+
       } catch (error) {
-        console.log("Error")
+        
         await this.remove(contratoMaestro.id);
+
+        throw new InternalServerErrorException('Error al crear los contratos');
       }
+
+      this.eventEmitter.emit('activate.services', { masterContractId: contratoMaestro.id, providerId: proveedor.id });
+
       return contratoMaestro;
+
     } catch (error) {
       handleExeptions(error);
+      throw error;
     }
   }
+
 
   async findAll(pagina: number) {
     try {
@@ -208,7 +207,7 @@ export class ContratosService {
       });
       contratoMaestroDb.estatusDeContrato = estatusDeContrato;
       await this.contratoMaestroRepository.save(contratoMaestroDb);
-      this.emitter(id, estatusDeContrato.toLowerCase());
+      // this.emitter(id, estatusDeContrato.toLowerCase());
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -334,7 +333,7 @@ export class ContratosService {
       if (estatusPermitidos.includes(estatus)) {
         const contratoMaestroDb =
           await this.contratoMaestroRepository.findOneBy({ id: id });
-        await this.emitter(contratoMaestroDb.id, 'desactivado');
+        // await this.emitter(contratoMaestroDb.id, 'desactivado');
         await this.contratoMaestroRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
           motivoCancelacion: motivoCancelacion,
@@ -440,10 +439,10 @@ export class ContratosService {
 
   async descargarReporte() { }
 
-  async emitter(contratoMaestroId: string, evento: string) {
-    this.eventEmitter.emit(
-      `contrato.${evento}`,
-      new ContratoEvent(contratoMaestroId),
-    );
-  }
+  // async emitter(contratoMaestroId: string, evento: string) {
+  //   this.eventEmitter.emit(
+  //     `contrato.${evento}`,
+  //     new ContratoEvent(contratoMaestroId),
+  //   );
+  // }
 }

@@ -24,7 +24,8 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
     PassportModule
   ],
   controllers: [ContratosController],
-  providers: [ContratosService,ContratosEventosService],
-  exports: [ContratosService],
+  providers: [ContratosService, ContratosEventosService],
+  exports: [ContratosService, TypeOrmModule],
 })
 export class ContratosModule {}
+

@@ -12,11 +12,14 @@ import { Proveedor } from '../proveedor/entities/proveedor.entity';
 @Module({
   controllers: [ServicioController],
   providers: [ServicioService],
-  imports:[TypeOrmModule.forFeature([Servicio,Estacion,Proveedor]), 
-  EstacionModule,
-  AuthModule,
-  PassportModule
+  imports: [TypeOrmModule.forFeature([Servicio, Estacion, Proveedor]),
+    EstacionModule,
+    AuthModule,
+    PassportModule
   ],
-  exports:[ServicioService]
+  exports: [
+    ServicioService,
+    TypeOrmModule.forFeature([Servicio]),
+  ]
 })
-export class ServicioModule {}
+export class ServicioModule { }
