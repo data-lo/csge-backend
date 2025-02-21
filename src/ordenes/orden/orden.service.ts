@@ -14,7 +14,7 @@ import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
 import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
@@ -49,7 +49,7 @@ export class OrdenService {
         campaniaId,
         proveedorId,
         contratoId,
-        tipoDeServicio,
+        TIPO_DE_SERVICIO,
         serviciosContratados,
         ...rest
       } = createOrdenDto;
@@ -74,14 +74,14 @@ export class OrdenService {
       }
 
       const partida = campania.activaciones.at(-1).partida;
-      const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
+      const folio = await this.obtenerFolioDeOrden(TIPO_DE_SERVICIO);
       const orden = this.ordenRepository.create({
         campaña: campania,
         proveedor: proveedor,
         contratoMaestro: contratoMaestro,
         partida: partida,
         folio: folio,
-        tipoDeServicio: tipoDeServicio,
+        TIPO_DE_SERVICIO: TIPO_DE_SERVICIO,
         ...rest,
       });
 
@@ -139,7 +139,7 @@ export class OrdenService {
         select: {
           id: true,
           folio: true,
-          tipoDeServicio: true,
+          TIPO_DE_SERVICIO: true,
           fechaDeEmision: true,
           fechaDeAprobacion: true,
           estatus: true,
@@ -175,7 +175,7 @@ export class OrdenService {
         select: {
           id: true,
           folio: true,
-          tipoDeServicio: true,
+          TIPO_DE_SERVICIO: true,
           fechaDeEmision: true,
           estatus: true,
           esCampania: true,
@@ -221,7 +221,7 @@ export class OrdenService {
         campaniaId,
         proveedorId,
         contratoId,
-        tipoDeServicio,
+        TIPO_DE_SERVICIO,
         serviciosContratados,
         ...rest
       } = updateOrdenDto;
@@ -338,14 +338,14 @@ export class OrdenService {
     }
   }
 
-  async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
+  async obtenerFolioDeOrden(TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
     try {
       let ultimosFolios: foliosResponse[];
       const year = new Date().getFullYear();
       ultimosFolios = await this.ordenRepository
         .createQueryBuilder('orden')
         .select("orden.folio", "folio")
-        .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
+        .where('orden.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
         .getRawMany();
 
@@ -363,7 +363,7 @@ export class OrdenService {
       }
 
       const serviciosParaFolio = new ServiciosParaFolio();
-      const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
+      const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(TIPO_DE_SERVICIO);
       const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}`;
 
       return folio;

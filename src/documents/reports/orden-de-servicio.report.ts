@@ -27,7 +27,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
       campaña,
       proveedor,
       serviciosContratados,
-      tipoDeServicio,
+      TIPO_DE_SERVICIO,
       folio,
       fechaDeAprobacion,
       fechaDeEmision,
@@ -102,7 +102,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
             },
           ],
         },
-        tipoOrdenSection(tipoDeServicio),
+        tipoOrdenSection(TIPO_DE_SERVICIO),
         campañaOrdenSection(campaña),
         {
           columns: [

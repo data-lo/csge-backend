@@ -5,7 +5,7 @@ import {
     IsOptional, IsString, IsUUID, MaxLength
 } from "class-validator";
 import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
-import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 
 export class CreateUsuarioDto {
 
@@ -63,6 +63,6 @@ export class CreateUsuarioDto {
     documentosDeFirma: TipoDeDocumento[];
 
     @IsOptional()
-    @IsEnum(TipoDeServicio, { each: true })
-    tipoOrdenDeServicio: TipoDeServicio[];
+    @IsEnum(TIPO_DE_SERVICIO, { each: true })
+    tipoOrdenDeServicio: TIPO_DE_SERVICIO[];
 }

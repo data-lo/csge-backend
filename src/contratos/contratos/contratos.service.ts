@@ -17,7 +17,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { LoggerService } from 'src/logger/logger.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
-import { TipoDeServicio } from '../interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { EventsService } from 'src/events/events.service';
 
@@ -68,9 +68,9 @@ export class ContratosService {
       await this.contratoMaestroRepository.save(contratoMaestro);
 
       try {
-        const contratos = tipoDeServicios.map(tipoDeServicio =>
+        const contratos = tipoDeServicios.map(servicio =>
           this.contratoRepository.create({
-            tipoDeServicio,
+            tipoDeServicio: servicio,
             contratoMaestro,
             numeroDeContrato: contratoMaestro.numeroDeContrato,
           })
@@ -79,7 +79,7 @@ export class ContratosService {
         await this.contratoRepository.save(contratos);
 
       } catch (error) {
-        
+
         await this.remove(contratoMaestro.id);
 
         throw new InternalServerErrorException('Error al crear los contratos');
@@ -119,6 +119,7 @@ export class ContratosService {
         .take(paginationSetter.castPaginationLimit())
         .getMany();
 
+      console.log(contratos[0].contratos)
       return contratos;
     } catch (error) {
       handleExeptions(error);
@@ -170,9 +171,10 @@ export class ContratosService {
     }
   }
 
-  async obtenerTipoDeServicioContratado(proveedorId: string) {
+  async getContractedServiceTypes(proveedorId: string) {
+
     try {
-      const contratos = await this.contratoMaestroRepository
+      const contract = await this.contratoMaestroRepository
         .createQueryBuilder('contratoMaestro')
         .innerJoinAndSelect('contratoMaestro.contratos', 'contrato')
         .where('contratoMaestro.proveedor = :proveedorId', { proveedorId })
@@ -190,10 +192,8 @@ export class ContratosService {
         ])
         .getRawMany();
 
-      const tipoDeServicio = contratos.map(
-        (result) => result.contrato_tipo_de_servicio,
-      );
-      return tipoDeServicio;
+      return contract.map((result) => result.contrato_tipo_de_servicio,);
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -261,9 +261,9 @@ export class ContratosService {
           await this.contratoRepository.remove(contrato);
         }
 
-        for (const tipoDeServicio of tipoDeServicios) {
+        for (const typeService of tipoDeServicios) {
           const contrato = this.contratoRepository.create({
-            tipoDeServicio: tipoDeServicio,
+            tipoDeServicio: typeService,
             contratoMaestro: contratoMaestroDb,
             numeroDeContrato: contratoMaestroDb.numeroDeContrato,
           });
@@ -354,7 +354,7 @@ export class ContratosService {
 
   async actualizarMontosDelContrato(
     contratoMaestroId: string,
-    tipoDeServicio: TipoDeServicio,
+    TIPO_DE_SERVICIO: TIPO_DE_SERVICIO,
     ordenDeServicioId: string,
     eventType,
   ) {
@@ -372,7 +372,7 @@ export class ContratosService {
 
       const contratoAActualizar: Contrato = contratoMaestroDb.contratos.filter(
         (result) => {
-          if (result.tipoDeServicio === tipoDeServicio) {
+          if (result.tipoDeServicio === TIPO_DE_SERVICIO) {
             return result;
           }
         },

@@ -40,7 +40,7 @@ export class ContratosController {
   @Auth(...rolesContratos)
   @Get('tipos-de-servicios/:id')
   findTiposDeServicioPorProveedor(@Param('id', ParseUUIDPipe) proveedorId: string) {
-    return this.contratosService.obtenerTipoDeServicioContratado(proveedorId);
+    return this.contratosService.getContractedServiceTypes(proveedorId);
   }
   
   @Auth(...rolesContratos)

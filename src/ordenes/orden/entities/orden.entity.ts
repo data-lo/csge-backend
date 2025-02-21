@@ -15,7 +15,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
@@ -48,11 +48,11 @@ export class Orden {
 
   @Column({
     type: 'enum',
-    enum: TipoDeServicio,
+    enum: TIPO_DE_SERVICIO,
     nullable: false,
-    default: TipoDeServicio.SERVICIOS_GENERALES,
+    default: TIPO_DE_SERVICIO.SERVICIOS_GENERALES,
   })
-  tipoDeServicio: TipoDeServicio;
+  TIPO_DE_SERVICIO: TIPO_DE_SERVICIO;
 
   @Column({
     name: 'fecha_de_emision',

@@ -8,7 +8,7 @@ export class ServicioDto {
     
     @IsOptional()
     @IsString()
-    tipoDeServicio:string;
+    TIPO_DE_SERVICIO:string;
     
     @IsOptional()
     @IsString()

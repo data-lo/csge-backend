@@ -3,7 +3,7 @@ import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesProveedores } from './valid-proveedores-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -41,16 +41,16 @@ export class ProveedorController {
   @Get('contratos/:id')
   obtenerTipoDeContrato(
     @Param('id',ParseUUIDPipe) id:string,
-    @Query('tipoDeServicio', new ParseEnumPipe(TipoDeServicio)) tipoDeServicio:TipoDeServicio){
-    return this.proveedorService.obtenerContartoDelProveedor(id,tipoDeServicio);
+    @Query('TIPO_DE_SERVICIO', new ParseEnumPipe(TIPO_DE_SERVICIO)) TIPO_DE_SERVICIO:TIPO_DE_SERVICIO){
+    return this.proveedorService.obtenerContartoDelProveedor(id,TIPO_DE_SERVICIO);
   }
 
   @Auth(...rolesProveedores)
   @Get('servicios')
   findManyByServices(
-    @Query('tipoDeServicio') tipoDeServicio:string
+    @Query('TIPO_DE_SERVICIO') TIPO_DE_SERVICIO:string
   ) {
-    return this.proveedorService.findByService(tipoDeServicio);
+    return this.proveedorService.findByService(TIPO_DE_SERVICIO);
   }
 
   @Auth(...rolesProveedores)

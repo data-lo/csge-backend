@@ -7,7 +7,7 @@ import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 
 
 @Controller('ordenes/ordenes-de-servicio')
@@ -44,7 +44,7 @@ export class OrdenController {
 
   @Get('folios')
   obtenerFolios(
-    @Query('servicio',new ParseEnumPipe(TipoDeServicio)) servicio:TipoDeServicio
+    @Query('servicio',new ParseEnumPipe(TIPO_DE_SERVICIO)) servicio:TIPO_DE_SERVICIO
   ){
     return this.ordenService.obtenerFolioDeOrden(servicio);
   }

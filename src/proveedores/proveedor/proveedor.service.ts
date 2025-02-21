@@ -9,7 +9,7 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 
@@ -111,7 +111,7 @@ export class ProveedorService {
     }
   }
 
-  async findByService(tipoDeServicio:string){
+  async findByService(TIPO_DE_SERVICIO:string){
     try{
       const estatus:boolean = true;
       const proveedores = this.proveedorRepository
@@ -120,7 +120,7 @@ export class ProveedorService {
       .leftJoinAndSelect('estacion.servicios','servicio')
       .leftJoinAndSelect('servicio.renovaciones','renovaciones')
       .where('proveedor.estatus = :estatus',{estatus})
-      .andWhere('servicio.tipoDeServicio = :tipoDeServicio',{tipoDeServicio})
+      .andWhere('servicio.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO',{TIPO_DE_SERVICIO})
       .andWhere('renovaciones.estatus = :estatus',{estatus})
       .getMany();
       return proveedores;
@@ -185,14 +185,14 @@ export class ProveedorService {
     }
   }
 
-  async obtenerContartoDelProveedor(proveedorId:string, tipoDeServicio:TipoDeServicio){
+  async obtenerContartoDelProveedor(proveedorId:string, TIPO_DE_SERVICIO:TIPO_DE_SERVICIO){
     try{
       
       const contrato = await this.contratoRepository
       .createQueryBuilder('contrato')
       .leftJoinAndSelect('contrato.contratoMaestro', 'contratoMaestro')
       .where('contratoMaestro.proveedorId = :proveedorId', { proveedorId })
-      .andWhere('contrato.tipo_de_servicio = :tipoDeServicio', { tipoDeServicio })
+      .andWhere('contrato.tipo_de_servicio = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
       .getMany();
 
       if (!contrato.length) {

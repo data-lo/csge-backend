@@ -21,7 +21,7 @@ import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.p
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { QROrden, QRCotejo } from './interfaces/qr.c';
 import { DocumentsService } from '../../documents/documents.service';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from './entities/firma.entity';
 import { EstatusOrdenDeServicio } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import {
@@ -228,8 +228,8 @@ export class FirmaService {
           .andWhere(
             '(:tipoServicio = ANY(usuario.tipoOrdenDeServicio) OR :tipoTodos = ANY(usuario.tipoOrdenDeServicio))',
             {
-              tipoServicio: documentoDb.tipoDeServicio,
-              tipoTodos: TipoDeServicio.TODOS_LOS_SERVICIOS,
+              tipoServicio: documentoDb.TIPO_DE_SERVICIO,
+              tipoTodos: TIPO_DE_SERVICIO.TODOS_LOS_SERVICIOS,
             },
           )
           .getMany();

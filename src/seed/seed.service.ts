@@ -55,7 +55,7 @@ import { EstacionService } from 'src/proveedores/estacion/estacion.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { contratosData } from './data/contratos/contratos.data';
 import { CreateContratoDto } from 'src/contratos/contratos/dto/create-contrato.dto';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { CarteleraGobiernoService } from 'src/ordenes/cartelera_gobierno/cartelera_gobierno.service';
 import { cartelerasData } from './data/carteleras/carteleras-data';
 import { CreateCarteleraGobiernoDto } from '../ordenes/cartelera_gobierno/dto/create-cartelera_gobierno.dto';
@@ -100,6 +100,7 @@ export class SeedService {
 
   async seedDb() {
     try {
+      console.log("Ok")
       await this.seedAdministracion();
       await this.seedCatalogos();
       await this.seedConfiguracion();
@@ -111,8 +112,8 @@ export class SeedService {
 
   async seedAdministracion() {
     try {
-      await this.insertarDepartamentos();
-      await this.insertarPuestos();
+      // await this.insertarDepartamentos();
+      // await this.insertarPuestos();
       await this.insertarUsuarios();
       return { message: 'Datos de Usuarios, Departamentos y Puestos insertados correctamente' };
     } catch (error: any) {
@@ -307,8 +308,8 @@ export class SeedService {
 
 
   async seedProveedores() {
-    await this.insertarProveedores();
-    // await this.insertarMunicipios();
+    // await this.insertarProveedores();
+    await this.insertarMunicipios();
     //await this.insertarContactos();
     //await this.insertarServicios();
     //await this.insertarEstaciones();
@@ -436,12 +437,12 @@ export class SeedService {
           ivaMontoMaximoContratado = null;
         }
 
-        if (contrato.tipoDeservicio === 'IMPRESOS-REVISTA') {
-          rest.tipoDeservicio = TipoDeServicio.REVISTA;
+        if (contrato.TIPO_DE_SERVICIO === 'IMPRESOS-REVISTA') {
+          rest.TIPO_DE_SERVICIO = TIPO_DE_SERVICIO.REVISTA;
         }
 
-        if (contrato.tipoDeservicio === 'IMPRESOS-PERIODICO') {
-          rest.tipoDeservicio = TipoDeServicio.IMPRESION_PRENSA;
+        if (contrato.TIPO_DE_SERVICIO === 'IMPRESOS-PERIODICO') {
+          rest.TIPO_DE_SERVICIO = TIPO_DE_SERVICIO.IMPRESOS;
         }
 
 
@@ -452,7 +453,7 @@ export class SeedService {
             ivaMontoMaximoContratado: Number(ivaMontoMaximoContratado),
             montoMinimoContratado: Number(montoMinimoContratado),
             ivaMontoMinimoContratado: Number(ivaMontoMinimoContratado),
-            tipoDeServicio: rest.tipoDeservicio.replaceAll(" ", "_"),
+            TIPO_DE_SERVICIO: rest.TIPO_DE_SERVICIO.replaceAll(" ", "_"),
             objetoContrato: rest.ObjetoContrato,
             ...rest
           });
