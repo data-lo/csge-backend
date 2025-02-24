@@ -68,8 +68,7 @@ export class OrdenController {
     @Param('id', ParseUUIDPipe) id: string
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
-    console.log(pdfDoc);
-    if (pdfDoc.tipo == 'url') {
+    if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
     }
     else {

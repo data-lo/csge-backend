@@ -10,6 +10,7 @@ import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.functi
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ServicioEvent } from './interfaces/servicio-event';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
+import { UpdateServicioDto } from './dto/update-servicio.dto';
 
 @Injectable()
 export class ServicioService {
@@ -89,26 +90,33 @@ export class ServicioService {
 
   async findOne(id: string) {
     try {
-      const servicio = await this.servicioRepository.findOne({
+      const service = await this.servicioRepository.findOne({
         where: { id: id },
         relations: {
           renovaciones: true
         }
       });
-      if (!servicio) throw new NotFoundException('No se encuentra el servicio');
-      const ultimaRenovacion = servicio.renovaciones.find((renovacion) => {
+
+      if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
+      
+      const lastRenewal = service.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion) {
           return renovacion;
         }
       });
 
-      ultimaRenovacion.ivaIncluido = false;
-      if (!ultimaRenovacion) throw new NotFoundException('No se encuentra la renovacion');
-      delete ultimaRenovacion.fechaDeCreacion;
-      delete servicio.renovaciones;
-      servicio.renovaciones = [ultimaRenovacion];
+      lastRenewal.ivaIncluido = false;
 
-      return flattenCaracteristica(servicio)
+      if (!lastRenewal) throw new NotFoundException('¡No se encontró la renovación!');
+
+      delete lastRenewal.fechaDeCreacion;
+
+      delete service.renovaciones;
+
+      service.renovaciones = [lastRenewal];
+
+      return service;
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -117,13 +125,33 @@ export class ServicioService {
   async desactivarServicio(id: string) {
     try {
       const servicio = await this.servicioRepository.findOneBy({ id: id });
-      if (!servicio) throw new NotFoundException('No se encuentra el servicio');
+      if (!servicio) throw new NotFoundException('¡El servicio no fue encontrado!');
+
       await this.servicioRepository.update(
         id, {
         estatus: false
       });
       await this.emitter(servicio.id, 'servicio.desactivado');
       return { message: 'Servicio desactivado correctamente' };
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+  async updateService(updateServiceDto: UpdateServicioDto, id: string) {
+
+    try {
+      const service = await this.servicioRepository.findOneBy({ id: id });
+
+      if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
+
+      await this.servicioRepository.update(
+        id, {
+        nombreDeServicio: updateServiceDto.nombreDeServicio,
+        tipoDeServicio: updateServiceDto.tipoDeServicio
+      });
+
+      return { message: '¡El servicio ha sido actualizado con éxito!' };
     } catch (error) {
       handleExeptions(error);
     }

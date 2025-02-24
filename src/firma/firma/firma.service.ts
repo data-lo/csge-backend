@@ -228,7 +228,7 @@ export class FirmaService {
           .andWhere(
             '(:tipoServicio = ANY(usuario.tipoOrdenDeServicio) OR :tipoTodos = ANY(usuario.tipoOrdenDeServicio))',
             {
-              tipoServicio: documentoDb.TIPO_DE_SERVICIO,
+              tipoServicio: documentoDb.tipoDeServicio,
               tipoTodos: TIPO_DE_SERVICIO.TODOS_LOS_SERVICIOS,
             },
           )
@@ -326,12 +326,10 @@ export class FirmaService {
     try {
       let documento = null;
       if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-        documento =
-          await this.documentsService.construirOrdenDeServicio(documentoId);
+        documento = await this.documentsService.construirOrdenDeServicio(documentoId);
         return documento;
       } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
-        documento =
-          await this.documentsService.construirAprobacionDeFactura(documentoId);
+        documento = await this.documentsService.construirAprobacionDeFactura(documentoId);
         return documento;
       }
     } catch (error) {
@@ -416,15 +414,9 @@ export class FirmaService {
 
       const dossier = await this.crearExpediente({ name: campaing.nombre });
 
-      console.log(dossier);
-
       signatureCampaign.ticket = dossier;
 
       const response = await this.firmaRepository.save(signatureCampaign);
-
-      console.log(response);
-
-      // let url: string;
 
       for (const order of orders) {
         const orderPDF = await this.construir_pdf(order.id, TipoDeDocumento.ORDEN_DE_SERVICIO);
@@ -443,12 +435,11 @@ export class FirmaService {
           stickers: stickers,
         });
 
-        console.log(response);
       }
 
-      const file = 
+      const file =
 
-      console.log("Si llega aquí");
+        console.log("Si llega aquí");
 
       // const documentSetData = await services.getDocumentSet(documentSet);
 
@@ -464,7 +455,7 @@ export class FirmaService {
 
       // console.log(closeDossier);
 
-      return "Ok" ;
+      return "Ok";
 
     } catch (error) {
       handleExeptions(error);
@@ -545,9 +536,11 @@ export class FirmaService {
   ) {
     try {
       let documento: any;
+
       const documentoEnFirma = await this.firmaRepository.findOne({
         where: { ordenOFacturaId: ordenOFacturaId },
       });
+
       if (!documentoEnFirma) {
         documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
         return documento;

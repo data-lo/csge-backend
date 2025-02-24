@@ -142,7 +142,6 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
   }
   
   if (numeroDiasSpot) {
-    console.log(numeroDiasSpot)
     if(numeroDiasSpot != 0){
       especificaciones.push([
         {

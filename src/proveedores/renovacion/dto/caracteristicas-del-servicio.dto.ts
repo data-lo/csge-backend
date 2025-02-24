@@ -1,6 +1,10 @@
 import { IsOptional, IsString} from 'class-validator';
 
 export class CaracteristicasDelServicioDto{
+
+    @IsOptional()
+    @IsString()
+    nombreFormato:string;
     
     @IsOptional()
     @IsString()
@@ -56,7 +60,7 @@ export class CaracteristicasDelServicioDto{
 
     @IsOptional()
     @IsString()
-    paginasPresna:string;
+    paginasPrensa:string;
 
     @IsOptional()
     @IsString()

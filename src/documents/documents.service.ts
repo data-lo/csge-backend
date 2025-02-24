@@ -14,61 +14,65 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Factura)
     private facturRepository: Repository<Factura>,
-    private textosService:TextosService,
+    private textosService: TextosService,
 
     @InjectRepository(Orden)
     private ordenDeServicioRepository: Repository<Orden>,
     private readonly printerService: PrinterService
-  ) {}
+  ) { }
 
-  async construirOrdenDeServicio(id:string) {
-    try{
+  async construirOrdenDeServicio(id: string) {
+    try {
       const orden = await this.ordenDeServicioRepository.findOne({
-        where:{id:id},
-        relations:{
-          campaña:true,
-          proveedor:true,
-          serviciosContratados:true,
-          contratoMaestro:true
+        where: { id: id },
+        relations: {
+          campaña: true,
+          proveedor: true,
+          serviciosContratados: true,
+          contratoMaestro: true
         }
       });
-  
+
       const textoEncabezado = await this.textosService.obtenerEncabezado();
       const textoPieDePagina = await this.textosService.obtenerPieDePagina();
       const definicionDeOrden = await ordenDeServicioPdf({
-        ordenDeServicio:orden,
-        textoEncabezado:textoEncabezado.texto,
-        textoPieDePagina:textoPieDePagina.texto,
+        ordenDeServicio: orden,
+        textoEncabezado: textoEncabezado.texto,
+        textoPieDePagina: textoPieDePagina.texto,
       });
       const document = this.printerService.createPdf(definicionDeOrden);
       return document;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async construirAprobacionDeFactura(id:string){
-    try{
+  async construirAprobacionDeFactura(id: string) {
+
+    try {
       const facturaDb = await this.facturRepository.findOne({
-        where:{id:id},
-        relations:{
-          proveedor:true,
-          usuarioTestigo:true
+        where: { id: id },
+        relations: {
+          proveedor: true,
+          usuarioTestigo: true
         }
       });
+
       const textoEncabezado = await this.textosService.obtenerEncabezado();
+
       const textoPieDePagina = await this.textosService.obtenerPieDePagina();
+
       const definicionDeFactura = await aprobacionDeFacturaPdf({
-        facturaDb:facturaDb,
-        textoEncabezado:textoEncabezado.texto,
-        textoPieDePagina:textoPieDePagina.texto,
+        facturaDb: facturaDb,
+        textoEncabezado: textoEncabezado.texto,
+        textoPieDePagina: textoPieDePagina.texto,
       });
-      
+
       const document = this.printerService.createPdf(definicionDeFactura);
+
       return document;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
-    
   }
 }

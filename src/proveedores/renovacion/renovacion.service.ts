@@ -6,7 +6,7 @@ import { Renovacion } from './entities/renovacion.entity';
 import { Repository } from 'typeorm';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
-import { error } from 'console';
+import { Console, error } from 'console';
 
 @Injectable()
 export class RenovacionService {
@@ -45,6 +45,7 @@ export class RenovacionService {
         await this.hayNuevaRenovacion(servicioId);
       }
 
+
       const renovacion = this.renovacionRepository.create({
         servicio: service,
         tarifaUnitaria: tarifaUnitaria,
@@ -55,7 +56,9 @@ export class RenovacionService {
       });
 
       await this.renovacionRepository.save(renovacion);
+      
       delete renovacion.servicio;
+
       return renovacion;
 
     } catch (error: any) {

@@ -9,9 +9,9 @@ import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-f
 
 
 interface AprobacionDeFacturaOptions {
-    facturaDb:Factura,
-    textoEncabezado:string,
-    textoPieDePagina:string,
+    facturaDb: Factura,
+    textoEncabezado: string,
+    textoPieDePagina: string,
 }
 
 export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions) => {
@@ -22,7 +22,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
         folio,
     } = factura.facturaDb;
 
-    
+
     const textoEncabezado = factura.textoEncabezado;
     const textoPieDePagina = factura.textoPieDePagina;
     const textoDeRecepcion = `RECIBÍ DE LA OFICINA DE SERVICIOS ADMINISTRATIVOS DE LA COORDINACIÓN DE COMUNICACIÓN
@@ -30,38 +30,38 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
     (ANEXAR OFICIOS DE DEPENDENCIAS DESCENTRALIZADAS A LAS FACTURAS QUE CORRESPONDAN)`;
     const notaDeRecepcion = `LOS TESTIGOS DE LAS PRESENTE(S) FACTURA(S) SERÁN ENTREGADOS Y REVISADOS DE MANERA DIGITAL`;
     const presupuestoText = 'PRESUPUESTO 2025';
-    
-    const {footerTextPieDePaginaC, presupuestoTextC} = footerSection({textoPieDePagina, presupuestoText});
+
+    const { footerTextPieDePaginaC, presupuestoTextC } = footerSection({ textoPieDePagina, presupuestoText });
 
     const docDefinition: TDocumentDefinitions = {
-        info:{
+        info: {
             creationDate: new Date(),
             author:
                 'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
             title: `RECEPCIÓN DE FACTURA: ${folio}`,
         },
-        pageSize:'LETTER',
-        pageMargins:[30,120,30,60],
-        footer: function(currentPage, pageCount){
+        pageSize: 'LETTER',
+        pageMargins: [30, 120, 30, 60],
+        footer: function (currentPage, pageCount) {
             return {
-                columns:[
+                columns: [
                     {
-                        width:'*',
-                        stack:[presupuestoTextC]
+                        width: '*',
+                        stack: [presupuestoTextC]
                     },
                     {
-                        width:'*',
-                        stack:[footerTextPieDePaginaC]
+                        width: '*',
+                        stack: [footerTextPieDePaginaC]
                     },
                     {
-                        stack:[
+                        stack: [
                             {
-                                width:'auto',
-                                alignment:'right',
-                                font:'Poppins',
-                                marginRight:30,
-                                bold:true,
-                                stack:[currentPage.toString() + ' de ' + pageCount],
+                                width: 'auto',
+                                alignment: 'right',
+                                font: 'Poppins',
+                                marginRight: 30,
+                                bold: true,
+                                stack: [currentPage.toString() + ' de ' + pageCount],
                             },
                         ]
                     },
@@ -69,14 +69,14 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
             }
         },
         header: await headerSection({
-            showLogo:false,
-            showTitle:true,
-            textoEncabezado:textoEncabezado,
-            folio:folio
+            showLogo: true,
+            showTitle: true,
+            textoEncabezado: textoEncabezado,
+            folio: folio
         }),
         content: [
             textoDeRecepcionSection(textoDeRecepcion),
-            tablaDeProveedorSection(proveedor.razonSocial,folio,total),
+            tablaDeProveedorSection(proveedor.razonSocial, folio, total),
             firmasDeRecepcionSection(),
             notaDeFacturaSection(notaDeRecepcion),
         ],

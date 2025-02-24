@@ -21,7 +21,6 @@ export class AllExceptionsFilter extends BaseExceptionFilter{
         const request = ctx.getRequest<Request>();
 
         const internalServererrrorResponse = (error) => {
-            console.log(error);
             return {
                 message:"Inernal Server Error",
                 error:error.mesagge,

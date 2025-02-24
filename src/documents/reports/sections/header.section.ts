@@ -18,7 +18,9 @@ const fetchImaageFromUrl = async () => {
     const imagen = await axios.get(minioImageUrl, {
       responseType: 'arraybuffer',
     });
+
     const buffer = Buffer.from(imagen.data);
+
     return buffer;
   } catch (error) {
     return null;
@@ -50,9 +52,12 @@ export const headerSection = async (
     const { showTitle, showLogo, textoEncabezado, folio } = options;
 
     if (showLogo) {
+
       const imageBuffer = await fetchImaageFromUrl();
+      console.log(imageBuffer)
       if (imageBuffer) {
         const metadata = await sharp(imageBuffer).metadata();
+        console.log('Metadata:', metadata);
         const maxWidth = 150;
         const maxheight = 100;
         const scale = Math.min(
@@ -63,12 +68,13 @@ export const headerSection = async (
         const contentType = `image/${metadata.format}`;
 
         logo = {
-          image: `data:${contentType};base64;${imageBuffer.toString('base64')}`,
+          image: `data:${contentType};base64,${imageBuffer.toString('base64')}`,
           width: metadata.width * scale,
           height: metadata.height * scale,
           alignment: 'left',
           margin: [30, 20, 10, 10],
         };
+        
       } else {
         logo = { text: '' };
       }

@@ -7,7 +7,7 @@ export class CreateOrdenDto {
     
     
     @IsEnum(TIPO_DE_SERVICIO)
-    TIPO_DE_SERVICIO:TIPO_DE_SERVICIO
+    tipoDeServicio:TIPO_DE_SERVICIO
 
     @IsString()
     @IsUUID()

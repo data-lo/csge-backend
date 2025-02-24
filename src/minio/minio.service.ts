@@ -10,7 +10,7 @@ import { handleExeptions } from 'src/helpers/handleExceptions.function';
 
 @Injectable()
 export class MinioService {
-  
+
   minioClient: any;
   bucket: any;
   LOGO_NAME = 'GOBIERNO_DEL_ESTADO_LOGO';
@@ -29,7 +29,7 @@ export class MinioService {
       accessKey: process.env.MINIO_ACCESS_KEY,
       secretKey: process.env.MINIO_SECRET_KEY,
     });
-    
+
     if (!process.env.MINIO_BUCKET)
       throw new Error('NO SE ENCUETRA EL BUCKET DE MINIO');
 
@@ -50,9 +50,11 @@ export class MinioService {
   async subirArchivosAMinio(files: MinioFileI[]) {
     try {
       const minioClient = this.getMinioClient();
-      const bucket = this.bucket;
-      const exists = await minioClient.bucketExists(bucket);
 
+      const bucket = this.bucket;
+
+      const exists = await minioClient.bucketExists(bucket);
+     
       if (!exists)
         throw new Error(
           'EL BUCKET DECLARADO EN LAS VARIABLES NO EXISTE, CREAR BUCKET',
@@ -121,8 +123,9 @@ export class MinioService {
       const minioHost = this.MINIO_HOST;
       const minioPort = this.MINIO_PORT;
       const bucket = this.bucket;
-
       const exists = await minioClient.bucketExists(bucket);
+
+    
 
       if (!exists) {
         throw new NotFoundException('NO SE ENCONTRO EL BUCKET');

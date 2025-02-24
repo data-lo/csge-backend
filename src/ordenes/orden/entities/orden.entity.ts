@@ -52,7 +52,7 @@ export class Orden {
     nullable: false,
     default: TIPO_DE_SERVICIO.SERVICIOS_GENERALES,
   })
-  TIPO_DE_SERVICIO: TIPO_DE_SERVICIO;
+  tipoDeServicio: TIPO_DE_SERVICIO;
 
   @Column({
     name: 'fecha_de_emision',

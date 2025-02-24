@@ -49,7 +49,7 @@ export class OrdenService {
         campaniaId,
         proveedorId,
         contratoId,
-        TIPO_DE_SERVICIO,
+        tipoDeServicio,
         serviciosContratados,
         ...rest
       } = createOrdenDto;
@@ -74,14 +74,14 @@ export class OrdenService {
       }
 
       const partida = campania.activaciones.at(-1).partida;
-      const folio = await this.obtenerFolioDeOrden(TIPO_DE_SERVICIO);
+      const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
       const orden = this.ordenRepository.create({
         campaña: campania,
         proveedor: proveedor,
         contratoMaestro: contratoMaestro,
         partida: partida,
         folio: folio,
-        TIPO_DE_SERVICIO: TIPO_DE_SERVICIO,
+        tipoDeServicio,
         ...rest,
       });
 
@@ -139,7 +139,7 @@ export class OrdenService {
         select: {
           id: true,
           folio: true,
-          TIPO_DE_SERVICIO: true,
+          tipoDeServicio: true,
           fechaDeEmision: true,
           fechaDeAprobacion: true,
           estatus: true,
@@ -175,7 +175,7 @@ export class OrdenService {
         select: {
           id: true,
           folio: true,
-          TIPO_DE_SERVICIO: true,
+          tipoDeServicio: true,
           fechaDeEmision: true,
           estatus: true,
           esCampania: true,
@@ -221,7 +221,7 @@ export class OrdenService {
         campaniaId,
         proveedorId,
         contratoId,
-        TIPO_DE_SERVICIO,
+        tipoDeServicio,
         serviciosContratados,
         ...rest
       } = updateOrdenDto;
@@ -345,11 +345,9 @@ export class OrdenService {
       ultimosFolios = await this.ordenRepository
         .createQueryBuilder('orden')
         .select("orden.folio", "folio")
-        .where('orden.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
+        .where('orden.tipoDeServicio = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
         .getRawMany();
-
-      console.log(ultimosFolios);
 
       // Verificar si ultimosFolios es nulo o vacío
       let numeroDeFolio: number;
@@ -357,7 +355,6 @@ export class OrdenService {
         numeroDeFolio = 1;
       } else {
         const ultimoFolio = ultimosFolios[ultimosFolios.length - 1];
-        console.log(ultimoFolio);
         const numero = ultimoFolio.folio.split('-')[0];
         numeroDeFolio = parseInt(numero) + 1;
       }

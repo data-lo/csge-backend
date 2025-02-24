@@ -15,5 +15,6 @@ export class CreateServicioDto {
 
     @IsUUID()
     @IsString()
+    @IsOptional()
     estacionId: string;
 }
