@@ -89,7 +89,7 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
         showLogo: true,
         showTitle: true,
         textoEncabezado: textoEncabezado,
-        folio: folio,
+        folio: `FOLIO DE LA ORDEN: ${folio}`,
       }),
 
       content: [

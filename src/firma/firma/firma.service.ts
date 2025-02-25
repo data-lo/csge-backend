@@ -327,17 +327,14 @@ export class FirmaService {
     try {
       let document = null;
       if (documentType === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-
         document = await this.documentsService.construirOrdenDeServicio(documentId);
         return document;
 
       } else if (documentType === TipoDeDocumento.APROBACION_DE_FACTURA) {
-
         document = await this.documentsService.construirAprobacionDeFactura(documentId);
         return document;
 
       } else {
-
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
         return document;
       }

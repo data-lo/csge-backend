@@ -16,13 +16,10 @@ interface Props {
 }
 
 export const campaignApprovalStructure = async (data: Props) => {
-    const header = data.header;
-    const footer = data.footer;
-
-    const description = `ESTE DOCUMENTO CERTIFICA LA AUTORIZACIÓN DE LA CAMPAÑA Y, POR LO TANTO, EL USO DE LOS RECURSOS ASOCIADOS.`;
+    const description = `ESTE DOCUMENTO CERTIFICA LA AUTORIZACIÓN Y APROBACIÓN DE LA CAMPAÑA, PERMITIENDO EL USO DE LOS RECURSOS ASOCIADOS.`;
     const budget = 'PRESUPUESTO 2025';
 
-    const { footerTextPieDePaginaC, presupuestoTextC } = footerSection({ textoPieDePagina: description, presupuestoText: budget });
+    const { footerTextPieDePaginaC, presupuestoTextC } = footerSection({ textoPieDePagina: data.footer, presupuestoText: budget });
 
     const docDefinition: TDocumentDefinitions = {
         info: {
@@ -62,14 +59,12 @@ export const campaignApprovalStructure = async (data: Props) => {
         header: await headerSection({
             showLogo: true,
             showTitle: true,
-            textoEncabezado: header,
-            folio: data.campaing.nombre
+            textoEncabezado: data.header,
+            folio: `CAMPAÑA: ${data.campaing.nombre}`
         }),
         content: [
             textoDeRecepcionSection(description),
-            // tablaDeProveedorSection(proveedor.razonSocial, folio, total),
             firmasDeRecepcionSection(),
-            // notaDeFacturaSection(notaDeRecepcion),
         ],
     };
     return docDefinition;

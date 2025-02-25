@@ -28,21 +28,22 @@ const fetchImaageFromUrl = async () => {
 };
 
 const dividirTextoPorEspacios = (texto: string, longitud: number): string => {
-  const palabras = texto.split(' '); // Dividimos el texto en palabras
+  const palabras = texto.split(' ');
   let resultado = '';
   let lineaActual = '';
 
   for (const palabra of palabras) {
     if ((lineaActual + palabra).length > longitud) {
-      resultado += lineaActual.trim() + '\n'; // Agrega la línea acumulada al resultado
-      lineaActual = ''; // Reinicia la línea actual
+      resultado += lineaActual.trim() + '\n';
+      lineaActual = '';
     }
-    lineaActual += palabra + ' '; // Agrega la palabra a la línea actual
+    lineaActual += palabra + ' ';
   }
   resultado += lineaActual.trim();
 
   return resultado;
 };
+
 
 export const headerSection = async (
   options: HeaderOptions,
@@ -52,19 +53,15 @@ export const headerSection = async (
     const { showTitle, showLogo, textoEncabezado, folio } = options;
 
     if (showLogo) {
-
       const imageBuffer = await fetchImaageFromUrl();
-      console.log(imageBuffer)
       if (imageBuffer) {
         const metadata = await sharp(imageBuffer).metadata();
-        console.log('Metadata:', metadata);
         const maxWidth = 150;
         const maxheight = 100;
         const scale = Math.min(
           maxWidth / metadata.width,
           maxheight / metadata.height,
         );
-
         const contentType = `image/${metadata.format}`;
 
         logo = {
@@ -72,9 +69,8 @@ export const headerSection = async (
           width: metadata.width * scale,
           height: metadata.height * scale,
           alignment: 'left',
-          margin: [30, 20, 10, 10],
+          margin: [30, 0, 30, 50],
         };
-        
       } else {
         logo = { text: '' };
       }
@@ -82,18 +78,32 @@ export const headerSection = async (
 
     const headerText: Content = {
       text: `${dividirTextoPorEspacios(textoEncabezado, 50)}\n${folio}`,
-      alignment: 'center',
+      alignment: 'right',
       font: 'Poppins',
       bold: true,
-      margin: [30, 30, 0, 20],
+      background: "",
+      margin: [0, 40, 60, 20],
     };
 
     return {
-      columns: [showLogo ? logo : null, showTitle ? headerText : null],
-      margin: [0, 0, 0, 20],
+      columns: [
+        {
+          width: 'auto',
+          stack: [logo],
+          alignment: 'left',
+        },
+       
+        {
+          width: '*',
+          stack: [headerText],
+          alignment: 'right',
+        },
+      ],
+      margin: [0, 10, 0, 0],
     };
+
   } catch (error) {
-    console.log('ERROR EN CONSTRUCCION DE IMAGE BUFFER');
+    console.log('Error en la construcción del image buffer');
     handleExeptions(error);
   }
 };

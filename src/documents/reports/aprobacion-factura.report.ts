@@ -72,7 +72,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
             showLogo: true,
             showTitle: true,
             textoEncabezado: textoEncabezado,
-            folio: folio
+            folio: `FOLIO DE LA FACTURA: ${folio}`
         }),
         content: [
             textoDeRecepcionSection(textoDeRecepcion),
