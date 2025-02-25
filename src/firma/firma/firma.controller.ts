@@ -45,6 +45,14 @@ export class FirmaController {
   }
 
   @Auth(...rolesFirma)
+  @Get('verify-sent-for-signing/:id')
+  verifyIfOrderOrInvoiceWasSentForSigning(
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.firmaService.checkOrderOrInvoiceSentForSigning(id);
+  }
+
+  @Auth(...rolesFirma)
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
     @Param('id', ParseUUIDPipe) ordenOFacturaId: string,

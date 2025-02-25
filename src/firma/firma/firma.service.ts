@@ -31,6 +31,7 @@ import {
   coordenadasOrden,
 } from './interfaces/stickers-coordenadas.objs';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
+import { Console } from 'console';
 
 
 @Injectable()
@@ -645,4 +646,22 @@ export class FirmaService {
   remove(id: number) {
     return `This action removes a #${id} firma`;
   }
+
+  async checkOrderOrInvoiceSentForSigning(id: string) {
+    try {
+      const invoice = await this.firmaRepository.findOne({
+        where: { ordenOFacturaId: id },
+      });
+
+      return {
+        wasSentToSigning: invoice ? true : false,
+      };
+
+    } catch (error) {
+      throw new Error("Error al buscar la factura");
+    }
+  }
+
+
 }
+
