@@ -286,8 +286,8 @@ export class FirmaService {
       });
 
       if (!usuario) throw new NotFoundException('No se encontró el usuario');
-      if (!documento)
-        throw new NotFoundException('No se encontró el documento');
+
+      if (!documento) throw new NotFoundException('No se encontró el documento');
 
       const documentoEnPdf = await this.construir_pdf(
         documento.ordenOFacturaId,
@@ -321,17 +321,25 @@ export class FirmaService {
   }
 
   private async construir_pdf(
-    documentoId,
-    tipoDeDocumento: TipoDeDocumento,
+    documentId,
+    documentType: TipoDeDocumento,
   ): Promise<PDFKit.PDFDocument> {
     try {
-      let documento = null;
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-        documento = await this.documentsService.construirOrdenDeServicio(documentoId);
-        return documento;
-      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
-        documento = await this.documentsService.construirAprobacionDeFactura(documentoId);
-        return documento;
+      let document = null;
+      if (documentType === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+
+        document = await this.documentsService.construirOrdenDeServicio(documentId);
+        return document;
+
+      } else if (documentType === TipoDeDocumento.APROBACION_DE_FACTURA) {
+
+        document = await this.documentsService.construirAprobacionDeFactura(documentId);
+        return document;
+
+      } else {
+
+        document = await this.documentsService.buildCampaignApprovalDocument(documentId);
+        return document;
       }
     } catch (error) {
       console.log('error en costruir pdf');
@@ -463,7 +471,7 @@ export class FirmaService {
     }
   }
 
-  //SERVICIOS_FIRMAMEX
+  // Servicios de Firmamex
 
   async enviarDocumentoAFirmamexSDK(
     docBase64,
@@ -531,28 +539,29 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumento(
-    ordenOFacturaId: string,
-    tipoDeDocumento: TipoDeDocumento,
-  ) {
+  async descargarDocumento(documentId: string, documentType: TipoDeDocumento,) {
     try {
-      let documento: any;
+      let document: any;
 
-      const documentoEnFirma = await this.firmaRepository.findOne({
-        where: { ordenOFacturaId: ordenOFacturaId },
+      const documentForSignature = await this.firmaRepository.findOne({
+        where: { ordenOFacturaId: documentId },
       });
 
-      if (!documentoEnFirma) {
-        documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
-        return documento;
+      if (!documentForSignature) {
+        document = await this.construir_pdf(documentId, documentType);
+        return document;
       }
 
-      if (!documentoEnFirma.ticket) {
-        documento = await this.construir_pdf(ordenOFacturaId, tipoDeDocumento);
-        return documento;
+      if (!documentForSignature.ticket) {
+        document = await this.construir_pdf(documentId, documentType);
+        return document;
       }
 
-      return { tipo: 'url', url: documentoEnFirma.documentoUrlFirmamex };
+      return {
+        tipo: 'url',
+        url: documentForSignature.documentoUrlFirmamex
+      };
+
     } catch (error) {
       console.log(error);
       handleExeptions(error);

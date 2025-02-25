@@ -5,10 +5,11 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { Factura } from 'src/ordenes/factura/entities/factura.entity';
 import { PrinterService } from './printer.service';
 import { TextosModule } from 'src/configuracion/textos/textos.module';
+import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 
 @Module({
   providers: [DocumentsService,PrinterService],
-  imports:[TypeOrmModule.forFeature([Orden,Factura]),TextosModule],
+  imports:[TypeOrmModule.forFeature([Orden,Factura, Campaña]),TextosModule],
   exports:[DocumentsService]
 })
 export class DocumentsModule {}

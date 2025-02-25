@@ -62,3 +62,5 @@ postgres
 
 static/uploads
 .codegpt
+
+/minio_data/

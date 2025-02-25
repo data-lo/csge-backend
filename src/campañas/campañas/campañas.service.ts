@@ -352,6 +352,12 @@ export class CampañasService {
     }
   }
 
+  async getApprovalCampaignDocument(id: string) {
+    const document = await this.firmaService.descargarDocumento(id, TipoDeDocumento.CAMPAÑA);
+    
+    return document;
+  }
+
   async emitter(campaniaId: string, evento: string) {
     this.eventEmitter.emit(`campania.${evento}`, new CampaniaEvent(campaniaId));
   }

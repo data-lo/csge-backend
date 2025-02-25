@@ -8,17 +8,23 @@ import { ordenDeServicioPdf } from './reports/orden-de-servicio.report';
 import { TextosService } from 'src/configuracion/textos/textos.service';
 import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
+import { campaignApprovalStructure } from './reports/campaign-approval-report';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     @InjectRepository(Factura)
     private facturRepository: Repository<Factura>,
-    private textosService: TextosService,
+
+    @InjectRepository(Campaña)
+    private campaignRepository: Repository<Campaña>,
 
     @InjectRepository(Orden)
     private ordenDeServicioRepository: Repository<Orden>,
-    private readonly printerService: PrinterService
+
+    private readonly printerService: PrinterService,
+    private textosService: TextosService,
   ) { }
 
   async construirOrdenDeServicio(id: string) {
@@ -75,4 +81,33 @@ export class DocumentsService {
       handleExeptions(error);
     }
   }
+
+  async buildCampaignApprovalDocument(campaignId: string) {
+
+    try {
+      const campaing = await this.campaignRepository.findOne({
+        where: { id: campaignId },
+      });
+
+      const header = await this.textosService.obtenerEncabezado();
+
+      const footer = await this.textosService.obtenerPieDePagina();
+
+      const definicionDeFactura = await campaignApprovalStructure({
+        campaing: campaing,
+        header: header.texto,
+        footer: footer.texto,
+      });
+
+      const document = this.printerService.createPdf(definicionDeFactura);
+
+      return document;
+    } catch (error) {
+      handleExeptions(error);
+    }
+  }
+
+
 }
+
+

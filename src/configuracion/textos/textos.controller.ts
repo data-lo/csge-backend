@@ -8,7 +8,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('configuracion/textos')
 export class TextosController {
-  constructor(private readonly textosService: TextosService) {}
+  constructor(private readonly textosService: TextosService) { }
   private readonly logger = new LoggerService(TextosController.name);
 
   @Auth(...rolesTextos)
@@ -37,19 +37,19 @@ export class TextosController {
 
   @Auth(...rolesTextos)
   @Get(':id')
-  findOne(@Param('id',ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.textosService.findOne(id);
   }
-  
-  @Auth(...rolesTextos) 
+
+  @Auth(...rolesTextos)
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateTextoDto: UpdateTextoDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateTextoDto: UpdateTextoDto) {
     return this.textosService.update(id, updateTextoDto);
   }
 
   @Auth(...rolesTextos)
   @Delete(':id')
-  remove(@Param('id',ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.textosService.eliminarTexto(id);
   }
 }
