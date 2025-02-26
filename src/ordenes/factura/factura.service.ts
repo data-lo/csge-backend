@@ -119,7 +119,7 @@ export class FacturaService {
         await this.facturaRepository.save(factura);
 
         return {
-          factura: factura.id,
+          id: factura.id,
           rfc: facturaXmlData.rfc,
           subtotal: facturaXmlData.subtotal,
           iva: facturaXmlData.iva,
@@ -175,6 +175,7 @@ export class FacturaService {
           id: factura.id,
           total: factura.total,
           estatus: factura.estatus,
+          folio: factura.folio,
           proveedor: {
             nombre: factura.proveedor.razonSocial,
             rfc: factura.proveedor.rfc,

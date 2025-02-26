@@ -31,6 +31,7 @@ import { foliosResponse } from './interfaces/folios-interface';
 @Injectable()
 export class OrdenService {
   constructor(
+
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
     @Inject(IvaGetter)
@@ -199,7 +200,7 @@ export class OrdenService {
   async findOne(id: string) {
     try {
       const orden = await this.ordenRepository.findOne({
-        where: { id: id },
+        where: { id },
         relations: {
           proveedor: true,
           contratoMaestro: true,
@@ -207,9 +208,11 @@ export class OrdenService {
           campaña: true,
         },
       });
-      if (!orden) throw new NotFoundException('No se encuentra la orden');
-      delete orden.indice;
+
+      if (!orden) throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+
       return orden;
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -313,7 +316,7 @@ export class OrdenService {
         .andWhere('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
         .getMany();
 
-        console.log(ordenes)
+      console.log(ordenes)
       if (ordenes.length === 0) return null;
 
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {

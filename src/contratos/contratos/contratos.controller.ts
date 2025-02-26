@@ -8,7 +8,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('contratos/contratos')
 export class ContratosController {
-  constructor(private readonly contratosService: ContratosService) {}
+  constructor(private readonly contratosService: ContratosService) { }
   private readonly logger = new LoggerService(ContratosController.name);
 
   @Auth(...rolesContratos)
@@ -20,7 +20,7 @@ export class ContratosController {
 
   @Auth(...rolesContratos)
   @Get()
-  findAll(@Query('pagina') pagina:string) {
+  findAll(@Query('pagina') pagina: string) {
     this.logger.log('obtener contratos')
     return this.contratosService.findAll(+pagina);
   }
@@ -42,7 +42,7 @@ export class ContratosController {
   findTiposDeServicioPorProveedor(@Param('id', ParseUUIDPipe) proveedorId: string) {
     return this.contratosService.getContractedServiceTypes(proveedorId);
   }
-  
+
   @Auth(...rolesContratos)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {

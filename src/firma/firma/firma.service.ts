@@ -37,6 +37,7 @@ import { Console } from 'console';
 @Injectable()
 export class FirmaService {
   constructor(
+
     @InjectRepository(Firma)
     private firmaRepository: Repository<Firma>,
 

@@ -17,6 +17,7 @@ export class WebhooksService {
   constructor(
     @InjectRepository(Firma)
     private readonly firmaRepository: Repository<Firma>,
+    
     private eventEmitter: EventEmitter2,
   ) { }
 
@@ -56,15 +57,19 @@ export class WebhooksService {
       });
 
       const documentoId = documentoDeFirma.ordenOFacturaId;
+
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
       if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
 
         documentoDeFirma.estaFirmado = true;
+
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.APROBADA;
-        this.emitter(documentoId, 'aprobacion.orden');
+
+        this.eventEmitter.emit('approval-order', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
       } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        
         this.emitter(documentoId, 'aprobacion.factura');
       }
       await this.firmaRepository.save(documentoDeFirma);
