@@ -350,7 +350,7 @@ export class ContratosService {
     }
   }
 
-  async updateContractAmountByOrder(orderId: string, masterContractId: string, eventType: TYPE_EVENT_ORDER) {
+  async updateContractAmountByOrder(orderId: string, masterContractId: string, eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE) {
 
     const order = await this.ordenRepository.findOne({ where: { id: orderId } })
 
@@ -376,17 +376,32 @@ export class ContratosService {
       eventType: eventType,
       totalOrder: order.total
     }
-
+    
     const updatedValues = handlerAmounts(values);
 
-    await this.contratoRepository.update(contractByServiceType.id, {
-      montoActivo: updatedValues.contractByServiceType.activeAmount
-    });
+    if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
 
-    await this.contratoMaestroRepository.update(masterContract.id, {
-      montoDisponible: updatedValues.masterContract.availableAmount,
-      montoActivo: updatedValues.masterContract.activeAmount
-    });
+      await this.contratoRepository.update(contractByServiceType.id, {
+        montoActivo: updatedValues.contractByServiceType.activeAmount
+      });
+
+      await this.contratoMaestroRepository.update(masterContract.id, {
+        montoDisponible: updatedValues.masterContract.availableAmount,
+        montoActivo: updatedValues.masterContract.activeAmount
+      });
+
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_APPROVED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+
+      await this.contratoRepository.update(contractByServiceType.id, {
+        montoActivo: updatedValues.contractByServiceType.activeAmount,
+        montoEjercido: updatedValues.contractByServiceType.executedAmount
+      });
+
+      await this.contratoMaestroRepository.update(masterContract.id, {
+        montoEjercido: updatedValues.masterContract.executedAmount,
+        montoActivo: updatedValues.masterContract.activeAmount
+      });
+    }
   }
 
   async descargarReporte() {

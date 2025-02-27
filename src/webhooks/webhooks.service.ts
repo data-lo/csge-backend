@@ -17,7 +17,7 @@ export class WebhooksService {
   constructor(
     @InjectRepository(Firma)
     private readonly firmaRepository: Repository<Firma>,
-    
+
     private eventEmitter: EventEmitter2,
   ) { }
 
@@ -52,27 +52,26 @@ export class WebhooksService {
   private async handleDocumentCompleted(webhook: DocumentCompleted) {
     try {
       const { firmamex_id } = webhook;
-      const documentoDeFirma = await this.firmaRepository.findOneBy({
+
+      const document = await this.firmaRepository.findOneBy({
         ticket: firmamex_id
       });
 
-      const documentoId = documentoDeFirma.ordenOFacturaId;
+      const documentoId = document.ordenOFacturaId;
 
-      const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
+      if (document.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+        this.eventEmitter.emit('order-approval-or-cancellation', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-
-        documentoDeFirma.estaFirmado = true;
-
-        documentoDeFirma.estatusDeFirma = EstatusDeFirma.APROBADA;
-
-        this.eventEmitter.emit('approval-order', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
-
-      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
-        
-        this.emitter(documentoId, 'aprobacion.factura');
+      } else if (document.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentoId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
       }
-      await this.firmaRepository.save(documentoDeFirma);
+
+      document.estaFirmado = true;
+
+      document.estatusDeFirma = EstatusDeFirma.APROBADA;
+
+      await this.firmaRepository.save(document);
+
     } catch (error) {
       handleExeptions(error);
     }

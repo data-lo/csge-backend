@@ -46,7 +46,7 @@ export class ContratosController {
   @Auth(...rolesContratos)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.contratosService.findOne(id);
+    return this.contratosService.updateContractAmountByOrder("0db0ca44-eb06-4e5b-9e01-04976757786d", "85c5c1ef-0d57-43a8-9da6-ee1179118f78", TYPE_EVENT_INVOICE.INVOICE_APPROVED);
   }
 
 
