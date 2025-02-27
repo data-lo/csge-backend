@@ -15,7 +15,7 @@ export class FacturaEventosService {
     @OnEvent('invoice-approval-or-cancellation', { async: true })
     async applyDiscountsToContract(payload: { invoiceId: string, eventType: TYPE_EVENT_INVOICE }) {
         try {
-            console.log(`Iniciando evento "${payload.eventType}" para la factura: ${payload.invoiceId}`);
+            console.log(`Iniciando evento "invoice-approval-or-cancellation" para la factura: ${payload.invoiceId}`);
 
             const invoice = await this.invoiceService.findOne(payload.invoiceId);
 
@@ -29,8 +29,7 @@ export class FacturaEventosService {
                     payload.eventType
                 );
             }
-            console.log(`Evento "${payload.eventType}" completado exitosamente. Montos del contrato actualizados.`);
-
+            console.log(`Evento "invoice-approval-or-cancellation" completado exitosamente. Montos del contrato actualizados.`);
         } catch (error) {
             console.error(`Error al procesar el evento "${payload.eventType}" para la factura: ${payload.invoiceId}.`, error);
         }

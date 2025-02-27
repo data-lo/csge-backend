@@ -17,7 +17,7 @@ import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
-import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { plainToClass } from 'class-transformer';
 import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 import { FirmaService } from '../../firma/firma/firma.service';
@@ -44,7 +44,7 @@ export class OrdenService {
     private readonly servicioContratadoService: ServicioContratadoService,
   ) { }
 
-  async create(createOrdenDto: CreateOrdenDto) {
+  async create(createOrderDto: CreateOrdenDto) {
     try {
       const {
         campaniaId,
@@ -53,9 +53,10 @@ export class OrdenService {
         tipoDeServicio,
         serviciosContratados,
         ...rest
-      } = createOrdenDto;
+      } = createOrderDto;
 
       let campania = null;
+      
       let contratoMaestro = null;
 
       if (campaniaId) {
@@ -75,7 +76,9 @@ export class OrdenService {
       }
 
       const partida = campania.activaciones.at(-1).partida;
+
       const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
+
       const orden = this.ordenRepository.create({
         campaña: campania,
         proveedor: proveedor,
@@ -290,7 +293,7 @@ export class OrdenService {
     try {
       const orden = await this.findOne(id);
       const estatus = orden.estatus;
-      if (estatus === EstatusOrdenDeServicio.PENDIENTE) {
+      if (estatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         for (const servicioContratado of orden.serviciosContratados) {
           await this.servicioContratadoService.remove(servicioContratado.id);
         }
@@ -308,7 +311,7 @@ export class OrdenService {
   async findByRfc(rfc: string) {
     console.log(rfc)
     try {
-      const estatus = EstatusOrdenDeServicio.ACTIVA;
+      const estatus = ESTATUS_ORDEN_DE_SERVICIO.ACTIVA;
       const ordenes = await this.ordenRepository
         .createQueryBuilder('ordenes')
         .innerJoinAndSelect('ordenes.proveedor', 'proveedor')
@@ -373,26 +376,26 @@ export class OrdenService {
     }
   }
 
-  async actualizarEstatusOrden(
-    id: string,
-    nuevoEstatus: EstatusOrdenDeServicio,
-  ) {
-    try {
-      const orden = await this.findOne(id);
-      if (orden) {
-        await this.ordenRepository.update(id, {
-          estatus: nuevoEstatus,
-        });
-      }
-      return {
-        id: orden.id,
-        estatus: nuevoEstatus,
-        message: 'Estatus actualizado correctamente',
-      };
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
+  // async actualizarEstatusOrden(
+  //   id: string,
+  //   nuevoEstatus: ESTATUS_ORDEN_DE_SERVICIO,
+  // ) {
+  //   try {
+  //     const orden = await this.findOne(id);
+  //     if (orden) {
+  //       await this.ordenRepository.update(id, {
+  //         estatus: nuevoEstatus,
+  //       });
+  //     }
+  //     return {
+  //       id: orden.id,
+  //       estatus: nuevoEstatus,
+  //       message: 'Estatus actualizado correctamente',
+  //     };
+  //   } catch (error) {
+  //     handleExeptions(error);
+  //   }
+  // }
 
   async obtenerEstatusOrden(id: string) {
     try {
@@ -406,9 +409,9 @@ export class OrdenService {
   async cancelarOrden(id: string) {
     try {
       const orden = await this.findOne(id);
-      if (orden.estatus !== EstatusOrdenDeServicio.PENDIENTE) {
+      if (orden.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         await this.ordenRepository.update(id, {
-          estatus: EstatusOrdenDeServicio.CANCELADA,
+          estatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA,
         });
         return { message: 'Orden cancelada exitosamente' };
       }
@@ -507,5 +510,21 @@ export class OrdenService {
         proveedor: true
       },
     });
+  }
+
+  async updateOrderStatus(orderId: string, status: ESTATUS_ORDEN_DE_SERVICIO) {
+    try {
+      const order = await this.ordenRepository.findOne({ where: { id: orderId } });
+
+      if (!order) {
+        throw new Error(`La Orden con ID: ${orderId} no se encontró.`);
+      }
+
+      await this.ordenRepository.update(orderId, { estatus: status });
+
+      return { message: "¡El estatus de la orden se ha actualizado correctamente!", };
+    } catch (error) {
+      handleExeptions(error);
+    }
   }
 }

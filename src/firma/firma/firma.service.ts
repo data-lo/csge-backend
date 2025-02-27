@@ -23,7 +23,7 @@ import { QROrden, QRCotejo } from './interfaces/qr.c';
 import { DocumentsService } from '../../documents/documents.service';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from './entities/firma.entity';
-import { EstatusOrdenDeServicio } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import {
   coordenadasAprobacionFactura,
   coordenadasCancelador,
@@ -210,7 +210,7 @@ export class FirmaService {
           where: { id: documentoId },
         });
 
-        if (documentoDb.estatus !== EstatusOrdenDeServicio.PENDIENTE)
+        if (documentoDb.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE)
           throw new BadRequestException(
             'Solo se pueden mandar a aprobar ordenes con estatus de pendiente',
           );

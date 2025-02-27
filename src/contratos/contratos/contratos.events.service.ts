@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ContratosService } from './contratos.service';
 import { OrdenService } from 'src/ordenes/orden/orden.service';
+import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 
 @Injectable()
 export class ContratosEventosService {
@@ -11,10 +12,13 @@ export class ContratosEventosService {
     private readonly contractService: ContratosService
   ) { }
 
-  @OnEvent('order-approval-or-cancellation', { async: true })
+  // 1.- Evento que se ejecuta al aprobar o cancelar una orden, 
+  // modificando los montos de los contratos correspondientes.
+
+  @OnEvent('modify-contract-amounts', { async: true })
   async applyDiscountsToContract(payload: { orderId: string, eventType: TYPE_EVENT_ORDER }) {
     try {
-      console.log(`Iniciando evento "${payload.eventType}" para la Orden: ${payload.orderId}`);
+      console.log(`Iniciando evento "modify-contract-amounts" para la Orden: ${payload.orderId}`);
 
       const order = await this.orderService.findOne(payload.orderId);
 
@@ -24,10 +28,10 @@ export class ContratosEventosService {
         payload.eventType
       );
 
-      console.log(`Evento "${payload.eventType}" completado exitosamente. Montos del contrato actualizados.`);
+      console.log(`Evento "modify-contract-amounts" completado exitosamente. Montos del contrato actualizados.`);
 
     } catch (error) {
-      console.error(`Error al procesar el evento "${payload.eventType}" para la Orden: ${payload.orderId}.`, error);
+      console.error(`Error al procesar el evento "modify-contract-amounts" para la Orden: ${payload.orderId}.`, error);
     }
   }
 

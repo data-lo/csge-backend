@@ -14,7 +14,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { EstatusOrdenDeServicio } from '../interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from '../interfaces/estatus-orden-de-servicio';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
@@ -33,11 +33,11 @@ export class Orden {
   @Column({
     type: 'enum',
     name: 'estatus_de_orden',
-    enum: EstatusOrdenDeServicio,
+    enum: ESTATUS_ORDEN_DE_SERVICIO,
     nullable: false,
-    default: EstatusOrdenDeServicio.PENDIENTE,
+    default: ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE,
   })
-  estatus: EstatusOrdenDeServicio;
+  estatus: ESTATUS_ORDEN_DE_SERVICIO;
 
   @Column({
     name: 'folio',

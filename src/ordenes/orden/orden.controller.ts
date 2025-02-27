@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe
 import { OrdenService } from './orden.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
-import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
@@ -90,11 +90,11 @@ export class OrdenController {
     return this.ordenService.obtenerOrdenesPorCampaniaId(id);
   }
 
-  @Auth(...rolesOrdenes)
-  @Patch('actualizar-estatus/:id')
-  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
-    return this.ordenService.actualizarEstatusOrden(id, estatus);
-  }
+  // @Auth(...rolesOrdenes)
+  // @Patch('actualizar-estatus/:id')
+  // actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: ESTATUS_ORDEN_DE_SERVICIO) {
+  //   return this.ordenService.actualizarEstatusOrden(id, estatus);
+  // }
 
   @Auth(...rolesOrdenes)
   @Patch('cancelar/:id')

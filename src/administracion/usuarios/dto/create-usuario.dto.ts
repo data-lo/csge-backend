@@ -1,4 +1,4 @@
-import { ValidRoles } from "../interfaces/usuarios.roles";
+import { VALID_ROLES } from "../interfaces/usuarios.roles";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
 import {
     IsArray, IsBoolean, IsEmail, IsEnum,
@@ -50,8 +50,8 @@ export class CreateUsuarioDto {
     numeroDeEmpleado: string;
 
     @IsOptional()
-    @IsEnum(ValidRoles)
-    rol: ValidRoles;
+    @IsEnum(VALID_ROLES)
+    rol: VALID_ROLES;
 
     @IsOptional()
     @IsArray()

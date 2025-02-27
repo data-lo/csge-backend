@@ -1,4 +1,4 @@
-export enum EstatusOrdenDeServicio {
+export enum ESTATUS_ORDEN_DE_SERVICIO {
     PENDIENTE = "PENDIENTE",
     ACTIVA = "ACTIVA",
     COTEJADA = "COTEJADA",

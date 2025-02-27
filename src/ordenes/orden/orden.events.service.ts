@@ -1,7 +1,7 @@
-import { Injectable} from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { DocumentoEvent } from "../interfaces/documento-event";
-import { EstatusOrdenDeServicio } from "./interfaces/estatus-orden-de-servicio";
+import { ESTATUS_ORDEN_DE_SERVICIO } from "./interfaces/estatus-orden-de-servicio";
 import { OrdenEvent } from "../interfaces/orden-event";
 import { OrdenService } from './orden.service';
 import { handleExeptions } from "src/helpers/handleExceptions.function";
@@ -10,31 +10,23 @@ import { handleExeptions } from "src/helpers/handleExceptions.function";
 @Injectable()
 export class OrdenEventosService {
     constructor(
-        private readonly ordenService:OrdenService,
-        private eventEmitter:EventEmitter2
-    ){}
+        private readonly orderService: OrdenService,
+        private eventEmitter: EventEmitter2
+    ) { }
 
+    // 1. Este evento modifica el estado de la 
+    // orden cuando es aprobada, pagada, facturada o cancelada.
 
-    // emitir los evenetos orden.pagada, orden.cancelada y orden.facturada
-    // para la actualizacion de los montos del contrato
+    @OnEvent('modified-order-status', { async: true })
+    async changeOrderStatus(payload: { orderId: string, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA }) {
+        try {
+            console.log(`Iniciando evento "modified-order-status" para la Orden: ${payload.orderId}`);
 
-    @OnEvent('aprobacion.orden',{async:true})
-    async ordenAprobada(event: DocumentoEvent){
-        try{
-            const {documentoId} = event;
-            const APROBADA = EstatusOrdenDeServicio.ACTIVA;
-            await this.ordenService.actualizarEstatusOrden(documentoId,APROBADA);
-            this.emitter('aprobada', documentoId);
-        }catch(error){
-            handleExeptions(error);
+            await this.orderService.updateOrderStatus(payload.orderId, payload.orderStatus);
+
+            console.log(`Evento "modified-order-status" completado exitosamente. Estatus de la orden actualizado.`);
+        } catch (error) {
+            console.error(`Error al procesar el evento "modified-order-status" para la Orden: ${payload.orderId}.`, error);
         }
-    }
-
-    private emitter(evento:string,ordenId:string){
-        const EVENTO = `orden.${evento}`;
-        this.eventEmitter.emit(
-            EVENTO,
-            new OrdenEvent(ordenId,EVENTO)
-        );
     }
 }

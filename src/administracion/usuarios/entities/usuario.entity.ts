@@ -12,7 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ValidPermises } from '../interfaces/usuarios.permisos';
-import { ValidRoles } from '../interfaces/usuarios.roles';
+import { VALID_ROLES } from '../interfaces/usuarios.roles';
 import { Departamento } from 'src/administracion/departamentos/entities/departamento.entity';
 import { Puesto } from 'src/administracion/puestos/entities/puesto.entity';
 import { TipoDeDocumento } from '../interfaces/usuarios.tipo-de-documento';
@@ -97,10 +97,10 @@ export class Usuario {
 
   @Column({
     type: 'enum',
-    enum: ValidRoles,
-    default: ValidRoles.AGENTE,
+    enum: VALID_ROLES,
+    default: VALID_ROLES.AGENTE,
   })
-  rol: ValidRoles;
+  rol: VALID_ROLES;
 
   @Column({
     type: 'enum',

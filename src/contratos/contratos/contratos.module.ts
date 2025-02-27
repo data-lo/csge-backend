@@ -62,6 +62,18 @@ import { Iva } from 'src/configuracion/iva/entities/iva.entity';
     IvaService,
     PartidaService
   ],
-  exports: [ContratosService, TypeOrmModule],
+  exports: [ // 🔹 Exportamos los servicios para que otros módulos los usen sin crear nuevas instancias
+    ContratosService, 
+    ContratosEventosService, 
+    OrdenService,
+    IvaGetter,
+    ActivacionService,
+    ServicioContratadoService,
+    CampañasService,
+    ProveedorService,
+    IvaService,
+    PartidaService,
+    TypeOrmModule
+  ],
 })
 export class ContratosModule {}

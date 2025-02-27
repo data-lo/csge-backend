@@ -4,56 +4,56 @@ import { CreateContratoModificatorioDto } from './dto/create-contratos_modificat
 import { UpdateContratoModificatorioDto } from './dto/update-contratos_modificatorio.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesContratosModificatorios } from './valid-contratos-modificatorios-roles.ob';
+import { CONTRACT_USER_ROLESModificatorios } from './valid-contratos-modificatorios-roles.ob';
 
 @Controller('contratos/contratos-modificatorios')
 export class ContratosModificatoriosController {
   constructor(private readonly contratosModificatoriosService: ContratosModificatoriosService) {}
   private readonly logger = new LoggerService(ContratosModificatoriosController.name);
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Post()
   create(@Body() createContratosModificatorioDto: CreateContratoModificatorioDto) {
     return this.contratosModificatoriosService.create(createContratosModificatorioDto);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Get()
   findAll(@Query('pagina') pagina:number) {
     return this.contratosModificatoriosService.findAll(pagina);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosModificatoriosService.obtenerEstatus(id);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosModificatoriosService.findOne(id);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratosModificatorioDto: UpdateContratoModificatorioDto) {
     return this.contratosModificatoriosService.update(id, updateContratosModificatorioDto);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Patch('modificar-estatus/:id')
   modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoModificatorioDto: UpdateContratoModificatorioDto) {
     return this.contratosModificatoriosService.modificarEstatus(id, updateContratoModificatorioDto);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Patch('desactivar-cancelar/:id')
   desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoModificatorioDto) {
     return this.contratosModificatoriosService.desactivarCancelarContrato(id, updateContratoDto);
   }
 
-  @Auth(...rolesContratosModificatorios)
+  @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.contratosModificatoriosService.remove(id);

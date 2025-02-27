@@ -10,19 +10,8 @@ import { PassportModule } from '@nestjs/passport';
 import { FirmaModule } from 'src/firma/firma/firma.module';
 import { FacturaEventosService } from './factura.events.service';
 import { MinioModule } from 'src/minio/minio.module';
-
-import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { ContratosEventosService } from 'src/contratos/contratos/contratos.events.service';
-import { OrdenService } from '../orden/orden.service';
-import { IvaGetter } from 'src/helpers/iva.getter';
-import { ActivacionService } from 'src/campañas/activacion/activacion.service';
-import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
-import { CampañasService } from 'src/campañas/campañas/campañas.service';
-import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
-import { IvaService } from 'src/configuracion/iva/iva.service';
-import { PartidaService } from 'src/campañas/partida/partida.service';
 import { ContratoModificatorio } from 'src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity';
 import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 import { CarteleraGobierno } from '../cartelera_gobierno/entities/cartelera_gobierno.entity';
@@ -31,45 +20,35 @@ import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.enti
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
 import { Iva } from 'src/configuracion/iva/entities/iva.entity';
+import { ContratosModule } from 'src/contratos/contratos/contratos.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    Factura,
-    Orden,
-    Proveedor,
-    Contrato,
-    ContratoMaestro,
-    ContratoModificatorio,
-    ServicioContratado,
-    CarteleraGobierno,
-    Campaña,
-    Dependencia,
-    Activacion,
-    Partida,
-    Iva,
-  ]),
+  imports: [
+    TypeOrmModule.forFeature([
+      Factura,
+      Orden,
+      Proveedor,
+      Contrato,
+      ContratoMaestro,
+      ContratoModificatorio,
+      ServicioContratado,
+      CarteleraGobierno,
+      Campaña,
+      Dependencia,
+      Activacion,
+      Partida,
+      Iva,
+    ]),
     AuthModule,
     PassportModule,
     FirmaModule,
-    MinioModule
+    MinioModule,
+    ContratosModule,
   ],
   controllers: [FacturaController],
   providers: [
     FacturaService,
     FacturaEventosService,
-    ContratosService,
-    ContratosEventosService,
-    OrdenService,
-    IvaGetter,
-    ActivacionService,
-    ServicioContratadoService,
-    CampañasService,
-    ProveedorService,
-    IvaService,
-    PartidaService
   ],
-
-
-
 })
-export class FacturaModule { }
+export class FacturaModule {}

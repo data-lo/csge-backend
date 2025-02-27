@@ -15,7 +15,7 @@ import * as xmls2js from 'xml-js';
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
-import { EstatusOrdenDeServicio } from '../orden/interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from '../orden/interfaces/estatus-orden-de-servicio';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { FirmaService } from '../../firma/firma/firma.service';
@@ -74,7 +74,7 @@ export class FacturaService {
           });
         }
 
-        if (orden.estatus != EstatusOrdenDeServicio.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
+        if (orden.estatus != ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
         subtotalDeOrdenes = Number(orden.subtotal) + Number(subtotalDeOrdenes);
         ordenes.push(orden);
       }

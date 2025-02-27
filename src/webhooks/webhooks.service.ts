@@ -11,6 +11,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
+import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 
 @Injectable()
 export class WebhooksService {
@@ -60,7 +61,9 @@ export class WebhooksService {
       const documentoId = document.ordenOFacturaId;
 
       if (document.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-        this.eventEmitter.emit('order-approval-or-cancellation', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
+        this.eventEmitter.emit('modify-contract-amounts', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
+
+        this.eventEmitter.emit('modified-order-status', { orderId: documentoId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
 
       } else if (document.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
         this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentoId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
