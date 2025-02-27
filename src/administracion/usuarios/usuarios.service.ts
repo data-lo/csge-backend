@@ -56,6 +56,7 @@ export class UsuariosService {
           'usuario.correo',
           'usuario.permisos',
           'usuario.documentosDeFirma',
+          'usuario.tipoOrdenDeServicio',
           'departamento.nombre',
           'puesto.nombre'
         ])
@@ -82,6 +83,7 @@ export class UsuariosService {
           correo: true,
           permisos: true,
           documentosDeFirma: true,
+          tipoOrdenDeServicio:true,
           puesto: {
             nombre: true
           },
@@ -188,6 +190,7 @@ export class UsuariosService {
       return {
         user: {
           id: dbUser.id,
+          rol: dbUser.rol,
         },
         token: this.getJwtToken({ id: dbUser.id }),
         expiresIn: expirationTimeGMTMinus6.toISOString(),

@@ -14,7 +14,6 @@ import {
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
-import { fileFilter } from 'src/helpers/fileFilter';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
@@ -22,10 +21,9 @@ import { rolesFactura } from './valid-facturas-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
-import { randomUUID } from 'crypto';
 import { MinioService } from 'src/minio/minio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
-import { memoryStorage } from 'multer';
+import {v4 as uuidv4} from 'uuid'
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -46,9 +44,8 @@ export class FacturaController {
     @Body() createFacturaDto: CreateFacturaDto,
     @GetUser() usuario:Usuario
   ) {
+    const uuid = uuidv4();
 
-    console.log(files);
-    const uuid = randomUUID();
     const minioFiles = [
       {
         name:`pdf/${uuid}.pdf`,
@@ -68,7 +65,6 @@ export class FacturaController {
     }
 
     createFacturaDto.id = uuid;
-    console.log(createFacturaDto);
     return this.facturaService.create(createFacturaDto,usuario);
   }
 
@@ -100,21 +96,24 @@ export class FacturaController {
     return this.facturaService.obtenerEstatusDeFactura(id);
   }
 
-  @Auth(...rolesFactura)
   @Get('pdf/:id')
   async obtenerDocumentoEnPdf(
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const pdfDoc = await this.facturaService.obtenerDocumentoDeFacturaPdf(id);
-    if(pdfDoc.tipo = 'url'){
+  
+    if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
-    }else{
+    } else {
       res.setHeader('Content-Type', 'application/pdf');
+
       pdfDoc.pipe(res);
+
       pdfDoc.end();
     }
   }
+  
 
   @Auth(...rolesFactura)
   @Get(':id')

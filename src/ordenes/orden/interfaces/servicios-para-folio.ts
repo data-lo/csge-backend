@@ -1,40 +1,30 @@
-import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 
 export class ServiciosParaFolio {
 
     abreviaciones = {
-    "SG": TipoDeServicio.SERVICIOS_GENERALES,
-    "CAP": TipoDeServicio.CAPSULAS,
-    "CAR": TipoDeServicio.CARTELERAS,
-    "CIN": TipoDeServicio.CINE,
-    "DIG": TipoDeServicio.DIGITALES,
-    "EML": TipoDeServicio.EMAILING,
-    "ESP": TipoDeServicio.ESPECTACULARES,
-    "EO": TipoDeServicio.ESTUDIOS_DE_OPINION,
-    "IMP": TipoDeServicio.IMPRESIONES,
-    "IMP_P": TipoDeServicio.IMPRESION_PRENSA,
-    "REV": TipoDeServicio.REVISTA,
-    "LOC": TipoDeServicio.LOCUCION,
-    "MON": TipoDeServicio.MONITOREO,
-    "PD": TipoDeServicio.PANTALLAS_DIGITALES,
-    "PAU": TipoDeServicio.PAUTAS,
-    "PM": TipoDeServicio.PLAN_DE_MEDIOS,
-    "PROD": TipoDeServicio.PRODUCCION,
-    "RAD": TipoDeServicio.RADIO,
-    "SC": TipoDeServicio.SERVICIOS_CREATIVOS,
-    "SPT": TipoDeServicio.SPOTS,
-    "SW": TipoDeServicio.SOFTWARE,
-    "TV": TipoDeServicio.TELEVISION,
-    "TES": TipoDeServicio.TESTIMONIALES,
-    "VM": TipoDeServicio.VALLAS_MOVILES,
-    "VID": TipoDeServicio.VIDEOS,
-    "INT": TipoDeServicio.INTERNET,
-    "TLS": TipoDeServicio.TODOS_LOS_SERVICIOS,
+        "CIN": TIPO_DE_SERVICIO.CINE,
+        "DIG": TIPO_DE_SERVICIO.DIGITALES,
+        "EML": TIPO_DE_SERVICIO.EMAILING,
+        "ESP": TIPO_DE_SERVICIO.ESPECTACULARES,
+        "REV": TIPO_DE_SERVICIO.REVISTA,
+        "LOC": TIPO_DE_SERVICIO.LOCUCION,
+        "MON": TIPO_DE_SERVICIO.MONITOREO,
+        "PD": TIPO_DE_SERVICIO.PANTALLAS_DIGITALES,
+        "PAU": TIPO_DE_SERVICIO.PAUTAS,
+        "PM": TIPO_DE_SERVICIO.PLAN_DE_MEDIOS,
+        "PROD": TIPO_DE_SERVICIO.PRODUCCION,
+        "RAD": TIPO_DE_SERVICIO.RADIO,
+        "SPT": TIPO_DE_SERVICIO.SPOTS,
+        "TV": TIPO_DE_SERVICIO.TELEVISION,
+        "TES": TIPO_DE_SERVICIO.TESTIMONIALES,
+        "VM": TIPO_DE_SERVICIO.VALLAS_MOVILES,
+        "VID": TIPO_DE_SERVICIO.VIDEOS,
     }
 
-    obtenerAbreviacion(tipoDeServicio:TipoDeServicio){
-        for(const [abreviacion, servicio] of Object.entries(this.abreviaciones)){
-            if(servicio === tipoDeServicio){
+    obtenerAbreviacion(TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
+        for (const [abreviacion, servicio] of Object.entries(this.abreviaciones)) {
+            if (servicio === TIPO_DE_SERVICIO) {
                 return abreviacion;
             }
         }

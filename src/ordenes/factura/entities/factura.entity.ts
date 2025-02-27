@@ -18,8 +18,8 @@ import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function
 
 @Entity('facturas')
 export class Factura {
+  
   @PrimaryColumn('uuid')
-  @Generated('uuid')
   id: string;
 
   @Column({
@@ -126,8 +126,9 @@ export class Factura {
 
   @BeforeInsert()
   localeTimeZoneInsert() {
-    this.fechaDeRecepcion = localeTimeFormatter(this.fechaDeRecepcion);
-    this.fechaValidacion = localeTimeFormatter(this.fechaValidacion);
+    const value = new Date()
+    this.fechaDeRecepcion = localeTimeFormatter(value);
+    this.fechaValidacion = localeTimeFormatter(value);
   }
 
   @BeforeUpdate()

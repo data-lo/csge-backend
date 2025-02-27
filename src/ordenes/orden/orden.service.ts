@@ -8,16 +8,16 @@ import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orden } from './entities/orden.entity';
-import { Raw, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
-import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { plainToClass } from 'class-transformer';
 import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 import { FirmaService } from '../../firma/firma/firma.service';
@@ -26,12 +26,12 @@ import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios
 import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
-import { OrdenModule } from './orden.module';
-import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
+import { foliosResponse } from './interfaces/folios-interface';
 
 @Injectable()
 export class OrdenService {
   constructor(
+
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
     @Inject(IvaGetter)
@@ -44,7 +44,7 @@ export class OrdenService {
     private readonly servicioContratadoService: ServicioContratadoService,
   ) { }
 
-  async create(createOrdenDto: CreateOrdenDto) {
+  async create(createOrderDto: CreateOrdenDto) {
     try {
       const {
         campaniaId,
@@ -53,9 +53,10 @@ export class OrdenService {
         tipoDeServicio,
         serviciosContratados,
         ...rest
-      } = createOrdenDto;
+      } = createOrderDto;
 
       let campania = null;
+      
       let contratoMaestro = null;
 
       if (campaniaId) {
@@ -75,14 +76,16 @@ export class OrdenService {
       }
 
       const partida = campania.activaciones.at(-1).partida;
+
       const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
+
       const orden = this.ordenRepository.create({
         campaña: campania,
         proveedor: proveedor,
         contratoMaestro: contratoMaestro,
         partida: partida,
         folio: folio,
-        tipoDeServicio: tipoDeServicio,
+        tipoDeServicio,
         ...rest,
       });
 
@@ -144,6 +147,7 @@ export class OrdenService {
           fechaDeEmision: true,
           fechaDeAprobacion: true,
           estatus: true,
+          esCampania: true,
           campaña: {
             nombre: true,
           },
@@ -152,8 +156,11 @@ export class OrdenService {
             razonSocial: true,
           },
         },
+        where: {
+          esCampania: false
+        },
         order: {
-          fechaDeEmision: 'ASC',
+          fechaDeEmision: 'DESC',
         },
       });
       return ordenes;
@@ -175,6 +182,7 @@ export class OrdenService {
           tipoDeServicio: true,
           fechaDeEmision: true,
           estatus: true,
+          esCampania: true,
           campaña: {
             nombre: true,
           },
@@ -182,6 +190,9 @@ export class OrdenService {
             nombreComercial: true,
           },
         },
+        where: {
+          esCampania: false
+        }
       });
       return ordenes;
     } catch (error) {
@@ -192,7 +203,7 @@ export class OrdenService {
   async findOne(id: string) {
     try {
       const orden = await this.ordenRepository.findOne({
-        where: { id: id },
+        where: { id },
         relations: {
           proveedor: true,
           contratoMaestro: true,
@@ -200,8 +211,11 @@ export class OrdenService {
           campaña: true,
         },
       });
-      if (!orden) throw new NotFoundException('No se encuentra la orden');
+
+      if (!orden) throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+
       return orden;
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -279,7 +293,7 @@ export class OrdenService {
     try {
       const orden = await this.findOne(id);
       const estatus = orden.estatus;
-      if (estatus === EstatusOrdenDeServicio.PENDIENTE) {
+      if (estatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         for (const servicioContratado of orden.serviciosContratados) {
           await this.servicioContratadoService.remove(servicioContratado.id);
         }
@@ -295,8 +309,9 @@ export class OrdenService {
   }
 
   async findByRfc(rfc: string) {
+    console.log(rfc)
     try {
-      const estatus = EstatusOrdenDeServicio.ACTIVA;
+      const estatus = ESTATUS_ORDEN_DE_SERVICIO.ACTIVA;
       const ordenes = await this.ordenRepository
         .createQueryBuilder('ordenes')
         .innerJoinAndSelect('ordenes.proveedor', 'proveedor')
@@ -304,6 +319,7 @@ export class OrdenService {
         .andWhere('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
         .getMany();
 
+      console.log(ordenes)
       if (ordenes.length === 0) return null;
 
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {
@@ -328,52 +344,58 @@ export class OrdenService {
     }
   }
 
-  async obtenerFolioDeOrden(tipoDeServicio: TipoDeServicio) {
+  async obtenerFolioDeOrden(TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
     try {
+      let ultimosFolios: foliosResponse[];
       const year = new Date().getFullYear();
-
-      const ultimoFolio = await this.ordenRepository
+      ultimosFolios = await this.ordenRepository
         .createQueryBuilder('orden')
-        .select(
-          "MAX(CAST(SUBSTRING(orden.folio, '^[0-9]+') AS INTEGER))",
-          'maxFolio',
-        )
-        .where('orden.tipoDeServicio = :tipoDeServicio', { tipoDeServicio })
+        .select("orden.folio", "folio")
+        .where('orden.tipoDeServicio = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
-        .getRawOne();
+        .getRawMany();
 
-      const numeroDeFolio = ultimoFolio.maxFolio
-        ? parseInt(ultimoFolio.maxFolio) + 1
-        : 1;
-      const serviciosParaFolio = new ServiciosParaFolio();
-      const abreviacionFolio =
-        serviciosParaFolio.obtenerAbreviacion(tipoDeServicio);
-      return `${numeroDeFolio}-${abreviacionFolio}-${year}`;
-    } catch (error) {
-      handleExeptions(error);
-    }
-  }
-
-  async actualizarEstatusOrden(
-    id: string,
-    nuevoEstatus: EstatusOrdenDeServicio,
-  ) {
-    try {
-      const orden = await this.findOne(id);
-      if (orden) {
-        await this.ordenRepository.update(id, {
-          estatus: nuevoEstatus,
-        });
+      // Verificar si ultimosFolios es nulo o vacío
+      let numeroDeFolio: number;
+      if (!ultimosFolios || ultimosFolios.length === 0) {
+        numeroDeFolio = 1;
+      } else {
+        const ultimoFolio = ultimosFolios[ultimosFolios.length - 1];
+        const numero = ultimoFolio.folio.split('-')[0];
+        numeroDeFolio = parseInt(numero) + 1;
       }
-      return {
-        id: orden.id,
-        estatus: nuevoEstatus,
-        message: 'Estatus actualizado correctamente',
-      };
+
+      const serviciosParaFolio = new ServiciosParaFolio();
+      const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(TIPO_DE_SERVICIO);
+      const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}`;
+
+      return folio;
     } catch (error) {
-      handleExeptions(error);
+      console.error("Error al obtener el folio de orden:", error);
+      throw new Error("No se pudo generar el folio de orden");
     }
   }
+
+  // async actualizarEstatusOrden(
+  //   id: string,
+  //   nuevoEstatus: ESTATUS_ORDEN_DE_SERVICIO,
+  // ) {
+  //   try {
+  //     const orden = await this.findOne(id);
+  //     if (orden) {
+  //       await this.ordenRepository.update(id, {
+  //         estatus: nuevoEstatus,
+  //       });
+  //     }
+  //     return {
+  //       id: orden.id,
+  //       estatus: nuevoEstatus,
+  //       message: 'Estatus actualizado correctamente',
+  //     };
+  //   } catch (error) {
+  //     handleExeptions(error);
+  //   }
+  // }
 
   async obtenerEstatusOrden(id: string) {
     try {
@@ -387,9 +409,9 @@ export class OrdenService {
   async cancelarOrden(id: string) {
     try {
       const orden = await this.findOne(id);
-      if (orden.estatus !== EstatusOrdenDeServicio.PENDIENTE) {
+      if (orden.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         await this.ordenRepository.update(id, {
-          estatus: EstatusOrdenDeServicio.CANCELADA,
+          estatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA,
         });
         return { message: 'Orden cancelada exitosamente' };
       }
@@ -479,13 +501,30 @@ export class OrdenService {
     return documento;
   }
 
-
-
-  async getOrdersByCampaignId(campaignId: string) {
+  async obtenerOrdenesPorCampaniaId(campaignId: string) {
     return await this.ordenRepository.find({
       where: {
         campaña: { id: campaignId }
+      },
+      relations: {
+        proveedor: true
+      },
+    });
+  }
+
+  async updateOrderStatus(orderId: string, status: ESTATUS_ORDEN_DE_SERVICIO) {
+    try {
+      const order = await this.ordenRepository.findOne({ where: { id: orderId } });
+
+      if (!order) {
+        throw new Error(`La Orden con ID: ${orderId} no se encontró.`);
       }
-    })
+
+      await this.ordenRepository.update(orderId, { estatus: status });
+
+      return { message: "¡El estatus de la orden se ha actualizado correctamente!", };
+    } catch (error) {
+      handleExeptions(error);
+    }
   }
 }

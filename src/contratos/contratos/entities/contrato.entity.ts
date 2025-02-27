@@ -1,4 +1,4 @@
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { BeforeInsert, BeforeUpdate, ManyToOne } from 'typeorm';
 import {
   Column,
@@ -21,9 +21,9 @@ export class Contrato {
   @Column({
     name: 'tipo_de_servicio',
     type: 'enum',
-    enum: TipoDeServicio,
+    enum: TIPO_DE_SERVICIO,
   })
-  tipoDeServicio: TipoDeServicio;
+  tipoDeServicio: TIPO_DE_SERVICIO;
 
   @Column({
     name: 'monto_activo',

@@ -24,5 +24,5 @@ export class CreateActivacionDto {
     @IsOptional()
     @IsString()
     @IsUUID()
-    campañaId: string;
+    campaniaId: string;
 }

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { CampañasService } from './campañas.service';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
@@ -45,16 +46,29 @@ export class CampañasController {
     return this.campañasService.findOne(id);
   }
 
-  @Auth(...rolesCampanias)
-  @Patch('actualizar-estatus/:id')
-  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusCampaña) {
-    return this.campañasService.actualizarEstatus(id, estatus);
-  }
 
   @Auth(...rolesCampanias)
   @Patch('activar/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
     return this.campañasService.agregarActivacion(id, createActivacionDto);
+  }
+
+  @Auth(...rolesCampanias)
+  @Get('pdf/:id')
+  async getApprovalCampaignDocument(
+    @Res() response: Response,
+    @Param('id', ParseUUIDPipe) id: string
+  ) {
+    const pdfDoc = await this.campañasService.getApprovalCampaignDocument(id);
+
+    if (pdfDoc.tipo === 'url') {
+      response.send(pdfDoc.url);
+    }
+    else {
+      response.setHeader('Content-Type', 'application/pdf');
+      pdfDoc.pipe(response);
+      pdfDoc.end();
+    }
   }
 
   @Auth(...rolesCampanias)

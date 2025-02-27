@@ -1,30 +1,37 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import { DocumentoEvent } from "../interfaces/documento-event";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Factura } from './entities/factura.entity';
-import { EstatusFactura } from "./interfaces/estatus-factura";
-
+import { FacturaService } from "./factura.service";
+import { ContratosService } from "src/contratos/contratos/contratos.service";
+import { OrdenService } from "../orden/orden.service";
 
 @Injectable()
 export class FacturaEventosService {
     constructor(
-        @InjectRepository(Factura)
-        private facturaRepository:Repository<Factura>,
-    ){}
+        private readonly invoiceService: FacturaService,
+        private readonly orderService: OrdenService,
+        private readonly contractService: ContratosService
+    ) { }
 
-    @OnEvent('aprobacion.factura',{async:true})
-    async facturaCotejada(event: DocumentoEvent) {
-        const factura = await this.facturaRepository.findOneBy({ id: event.documentoId });
-        if (factura) {
-            factura.estatus = EstatusFactura.APROBADA;
-            await this.facturaRepository.save(factura);
+    @OnEvent('invoice-approval-or-cancellation', { async: true })
+    async applyDiscountsToContract(payload: { invoiceId: string, eventType: TYPE_EVENT_INVOICE }) {
+        try {
+            console.log(`Iniciando evento "invoice-approval-or-cancellation" para la factura: ${payload.invoiceId}`);
+
+            const invoice = await this.invoiceService.findOne(payload.invoiceId);
+
+            for (const orderFromInvoice of invoice.ordenesDeServicio) {
+
+                const order = await this.orderService.findOne(orderFromInvoice.id);
+
+                await this.contractService.updateContractAmountByOrder(
+                    order.id,
+                    order.contratoMaestro.id,
+                    payload.eventType
+                );
+            }
+            console.log(`Evento "invoice-approval-or-cancellation" completado exitosamente. Montos del contrato actualizados.`);
+        } catch (error) {
+            console.error(`Error al procesar el evento "${payload.eventType}" para la factura: ${payload.invoiceId}.`, error);
         }
     }
-
-    async emitter(){
-
-    }
-      
 }

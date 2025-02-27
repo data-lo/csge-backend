@@ -10,7 +10,7 @@ export const usuariosData = [
         rol:"SUPERADMIN",
         permisos:["FIRMA","HISTORICO"],
         documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
-        tipoOrdenDeServicio:['INTERNET']
+        tipoOrdenDeServicio:['TODOS LOS SERVICIOS']
     },
     {
         nombres:"MONICA",
@@ -23,7 +23,7 @@ export const usuariosData = [
         rol:"SUPERADMIN",
         permisos:["FIRMA","HISTORICO"],
         documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
-        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
+        tipoOrdenDeServicio:['TODOS LOS SERVICIOS']
     },
     {
         nombres:"SORACHI",
@@ -36,7 +36,7 @@ export const usuariosData = [
         rol:"DIRECCION",
         permisos:["FIRMA","HISTORICO"],
         documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
-        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
+        tipoOrdenDeServicio:['TODOS LOS SERVICIOS']
     },
     {
         nombres:"KATYA ILEANA",
@@ -137,7 +137,7 @@ export const usuariosData = [
         rol:"REPORTES",
         permisos:["FIRMA","HISTORICO"],
         documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
-        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
+        tipoOrdenDeServicio:['TODOS LOS SERVICIOS']
     },
     {
         nombres:"SERGIO",
@@ -150,7 +150,7 @@ export const usuariosData = [
         rol:"REPORTES",
         permisos:["FIRMA","HISTORICO"],
         documentosDeFirma:['APROBACION_DE_FACTURA','CAMPAÑA','ORDEN_DE_SERVICIO'],
-        tipoOrdenDeServicio:['TODOS_LOS_SERVICIOS']
+        tipoOrdenDeServicio:['TODOS LOS SERVICIOS']
     },
 
 ]

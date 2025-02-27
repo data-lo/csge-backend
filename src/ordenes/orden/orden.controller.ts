@@ -1,12 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res, ParseEnumPipe } from '@nestjs/common';
 import { OrdenService } from './orden.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
-import { EstatusOrdenDeServicio } from './interfaces/estatus-orden-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { Response } from 'express';
 import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 
 
 @Controller('ordenes/ordenes-de-servicio')
@@ -41,6 +42,13 @@ export class OrdenController {
     return this.ordenService.findByRfc(rfc);
   }
 
+  @Get('folios')
+  obtenerFolios(
+    @Query('servicio',new ParseEnumPipe(TIPO_DE_SERVICIO)) servicio:TIPO_DE_SERVICIO
+  ){
+    return this.ordenService.obtenerFolioDeOrden(servicio);
+  }
+
   @Auth(...rolesOrdenes)
   @Get('busqueda')
   findAllBusqueda() {
@@ -60,7 +68,7 @@ export class OrdenController {
     @Param('id', ParseUUIDPipe) id: string
   ) {
     const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
-    if (pdfDoc.tipo == 'url') {
+    if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
     }
     else {
@@ -79,14 +87,14 @@ export class OrdenController {
   @Auth(...rolesOrdenes)
   @Get('campanias/:campaignId')
   GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
-    return this.ordenService.getOrdersByCampaignId(id);
+    return this.ordenService.obtenerOrdenesPorCampaniaId(id);
   }
 
-  @Auth(...rolesOrdenes)
-  @Patch('actualizar-estatus/:id')
-  actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: EstatusOrdenDeServicio) {
-    return this.ordenService.actualizarEstatusOrden(id, estatus);
-  }
+  // @Auth(...rolesOrdenes)
+  // @Patch('actualizar-estatus/:id')
+  // actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: ESTATUS_ORDEN_DE_SERVICIO) {
+  //   return this.ordenService.actualizarEstatusOrden(id, estatus);
+  // }
 
   @Auth(...rolesOrdenes)
   @Patch('cancelar/:id')
@@ -106,5 +114,6 @@ export class OrdenController {
     return this.ordenService.remove(id);
   }
 
- 
+
+
 }

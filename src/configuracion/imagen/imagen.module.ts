@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ImagenService } from './imagen.service';
 import { ImagenController } from './imagen.controller';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { MinioModule } from 'src/minio/minio.module';
 
 @Module({
   controllers: [ImagenController],
-  providers: [ImagenService],
-  imports:[ AuthModule, PassportModule]
+  imports:[ AuthModule, PassportModule,MinioModule]
 })
 export class ImagenModule {}

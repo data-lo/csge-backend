@@ -1,4 +1,4 @@
-import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
 import { Renovacion } from "src/proveedores/renovacion/entities/renovacion.entity";
 import { Column, CreateDateColumn, Entity, Generated, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
@@ -8,47 +8,47 @@ export class Servicio {
 
     @Generated('uuid')
     @PrimaryColumn('uuid')
-    id:string;
+    id: string;
 
     @Generated('increment')
     @Column()
-    indice:number;
+    indice: number;
 
     @Column({
-        name:'nombre_de_servicio',
-        nullable:false
+        name: 'nombre_de_servicio',
+        nullable: false
     })
-    nombreDeServicio:string;
-    
-    @Column({
-        name:'tipo_de_servicio',
-        type:'enum',
-        nullable:false,
-        enum:TipoDeServicio
-    })
-    tipoDeServicio:TipoDeServicio
+    nombreDeServicio: string;
 
     @Column({
-        name:'estatus',
-        type:'boolean',
-        nullable:false,
-        default:true
+        name: 'tipo_de_servicio',
+        type: 'enum',
+        nullable: false,
+        enum: TIPO_DE_SERVICIO
     })
-    estatus:boolean;
+    tipoDeServicio: TIPO_DE_SERVICIO
+
+    @Column({
+        name: 'estatus',
+        type: 'boolean',
+        nullable: false,
+        default: true
+    })
+    estatus: boolean;
 
     @OneToMany(() => Renovacion, (renovacion) => renovacion.servicio)
-    renovaciones:Renovacion[]
+    renovaciones: Renovacion[]
 
     @ManyToOne(() => Estacion, (estacion) => estacion.servicios)
-    estacion:Estacion;
+    estacion: Estacion;
 
     @CreateDateColumn({
-        name:'creado_en'
+        name: 'creado_en'
     })
-    creadoEn:Date;
+    creadoEn: Date;
 
     @UpdateDateColumn({
-        name:'actualizado_en'
+        name: 'actualizado_en'
     })
-    actualizadoEn:Date;
+    actualizadoEn: Date;
 }

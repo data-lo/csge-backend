@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ProveedorService } from "./proveedor.service";
 import { OnEvent } from "@nestjs/event-emitter";
-import { ContratoEvent } from "src/contratos/interfaces/contrato-evento";
+// import { ContratoEvent } from "src/contratos/interfaces/contrato-evento";
 
 @Injectable()
 export class ProveedorEventosService {
@@ -9,9 +9,9 @@ export class ProveedorEventosService {
         private readonly proveedorService:ProveedorService,
     ){}
 
-    @OnEvent('contrato.liberado',{async:true})
-    async activarProveedor(event:ContratoEvent){
+    // @OnEvent('contrato.liberado',{async:true})
+    // async activarProveedor(event:ContratoEvent){
         
-    }
+    // }
     
 }

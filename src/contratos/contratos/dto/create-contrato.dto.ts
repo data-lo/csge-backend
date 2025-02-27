@@ -1,6 +1,6 @@
 import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
 import { TipoDeContrato } from 'src/contratos/interfaces/tipo-de-contrato';
-import { TipoDeServicio } from '../../interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from '../../interfaces/tipo-de-servicio';
 import {
   IsArray,
   IsBoolean,
@@ -30,7 +30,7 @@ export class CreateContratoDto {
   tipoDeContrato: TipoDeContrato;
 
   @IsArray()
-  tipoDeServicios: TipoDeServicio[];
+  tipoDeServicios: TIPO_DE_SERVICIO[];
 
   @IsString()
   objetoContrato: string;

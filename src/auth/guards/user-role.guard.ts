@@ -18,12 +18,12 @@ export class UserRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const validRoles: string[] = this.reflector.get(
+    const VALID_ROLES: string[] = this.reflector.get(
       META_ROLES,
       context.getHandler(),
     );
-    if (!validRoles) return true;
-    if (validRoles.length === 0) return true;
+    if (!VALID_ROLES) return true;
+    if (VALID_ROLES.length === 0) return true;
     const req = context.switchToHttp().getRequest();
     const usuario = req.user as Usuario;
 
@@ -31,7 +31,7 @@ export class UserRoleGuard implements CanActivate {
       throw new BadRequestException('User not found');
     }
 
-    if (validRoles.includes(usuario.rol)) {
+    if (VALID_ROLES.includes(usuario.rol)) {
       return true;
     }
 

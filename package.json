@@ -14,6 +14,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
+    "typeorm": "npx typeorm-ts-node-commonjs",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -51,6 +52,7 @@
     "rxjs": "^7.8.1",
     "sharp": "^0.33.5",
     "typeorm": "^0.3.20",
+    "uuid": "^11.0.4",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DepartamentosService } from 'src/administracion/departamentos/departamentos.service';
 import { PuestosService } from 'src/administracion/puestos/puestos.service';
 import { UsuariosService } from 'src/administracion/usuarios/usuarios.service';
-import { departamentosData} from './data/administracion/departamentos.data';
+import { departamentosData } from './data/administracion/departamentos.data';
 import { puestosData } from './data/administracion/puestos.data';
 import { plainToClass } from 'class-transformer';
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
@@ -55,7 +55,7 @@ import { EstacionService } from 'src/proveedores/estacion/estacion.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { contratosData } from './data/contratos/contratos.data';
 import { CreateContratoDto } from 'src/contratos/contratos/dto/create-contrato.dto';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { CarteleraGobiernoService } from 'src/ordenes/cartelera_gobierno/cartelera_gobierno.service';
 import { cartelerasData } from './data/carteleras/carteleras-data';
 import { CreateCarteleraGobiernoDto } from '../ordenes/cartelera_gobierno/dto/create-cartelera_gobierno.dto';
@@ -64,83 +64,84 @@ import { CreateCarteleraGobiernoDto } from '../ordenes/cartelera_gobierno/dto/cr
 export class SeedService {
 
   constructor(
-    private readonly usuariosService:UsuariosService,
-    private readonly puestosService:PuestosService,
-    private readonly departamentosService:DepartamentosService,
-    
-    private readonly caracteristicasService:CaracteristicasService,
-    private readonly dimensionsService:DimensionesService,
-    private readonly formatosService:FormatosService,
-    private readonly longitudService:LongitudesService,
-    private readonly medidaDeImpresionService:ImpresionesService,
-    private readonly tiemposService:TiemposService,
+    private readonly usuariosService: UsuariosService,
+    private readonly puestosService: PuestosService,
+    private readonly departamentosService: DepartamentosService,
 
-    private readonly coloresService:ColoresService,
-    private readonly textosService:TextosService,
-    private readonly ivaService:IvaService,
+    private readonly caracteristicasService: CaracteristicasService,
+    private readonly dimensionsService: DimensionesService,
+    private readonly formatosService: FormatosService,
+    private readonly longitudService: LongitudesService,
+    private readonly medidaDeImpresionService: ImpresionesService,
+    private readonly tiemposService: TiemposService,
 
-    private readonly municipioService:MunicipioService,
-    private readonly contactosService:ContactoService,
-    private readonly serviciosService:ServicioService,
+    private readonly coloresService: ColoresService,
+    private readonly textosService: TextosService,
+    private readonly ivaService: IvaService,
 
-    private readonly proveedoresService:ProveedorService,
-    private readonly estacionService:EstacionService,
+    private readonly municipioService: MunicipioService,
+    private readonly contactosService: ContactoService,
+    private readonly serviciosService: ServicioService,
 
-    private readonly contratosService:ContratosService,
-    
+    private readonly proveedoresService: ProveedorService,
+    private readonly estacionService: EstacionService,
+
+    private readonly contratosService: ContratosService,
+
     //modulo campañas
 
-    private readonly dependenciaService:DependenciaService,
-    
+    private readonly dependenciaService: DependenciaService,
+
 
     //Carteleras
-    private readonly cartelerasService:CarteleraGobiernoService
+    private readonly cartelerasService: CarteleraGobiernoService
 
-  ){}
-  
-  async seedDb(){
-    try{
+  ) { }
+
+  async seedDb() {
+    try {
+      console.log("Ok")
       await this.seedAdministracion();
       await this.seedCatalogos();
       await this.seedConfiguracion();
-      return {message:'Datos insertados en la DB'}
-    }catch(error){
+      return { message: 'Datos insertados en la DB' }
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async seedAdministracion(){
-    try{
-      await this.insertarDepartamentos();
-      await this.insertarPuestos();
+  async seedAdministracion() {
+    try {
+      // await this.insertarDepartamentos();
+      // await this.insertarPuestos();
       await this.insertarUsuarios();
-      return {message:'Datos de Usuarios, Departamentos y Puestos insertados correctamente'};
-    }catch(error:any){
+      return { message: 'Datos de Usuarios, Departamentos y Puestos insertados correctamente' };
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
 
-  async insertarPuestos(){
-    try{
-      for(const puesto of puestosData){
-        const puestoDto = plainToClass(CreatePuestoDto,puesto);
+  async insertarPuestos() {
+    try {
+      for (const puesto of puestosData) {
+        const puestoDto = plainToClass(CreatePuestoDto, puesto);
         await this.puestosService.create(puestoDto);
       }
       return;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async insertarDepartamentos(){
-    try{
-      for(const departamento of departamentosData){
-        const departamentoDto = plainToClass(CreateDepartamentoDto,departamento);
+  async insertarDepartamentos() {
+    try {
+      for (const departamento of departamentosData) {
+        const departamentoDto = plainToClass(CreateDepartamentoDto, departamento);
         await this.departamentosService.create(departamentoDto);
       };
       return;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
@@ -152,13 +153,13 @@ export class SeedService {
         const { departamentoId, puestoId, ...rest } = usuario;
         const departamento = await this.departamentosService.findByTerm(departamentoId);
         const puesto = await this.puestosService.findByTerm(puestoId);
-  
+
         const usuarioDto = plainToClass(CreateUsuarioDto, {
           departamentoId: departamento.id,
           puestoId: puesto.id,
-          ...rest  
+          ...rest
         });
-  
+
         await this.usuariosService.create(usuarioDto);
       }
       return;
@@ -166,336 +167,336 @@ export class SeedService {
       handleExeptions(error);
     }
   }
-  
-  async seedCatalogos(){
-    try{
-    
+
+  async seedCatalogos() {
+    try {
+
       await this.insertarTiempo();
       await this.insertarLongitud();
       await this.insertarMedidaDeImpresion();
       await this.insertarFormato();
       await this.insertarDimensiones();
       //await this.insertarCaracterisitcas();
-      return {message:'Datos de catalgos insertados correctamente'};
-    }catch(error:any){
+      return { message: 'Datos de catalgos insertados correctamente' };
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarCaracterisitcas(){
-    try{
+  async insertarCaracterisitcas() {
+    try {
       //relacion con los opcionales de las caracteristicas
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
-  } 
-  
-  async insertarDimensiones(){
-    try{
+  }
+
+  async insertarDimensiones() {
+    try {
       let unidadDb;
-      let unidadId:string;
-      for(const dimension of dimensionesData){
-        const {unidad, ...rest} = dimension;
-        
+      let unidadId: string;
+      for (const dimension of dimensionesData) {
+        const { unidad, ...rest } = dimension;
+
         unidadDb = await this.longitudService.findOneByUnidad(unidad);
         unidadId = unidadDb.id;
         console.log(unidadId);
-        let dimensionDto = plainToClass(CreateDimensionDto,{
-          unidad:unidadId,
+        let dimensionDto = plainToClass(CreateDimensionDto, {
+          unidad: unidadId,
           ...rest
         });
 
         await this.dimensionsService.create(dimensionDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarFormato(){
-    try{
-      for(const formato of formatoData){
-        const formatoDto = plainToClass(CreateFormatoDto,formato);
+  async insertarFormato() {
+    try {
+      for (const formato of formatoData) {
+        const formatoDto = plainToClass(CreateFormatoDto, formato);
         await this.formatosService.create(formatoDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarLongitud(){
-    try{
-      for(const longitud of longitudData){
-        const longitudDto = plainToClass(CreateLongitudDto,longitud);
-        await this.longitudService.create(longitudDto); 
+  async insertarLongitud() {
+    try {
+      for (const longitud of longitudData) {
+        const longitudDto = plainToClass(CreateLongitudDto, longitud);
+        await this.longitudService.create(longitudDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarMedidaDeImpresion(){
-    try{
-      for(const medidaDeImpresion of medidaDeImpresionData){
-        const medidaDeImpresionDto = plainToClass(CreateImpresionDto,medidaDeImpresion);
+  async insertarMedidaDeImpresion() {
+    try {
+      for (const medidaDeImpresion of medidaDeImpresionData) {
+        const medidaDeImpresionDto = plainToClass(CreateImpresionDto, medidaDeImpresion);
         await this.medidaDeImpresionService.create(medidaDeImpresionDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
-  } 
+  }
 
-  async insertarTiempo(){
-    try{
-      for(const tiempo of tiemposData){
-        const tiempoDto = plainToClass(CreateTiempoDto,tiempo);
+  async insertarTiempo() {
+    try {
+      for (const tiempo of tiemposData) {
+        const tiempoDto = plainToClass(CreateTiempoDto, tiempo);
         await this.tiemposService.create(tiempoDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
 
-  async seedConfiguracion(){
+  async seedConfiguracion() {
     await this.insertarColores();
     await this.insertarCamposDeTexto();
     await this.insertarIva();
-    return{message:'Datos de Colores, Campos de texto e Iva Insertados Correctamente'}
+    return { message: 'Datos de Colores, Campos de texto e Iva Insertados Correctamente' }
   };
 
-  async insertarColores(){
-    try{
-      for(const color of coloresData){
-        const colorDto = plainToClass(CreateColorDto,color);
+  async insertarColores() {
+    try {
+      for (const color of coloresData) {
+        const colorDto = plainToClass(CreateColorDto, color);
         await this.coloresService.create(colorDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarCamposDeTexto(){
-    try{
-      for(const texto of camposTextoData){
-        const textoDto = plainToClass(CreateTextoDto,texto);
+  async insertarCamposDeTexto() {
+    try {
+      for (const texto of camposTextoData) {
+        const textoDto = plainToClass(CreateTextoDto, texto);
         await this.textosService.create(textoDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarIva(){
-    try{
-      for(const iva of ivaData){
-        const ivaDto = plainToClass(CreateIvaDto,iva)
+  async insertarIva() {
+    try {
+      for (const iva of ivaData) {
+        const ivaDto = plainToClass(CreateIvaDto, iva)
         await this.ivaService.create(ivaDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
 
-  async seedProveedores(){
-    await this.insertarProveedores();
-    //await this.insertarMunicipios();
+  async seedProveedores() {
+    // await this.insertarProveedores();
+    await this.insertarMunicipios();
     //await this.insertarContactos();
     //await this.insertarServicios();
     //await this.insertarEstaciones();
-    
-    return {message:"Datos de Municipios y Contactos insertados correctamente"};
+
+    return { message: "Datos de Municipios y Contactos insertados correctamente" };
   }
 
-  async insertarMunicipios(){
-    try{
-      for(const municipio of municipiosData){
+  async insertarMunicipios() {
+    try {
+      for (const municipio of municipiosData) {
         const municipioDto = plainToClass(
-          CreateMunicipioDto,{
-            nombre:municipio.nombre.toUpperCase(),
-            frontera:municipio.frontera,
-            codigoInegi:municipio.codigoInegi
-          }
+          CreateMunicipioDto, {
+          nombre: municipio.nombre.toUpperCase(),
+          frontera: municipio.frontera,
+          codigoInegi: municipio.codigoInegi
+        }
         );
         await this.municipioService.create(municipioDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarContactos(){
-    try{
-      for(const contacto of contactosData){
-        const {nombre,correoElectronico, observaciones,telefono} = contacto;
-        if(observaciones){
+  async insertarContactos() {
+    try {
+      for (const contacto of contactosData) {
+        const { nombre, correoElectronico, observaciones, telefono } = contacto;
+        if (observaciones) {
           observaciones.toUpperCase()
         }
-        const contactoDto = plainToClass(CreateContactoDto,{
-          nombre:nombre.toUpperCase(),
-          telefono:telefono,
-          correoElectronico:correoElectronico.toUpperCase(),
-          observaciones:observaciones
+        const contactoDto = plainToClass(CreateContactoDto, {
+          nombre: nombre.toUpperCase(),
+          telefono: telefono,
+          correoElectronico: correoElectronico.toUpperCase(),
+          observaciones: observaciones
         });
         await this.contactosService.create(contactoDto);
       }
       return;
-    }catch(error:any){
+    } catch (error: any) {
       handleExeptions(error);
     }
   }
 
-  async insertarServicios(){
-    try{
-      for(const servicio of ServiciosData){
-        const {nombreDeServicio, ...rest} = servicio;
-        const servicioDto = plainToClass(CreateServicioDto,{
-          nombreDeServicio:servicio.nombreDeServicio.toUpperCase(),
+  async insertarServicios() {
+    try {
+      for (const servicio of ServiciosData) {
+        const { nombreDeServicio, ...rest } = servicio;
+        const servicioDto = plainToClass(CreateServicioDto, {
+          nombreDeServicio: servicio.nombreDeServicio.toUpperCase(),
           ...rest
         });
         await this.serviciosService.create(servicioDto);
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async insertarEstaciones(){
+  async insertarEstaciones() {
 
   }
 
-  async insertarProveedores(){
-    try{
-      for(const proveedor of proveedoresData){
+  async insertarProveedores() {
+    try {
+      for (const proveedor of proveedoresData) {
         const proveedorDto = plainToClass(
-          ProveedorParcialDto,{
-            rfc:proveedor.rfc.replaceAll(" ","").replaceAll("-","").trim(),
-            razonSocial:proveedor.razonSocial.toUpperCase().trim(),
-            tipoProveedor:TipoProveedor.PUBLICIDAD
-          }
+          ProveedorParcialDto, {
+          rfc: proveedor.rfc.replaceAll(" ", "").replaceAll("-", "").trim(),
+          razonSocial: proveedor.razonSocial.toUpperCase().trim(),
+          tipoProveedor: TipoProveedor.PUBLICIDAD
+        }
         )
         console.log(proveedorDto.rfc);
         await this.proveedoresService.create(proveedorDto);
       }
       return 'proveedores insertados exitosamente';
-    }catch(error){
+    } catch (error) {
 
     }
   }
 
-  async seedCampañas(){
+  async seedCampañas() {
     await this.insertarDependencias();
-    return {message:'Dependencias insertadas correctamente'};
+    return { message: 'Dependencias insertadas correctamente' };
   }
 
-  async insertarDependencias(){
-    try{
-      for(const dependencia of DependenciasData){
-        const dependenciaDto = plainToClass(CreateDependenciaDto,{
-          nombre:dependencia.nombre.toUpperCase()
+  async insertarDependencias() {
+    try {
+      for (const dependencia of DependenciasData) {
+        const dependenciaDto = plainToClass(CreateDependenciaDto, {
+          nombre: dependencia.nombre.toUpperCase()
         });
         await this.dependenciaService.create(dependenciaDto);
       }
       return;
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async seedContratos(){
-    try{
+  async seedContratos() {
+    try {
       await this.insertarContratos();
-      return {message:"contratos insertados exitosamente"};
-    }catch(error){
+      return { message: "contratos insertados exitosamente" };
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async insertarContratos(){
-    try{
-      for(const contrato of contratosData){
-    
-        let {rfc, montoMaximoContratado, ivaMontoMaximoContratado, montoMinimoContratado, ivaMontoMinimoContratado, ...rest} = contrato;
-        const proveedorId = await this.proveedoresService.findByRfc(rfc);
-        if(!proveedorId) continue;
+  async insertarContratos() {
+    try {
+      for (const contrato of contratosData) {
 
-        if(!montoMinimoContratado){
+        let { rfc, montoMaximoContratado, ivaMontoMaximoContratado, montoMinimoContratado, ivaMontoMinimoContratado, ...rest } = contrato;
+        const proveedorId = await this.proveedoresService.findByRfc(rfc);
+        if (!proveedorId) continue;
+
+        if (!montoMinimoContratado) {
           montoMinimoContratado = montoMaximoContratado;
           ivaMontoMinimoContratado = ivaMontoMaximoContratado;
           montoMaximoContratado = null;
           ivaMontoMaximoContratado = null;
         }
 
-        if(contrato.tipoDeservicio === 'IMPRESOS-REVISTA'){
-          rest.tipoDeservicio = TipoDeServicio.REVISTA;
+        if (contrato.TIPO_DE_SERVICIO === 'IMPRESOS-REVISTA') {
+          rest.TIPO_DE_SERVICIO = TIPO_DE_SERVICIO.REVISTA;
         }
 
-        if(contrato.tipoDeservicio === 'IMPRESOS-PERIODICO'){
-          rest.tipoDeservicio = TipoDeServicio.IMPRESION_PRENSA;
+        if (contrato.TIPO_DE_SERVICIO === 'IMPRESOS-PERIODICO') {
+          rest.TIPO_DE_SERVICIO = TIPO_DE_SERVICIO.IMPRESOS;
         }
-        
-        
-        try{
-          const contratoDto = plainToClass(CreateContratoDto,{
-            proveedorId:proveedorId.at(0).id,
+
+
+        try {
+          const contratoDto = plainToClass(CreateContratoDto, {
+            proveedorId: proveedorId.at(0).id,
             montoMaximoContratado: Number(montoMaximoContratado),
-            ivaMontoMaximoContratado:Number(ivaMontoMaximoContratado),
-            montoMinimoContratado:Number(montoMinimoContratado),
-            ivaMontoMinimoContratado:Number(ivaMontoMinimoContratado),
-            tipoDeServicio:rest.tipoDeservicio.replaceAll(" ","_"),
-            objetoContrato:rest.ObjetoContrato,
+            ivaMontoMaximoContratado: Number(ivaMontoMaximoContratado),
+            montoMinimoContratado: Number(montoMinimoContratado),
+            ivaMontoMinimoContratado: Number(ivaMontoMinimoContratado),
+            TIPO_DE_SERVICIO: rest.TIPO_DE_SERVICIO.replaceAll(" ", "_"),
+            objetoContrato: rest.ObjetoContrato,
             ...rest
           });
           const contrato = await this.contratosService.create(contratoDto);
           console.log('Proveedor Insertado', contrato);
-        }catch(error){
-          
+        } catch (error) {
+
         }
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async seedCarteleras(){
+  async seedCarteleras() {
     await this.insertarCarteleras();
     return 'Carteleras Insertadas con exito';
   }
 
 
-  async insertarCarteleras(){
-    try{
-      for(const cartelera of cartelerasData){
-        const carteleraDto = plainToClass(CreateCarteleraGobiernoDto,{
-          numeroDeInventario:cartelera.numeroDeInventario.toString(),
-          clave:cartelera.clave,
-          ubicacion:cartelera.ubicacion,
-          ruta:cartelera.ruta.toString(),
-          medida:cartelera.medida,
-          metrosCuadrados:cartelera.metrosCuadrados.toString()
+  async insertarCarteleras() {
+    try {
+      for (const cartelera of cartelerasData) {
+        const carteleraDto = plainToClass(CreateCarteleraGobiernoDto, {
+          numeroDeInventario: cartelera.numeroDeInventario.toString(),
+          clave: cartelera.clave,
+          ubicacion: cartelera.ubicacion,
+          ruta: cartelera.ruta.toString(),
+          medida: cartelera.medida,
+          metrosCuadrados: cartelera.metrosCuadrados.toString()
         });
 
-        try{
+        try {
           const carteleraDb = await this.cartelerasService.create(carteleraDto);
           console.log('cartelera insertada correctamente');
           console.log(carteleraDb);
 
-        }catch(error){
+        } catch (error) {
           console.log(error.message)
           continue;
         }
       }
-    }catch(error){
+    } catch (error) {
       handleExeptions(error);
     }
   }

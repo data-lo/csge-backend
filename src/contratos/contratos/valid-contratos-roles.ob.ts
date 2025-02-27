@@ -1,11 +1,11 @@
-import { ValidRoles } from "src/administracion/usuarios/interfaces/usuarios.roles";
+import { VALID_ROLES } from "src/administracion/usuarios/interfaces/usuarios.roles";
 
 
-export const rolesContratos = [
-    ValidRoles.AGENTE,
-    ValidRoles.DIRECCION,
-    ValidRoles.JURIDICO,
-    ValidRoles.PLANEACION,
-    ValidRoles.REPORTES,
-    ValidRoles.SUPERADMIN
+export const CONTRACT_USER_ROLES = [
+    VALID_ROLES.AGENTE,
+    VALID_ROLES.DIRECCION,
+    VALID_ROLES.JURIDICO,
+    VALID_ROLES.PLANEACION,
+    VALID_ROLES.REPORTES,
+    VALID_ROLES.SUPERADMIN
 ];

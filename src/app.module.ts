@@ -41,17 +41,19 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MinioModule } from './minio/minio.module';
+import { EventsService } from './events/events.service';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env.cloud',
+      envFilePath: '.env',
       isGlobal:true,
     }),
     TypeOrmModule.forRoot({
       type:"postgres",
       url:process.env.DATABASE_URL,
-      ssl:true,
+      ssl:false,
       synchronize:true,
       autoLoadEntities:true
       }),
@@ -98,7 +100,9 @@ import { MinioModule } from './minio/minio.module';
     DocumentsModule,
     FirmamexModule,
     WebhooksModule,
-    MinioModule
+    MinioModule,
+    EventsModule
   ],
+  providers: [EventsService],
 })
 export class AppModule {}

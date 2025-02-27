@@ -12,11 +12,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ValidPermises } from '../interfaces/usuarios.permisos';
-import { ValidRoles } from '../interfaces/usuarios.roles';
+import { VALID_ROLES } from '../interfaces/usuarios.roles';
 import { Departamento } from 'src/administracion/departamentos/entities/departamento.entity';
 import { Puesto } from 'src/administracion/puestos/entities/puesto.entity';
 import { TipoDeDocumento } from '../interfaces/usuarios.tipo-de-documento';
-import { TipoDeServicio } from 'src/contratos/interfaces/tipo-de-servicio';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
 
@@ -97,15 +97,16 @@ export class Usuario {
 
   @Column({
     type: 'enum',
-    enum: ValidRoles,
-    default: ValidRoles.AGENTE,
+    enum: VALID_ROLES,
+    default: VALID_ROLES.AGENTE,
   })
-  rol: ValidRoles;
+  rol: VALID_ROLES;
 
   @Column({
     type: 'enum',
     enum: ValidPermises,
     array: true,
+    nullable: true
   })
   permisos: ValidPermises[];
 
@@ -120,12 +121,12 @@ export class Usuario {
 
   @Column({
     type: 'enum',
-    enum: TipoDeServicio,
+    enum: TIPO_DE_SERVICIO,
     array: true,
     nullable: true,
     default: [],
   })
-  tipoOrdenDeServicio: TipoDeServicio[];
+  tipoOrdenDeServicio: TIPO_DE_SERVICIO[];
 
   @CreateDateColumn({
     name: 'creado_en',

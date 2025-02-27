@@ -1,66 +1,68 @@
-import { ValidRoles } from "../interfaces/usuarios.roles";
+import { VALID_ROLES } from "../interfaces/usuarios.roles";
 import { ValidPermises } from "../interfaces/usuarios.permisos";
-import { IsArray, IsBoolean, IsEmail, IsEnum,
-         IsOptional, IsString, IsUUID, MaxLength } from "class-validator";
+import {
+    IsArray, IsBoolean, IsEmail, IsEnum,
+    IsOptional, IsString, IsUUID, MaxLength
+} from "class-validator";
 import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
-import { TipoDeServicio } from "src/contratos/interfaces/tipo-de-servicio";
+import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 
 export class CreateUsuarioDto {
-    
+
     @IsOptional()
     @IsBoolean()
-    estatus:boolean;
-    
+    estatus: boolean;
+
     @IsString()
     @MaxLength(100)
-    nombres:string;
+    nombres: string;
 
     @IsString()
     @MaxLength(13)
-    rfc:string;
+    rfc: string;
 
     @IsString()
     @MaxLength(50)
-    primerApellido:string;
-    
+    primerApellido: string;
+
     @IsString()
     @MaxLength(50)
     @IsOptional()
-    segundoApellido:string;
-    
+    segundoApellido: string;
+
     @IsUUID()
     @IsString()
-    puestoId:string;
-    
+    puestoId: string;
+
     @IsUUID()
     @IsString()
-    departamentoId:string;
+    departamentoId: string;
 
     @IsString()
     @IsEmail()
-    correo:string;
+    correo: string;
 
     @IsString()
     @IsOptional()
-    password:string;
-    
+    password: string;
+
     @IsString()
-    numeroDeEmpleado:string;
-    
+    numeroDeEmpleado: string;
+
     @IsOptional()
-    @IsEnum(ValidRoles)
-    rol:ValidRoles;
-    
+    @IsEnum(VALID_ROLES)
+    rol: VALID_ROLES;
+
     @IsOptional()
     @IsArray()
-    @IsEnum(ValidPermises,{each:true})
-    permisos:ValidPermises[];
+    @IsEnum(ValidPermises, { each: true })
+    permisos: ValidPermises[];
 
     @IsOptional()
-    @IsEnum(TipoDeDocumento,{each:true})
-    documentosDeFirma:TipoDeDocumento[];
+    @IsEnum(TipoDeDocumento, { each: true })
+    documentosDeFirma: TipoDeDocumento[];
 
     @IsOptional()
-    @IsEnum(TipoDeServicio,{each:true})
-    tipoOrdenDeServicio:TipoDeServicio[];
+    @IsEnum(TIPO_DE_SERVICIO, { each: true })
+    tipoOrdenDeServicio: TIPO_DE_SERVICIO[];
 }

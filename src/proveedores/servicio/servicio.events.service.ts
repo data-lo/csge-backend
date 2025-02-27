@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { ServicioService } from "./servicio.service";
-import { ContratoEvent } from "src/contratos/interfaces/contrato-evento";
+
 
 @Injectable()
 export class EstacionEventosService {
@@ -9,9 +9,9 @@ export class EstacionEventosService {
         private servicioService: ServicioService,
     ){ }
 
-    @OnEvent('contrato.desactivado',{async:true})
-    async desactivarServicioTipo(contrato:ContratoEvent){
+    // @OnEvent('contrato.desactivado',{async:true})
+    // async desactivarServicioTipo(contrato:ContratoEvent){
         
-    }
+    // }
 
 }

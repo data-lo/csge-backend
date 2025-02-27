@@ -1,4 +1,4 @@
-export enum ValidRoles {
+export enum VALID_ROLES {
     SUPERADMIN = 'SUPERADMIN',
     DIRECCION = 'DIRECCION',
     JURIDICO = 'JURIDICO',

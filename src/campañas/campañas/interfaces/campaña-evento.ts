@@ -1,10 +1,9 @@
-import { Campaña } from "../entities/campaña.entity";
 
 export class CampaniaEvent {
-    payload:Campaña
+    campaniaId:string;
     constructor(
-        payload:{campaña:Campaña}
+        campaniaId:string
     ){
-        this.payload = payload.campaña
+        this.campaniaId = campaniaId;
     }
 }
