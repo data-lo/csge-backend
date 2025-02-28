@@ -9,7 +9,7 @@ import { ContratosModule } from 'src/contratos/contratos/contratos.module';
 import { PartidaModule } from 'src/campañas/partida/partida.module';
 import { ServicioContratadoModule } from '../servicio_contratado/servicio_contratado.module';
 import { FirmaModule } from 'src/firma/firma/firma.module';
-import { OrdenEventosService } from './orden.events.service';
+import { OrderEventsService } from './orden.events.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { IvaModule } from 'src/configuracion/iva/iva.module';
@@ -27,6 +27,6 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
     PassportModule
   ],
   controllers: [OrdenController],
-  providers: [OrdenService,OrdenEventosService],
+  providers: [OrdenService,OrderEventsService],
 })
 export class OrdenModule {}

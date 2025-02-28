@@ -1,7 +1,7 @@
 import { tzDate } from '@formkit/tempo';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -87,15 +87,15 @@ export class Activacion {
   @BeforeInsert()
   localeTimeZoneInsert() {
     const value = new Date();
-    this.creadoEn = localeTimeFormatter(value);
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaDeCreacion = localeTimeFormatter(this.fechaDeCreacion);
+    this.creadoEn = formatToLocalTime(value);
+    this.actualizadoEn = formatToLocalTime(value);
+    this.fechaDeCreacion = formatToLocalTime(this.fechaDeCreacion);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate() {
     const value = new Date();
-    this.actualizadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = formatToLocalTime(value);
   }
 
 }

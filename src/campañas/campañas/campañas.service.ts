@@ -204,8 +204,6 @@ export class CampañasService {
         relations: ['activaciones'],
       });
 
-      console.log(campaign.activaciones);
-
       // if (!campaign) throw new NotFoundException('No se ha encontrado la campaña solicitada.');
 
       // if (campaign.estatus === EstatusCampaña.CREADA || campaign.estatus === EstatusCampaña.COTIZANDO) {

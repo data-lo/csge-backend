@@ -8,6 +8,8 @@ import { MunicipioService } from '../municipio/municipio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
+import { fileFilter } from 'src/helpers/fileFilter';
 
 
 @Injectable()
@@ -131,20 +133,22 @@ export class EstacionService {
     }
   }
 
-  async update(id: string, updateEstacionDto: UpdateEstacionDto) {
+  async update(stationId: string, updateEstacionDto: UpdateEstacionDto) {
     try {
 
       const { municipiosIds, ...rest } = updateEstacionDto;
-      const estacionDb = await this.estacionRepository.findOne({
-        where: { id: id },
+      const station = await this.estacionRepository.findOne({
+        where: { id: stationId },
         relations: {
           municipios: true
         }
       });
 
-      if (!estacionDb) throw new NotFoundException('La estacion no se encuentra');
+      if (!station) {
+        throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
+      }
 
-      Object.assign(estacionDb, rest);
+      Object.assign(station, rest);
       if (municipiosIds && municipiosIds.length > 0) {
 
         const municipios = await Promise.all(
@@ -153,73 +157,113 @@ export class EstacionService {
           )
         );
 
-        estacionDb.municipios = municipios;
+        station.municipios = municipios;
       }
 
       if (municipiosIds && municipiosIds.length === 0) {
-        estacionDb.municipios = [];
+        station.municipios = [];
       };
 
-      await this.estacionRepository.save(estacionDb);
-      return await this.findOne(id);
+      await this.estacionRepository.save(station);
+      return await this.findOne(stationId);
 
     } catch (error) {
       handleExeptions(error);
     }
   }
 
-  async desactivarEstacion(id: string) {
+  async disabledStation(stationId: string) {
     try {
-      const estacion = await this.findOne(id);
-      if (estacion) {
-        await this.estacionRepository.update(id, {
-          estatus: false
-        });
-        return await this.findOne(id)
+      const station = await this.findOne(stationId);
+
+      if (!station) {
+        throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
+
+      await this.estacionRepository.update(stationId, { estatus: false });
+
+      return await this.findOne(stationId);
     } catch (error) {
-      handleExeptions(error);
+      throw handleExeptions(error);
     }
   }
 
-  async activarEstacion(id: string) {
+  async enabledStation(stationId: string) {
     try {
-      const estacion = await this.findOne(id);
-      if (estacion) {
-        await this.estacionRepository.update(id, {
-          estatus: true
-        });
-        return await this.findOne(id)
+      const station = await this.findOne(stationId);
+
+      if (!station) {
+        throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
+
+      await this.estacionRepository.update(stationId, { estatus: true });
+
+      return await this.findOne(stationId);
     } catch (error) {
-      handleExeptions(error);
+      throw handleExeptions(error);
     }
   }
 
-  async obtenerEstatus(id: string) {
+  async getStationsByServiceType(providerId: string, serviceTypes: string[]) {
     try {
-      const estacion = await this.estacionRepository.findOneBy({
-        id: id
+      const provider = await this.proveedorRepository.findOne({
+        where: { id: providerId },
+        relations: ["estaciones", "estaciones.servicios"],
       });
-      if (!estacion) throw new NotFoundException('Estacion no encontrada');
-      return {
-        id: id,
-        estatus: estacion.estatus
+
+      if (!provider) {
+        throw new NotFoundException(`El proveedor con ID ${providerId} no fue encontrado.`);
       }
+
+      const filteredStations = provider.estaciones.filter(estacion =>
+        estacion.servicios.some(service => serviceTypes.includes(service.tipoDeServicio))
+      );
+
+      for (const station of filteredStations) {
+        if (station.estatus === true) {
+          await this.disabledStation(station.id);
+        }
+        // Agregar el evento que le voy a pasar un array de serviciosID PARA DESACTIVARLO QUE PASAS SI el la estación tiene servicioS QUE
+      }
+
+      // return filteredStations;
     } catch (error) {
-      handleExeptions(error);
+      throw handleExeptions(error);
     }
   }
 
-  async delete(id: string) {
+
+  async getStatus(stationId: string) {
+
     try {
-      const estacion = await this.findOne(id);
-      if (estacion) {
-        await this.estacionRepository.delete(id);
-        return { message: 'Estacion eliminada correctamente' };
+      const station = await this.estacionRepository.findOneBy({ id: stationId });
+
+      if (!station) {
+        throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
+
+      return {
+        stationId,
+        estatus: station.estatus
+      };
     } catch (error) {
-      handleExeptions(error);
+      throw handleExeptions(error);
+    }
+  }
+
+  async delete(stationId: string) {
+    try {
+      const station = await this.findOne(stationId);
+
+      if (!station) {
+        throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
+      }
+
+      await this.estacionRepository.delete(stationId);
+
+      return { message: `Estación con ID ${stationId} eliminada correctamente.` };
+    } catch (error) {
+      throw handleExeptions(error);
     }
   }
 }

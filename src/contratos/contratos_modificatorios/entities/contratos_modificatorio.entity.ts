@@ -1,4 +1,4 @@
-import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
+import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -12,7 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 @Entity()
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
@@ -22,10 +22,10 @@ export class ContratoModificatorio {
   @Column({
     name: 'estatus_de_contrato',
     type: 'enum',
-    default: EstatusDeContrato.PENDIENTE,
-    enum: EstatusDeContrato,
+    default: ESTATUS_DE_CONTRATO.PENDIENTE,
+    enum: ESTATUS_DE_CONTRATO,
   })
-  estatusDeContrato: EstatusDeContrato;
+  estatusDeContrato: ESTATUS_DE_CONTRATO;
 
   @Column({
     name:'numero_de_contrato'
@@ -149,17 +149,17 @@ export class ContratoModificatorio {
   @BeforeInsert()
   localeTimeZoneInsert() {
     const value = new Date();
-    this.creadoEn = localeTimeFormatter(value);
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
-    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+    this.creadoEn = formatToLocalTime(value);
+    this.actualizadoEn = formatToLocalTime(value);
+    this.fechaInicial = formatToLocalTime(this.fechaInicial);
+    this.fechaFinal = formatToLocalTime(this.fechaFinal);
   }
   
   @BeforeUpdate()
   localeTimeZoneUpdate() {
     const value = new Date();
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
-    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
+    this.actualizadoEn = formatToLocalTime(value);
+    this.fechaInicial = formatToLocalTime(this.fechaInicial);
+    this.fechaFinal = formatToLocalTime(this.fechaFinal);
   }
 }

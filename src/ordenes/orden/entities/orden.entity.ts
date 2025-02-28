@@ -17,7 +17,7 @@ import {
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../interfaces/estatus-orden-de-servicio';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
@@ -161,16 +161,16 @@ export class Orden {
   @BeforeInsert()
   localeTimeZoneInsert() {
     const value = new Date();
-    this.creadoEn = localeTimeFormatter(value);
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaDeEmision = localeTimeFormatter(value);
+    this.creadoEn = formatToLocalTime(value);
+    this.actualizadoEn = formatToLocalTime(value);
+    this.fechaDeEmision = formatToLocalTime(value);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate(){
     const value = new Date();
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaDeAprobacion = localeTimeFormatter(this.fechaDeAprobacion);
+    this.actualizadoEn = formatToLocalTime(value);
+    this.fechaDeAprobacion = formatToLocalTime(this.fechaDeAprobacion);
   }
   
 }

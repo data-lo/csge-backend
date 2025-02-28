@@ -9,8 +9,7 @@ import { rolesEstacion } from './valid-estaciones-roles.ob';
 @Controller('proveedores/estaciones')
 export class EstacionController {
   constructor(
-    private readonly estacionService: EstacionService)
-  {}
+    private readonly estacionService: EstacionService) { }
   private readonly logger = new LoggerService(EstacionController.name);
 
   @Auth(...rolesEstacion)
@@ -21,37 +20,39 @@ export class EstacionController {
 
   @Auth(...rolesEstacion)
   @Patch('desactivar')
-  desactivarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
-    return this.estacionService.desactivarEstacion(estacionId);
+  desactivarEstacion(@Body('estacionId', ParseUUIDPipe) estacionId: string) {
+    return this.estacionService.disabledStation(estacionId);
   }
 
   @Auth(...rolesEstacion)
   @Patch('activar')
-  activarEstacion(@Body('estacionId',ParseUUIDPipe) estacionId:string){
-    return this.estacionService.activarEstacion(estacionId);
+  activarEstacion(@Body('estacionId', ParseUUIDPipe) estacionId: string) {
+    return this.estacionService.enabledStation(estacionId);
   }
 
   @Auth(...rolesEstacion)
   @Get()
-  findAll(@Query('pagina') pagina:string) {
-    return this.estacionService.findAll(+pagina);
+  findAll(@Query('pagina') pagina: string) {
+    // return this.estacionService.findAll(+pagina);
+    // TEL721214GK7
+    return this.estacionService.getStationsByServiceType("5eb568d3-50de-41ef-aed6-5a5b47156667", ["TELEVISIÓN", "LOCUCIÓN", "RADIO", "SPOTS"]);
   }
 
   @Auth(...rolesEstacion)
   @Get(':id')
-  findOne(@Param('id',ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.estacionService.findOne(id);
   }
 
   @Auth(...rolesEstacion)
   @Patch(':id')
-  update(@Param('id',ParseUUIDPipe) id: string, @Body() updateEstacionDto: UpdateEstacionDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateEstacionDto: UpdateEstacionDto) {
     return this.estacionService.update(id, updateEstacionDto);
   }
 
   @Auth(...rolesEstacion)
   @Delete(':id')
-  delete(@Param('id',ParseUUIDPipe) id: string){
+  delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.estacionService.delete(id);
   }
 }

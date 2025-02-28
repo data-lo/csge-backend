@@ -18,7 +18,7 @@ import { Puesto } from 'src/administracion/puestos/entities/puesto.entity';
 import { TipoDeDocumento } from '../interfaces/usuarios.tipo-de-documento';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('usuarios')
 export class Usuario {
@@ -144,13 +144,13 @@ export class Usuario {
   @BeforeInsert()
   localeTimeZoneInsert() {
     const value = new Date();
-    this.creadoEn = localeTimeFormatter(value);
-    this.actualizadoEn = localeTimeFormatter(value);
+    this.creadoEn = formatToLocalTime(value);
+    this.actualizadoEn = formatToLocalTime(value);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate() {
     const value = new Date();
-    this.actualizadoEn = localeTimeFormatter(value);
+    this.actualizadoEn = formatToLocalTime(value);
   }
 }

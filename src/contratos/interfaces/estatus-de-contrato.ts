@@ -1,4 +1,4 @@
-export enum EstatusDeContrato{
+export enum ESTATUS_DE_CONTRATO{
     PENDIENTE = 'PENDIENTE',
     ADJUDICADO = 'ADJUDICADO',
     LIBERADO  = 'LIBERADO',

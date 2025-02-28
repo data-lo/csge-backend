@@ -11,7 +11,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProveedorEvent } from './interfaces/proveedor-evento';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
-import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
+import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 
 @Injectable()
 export class ProveedorService {
@@ -109,7 +109,6 @@ export class ProveedorService {
   }
 
   async findByService(TIPO_DE_SERVICIO: string) {
-    console.log(TIPO_DE_SERVICIO)
     try {
       const estatus: boolean = true;
       const proveedores = await this.proveedorRepository
@@ -122,8 +121,6 @@ export class ProveedorService {
         .andWhere('renovaciones.estatus = :estatus', { estatus })
         .getMany();
 
-      console.log("Ok")
-      console.log(proveedores)
       return proveedores;
 
     } catch (error) {
@@ -135,7 +132,6 @@ export class ProveedorService {
     try {
       const proveedorDb = await this.findOne(id);
       if (proveedorDb) {
-        console.log(updateProveedorDto.nombreComercial);
         await this.proveedorRepository.update(id, updateProveedorDto);
         return await this.findOne(id);
       }
@@ -156,31 +152,24 @@ export class ProveedorService {
     }
   }
 
-  async desactivarProveedor(id: string) {
+  async desactivateProvider(providerId: string) {
     try {
-      const estatusProveedor = await this.obtenerEstatus(id);
-      if (estatusProveedor) {
-        const proveedor = await this.findOne(id);
-        await this.emitter(proveedor, 'desactivado');
-        await this.proveedorRepository.update(id, {
-          estatus: false
-        });
-        return { message: 'Proveedor desactivado exitosamente' };
-      }
+      await this.proveedorRepository.update(providerId, { estatus: false });
+
+      return { message: '¡El proveedor ha sido desactivado con éxito!' };
+
     } catch (error) {
-      handleExeptions(error);
+      return handleExeptions(error);
     }
   }
 
-  async activarProveedor(id: string) {
+
+  async activateProvider(providerId: string) {
     try {
-      const estatusProveedor = await this.obtenerEstatus(id);
-      if (estatusProveedor) {
-        await this.proveedorRepository.update(id, {
-          estatus: true
-        });
-        return { message: 'Proveedor activado exitosamente' };
-      }
+      await this.proveedorRepository.update(providerId, { estatus: true });
+
+      return { message: '¡El proveedor ha sido activado con éxito!' };
+
     } catch (error) {
       handleExeptions(error);
     }
@@ -201,7 +190,7 @@ export class ProveedorService {
       }
 
       const contratoMaestroId = contrato.filter(contrato => {
-        if (contrato.contratoMaestro.estatusDeContrato === EstatusDeContrato.ADJUDICADO || EstatusDeContrato.LIBERADO) {
+        if (contrato.contratoMaestro.estatusDeContrato === ESTATUS_DE_CONTRATO.ADJUDICADO || ESTATUS_DE_CONTRATO.LIBERADO) {
           return contrato.contratoMaestro.id;
         }
       });
@@ -228,11 +217,11 @@ export class ProveedorService {
     }
   }
 
-  async emitter(proveedor: Proveedor, evento: string) {
-    this.eventEmitter.emit(
-      `proveedor.${evento}`,
-      new ProveedorEvent({ proveedor }),
-    )
-  }
+  // async emitter(proveedor: Proveedor, evento: string) {
+  //   this.eventEmitter.emit(
+  //     `proveedor.${evento}`,
+  //     new ProveedorEvent({ proveedor }),
+  //   )
+  // }
 
 }

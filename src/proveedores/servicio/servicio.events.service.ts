@@ -4,7 +4,7 @@ import { ServicioService } from "./servicio.service";
 
 
 @Injectable()
-export class EstacionEventosService {
+export class StationEventsService {
     constructor(
         private servicioService: ServicioService,
     ){ }

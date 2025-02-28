@@ -30,7 +30,6 @@ export class ImagenController {
   async findImage() {
     try {
       const ruta = await this.minioService.obtenerImagen();
-      console.log(ruta)
       if (ruta) {
         return ruta
       }

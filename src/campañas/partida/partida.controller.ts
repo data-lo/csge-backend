@@ -42,7 +42,6 @@ export class PartidaController {
   @Auth(...rolesCampanias)
   @Patch('desactivar')
   desactivar(@Body('partidaId',ParseUUIDPipe) partidaId:string) {
-    console.log(partidaId);
     return this.partidaService.desactivarPartida(partidaId);
   }
 

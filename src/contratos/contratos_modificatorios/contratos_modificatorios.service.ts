@@ -6,7 +6,7 @@ import { ContratoModificatorio } from './entities/contratos_modificatorio.entity
 import { Repository } from 'typeorm';
 import { handleExeptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
-import { EstatusDeContrato } from '../interfaces/estatus-de-contrato';
+import { ESTATUS_DE_CONTRATO } from '../interfaces/estatus-de-contrato';
 import { ContratosService } from '../contratos/contratos.service';
 
 @Injectable()
@@ -83,7 +83,7 @@ export class ContratosModificatoriosService {
       const contratoModificatorioDb = await this.findOne(id);
       const { estatusDeContrato } = contratoModificatorioDb;
 
-      if (estatusDeContrato != EstatusDeContrato.PENDIENTE) {
+      if (estatusDeContrato != ESTATUS_DE_CONTRATO.PENDIENTE) {
         throw new BadRequestException(
           'El contrato no se encuentra PENDIENTE. Cancelar Contrato',
         );
@@ -102,7 +102,7 @@ export class ContratosModificatoriosService {
   async remove(id: string) {
     try {
       const estatusDelContrato = await this.obtenerEstatus(id);
-      if (estatusDelContrato.estatus != EstatusDeContrato.PENDIENTE) {
+      if (estatusDelContrato.estatus != ESTATUS_DE_CONTRATO.PENDIENTE) {
         throw new BadRequestException(
           'El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato',
         );
@@ -149,7 +149,7 @@ export class ContratosModificatoriosService {
     const { estatusDeContrato } = updateContratoDto;
     try {
       const estatusDeContratoDb = await this.obtenerEstatus(id);
-      if (estatusDeContratoDb.estatus === EstatusDeContrato.LIBERADO) {
+      if (estatusDeContratoDb.estatus === ESTATUS_DE_CONTRATO.LIBERADO) {
         await this.contratoModificatorioRepository.update(id, {
           estatusDeContrato: estatusDeContrato,
         });
