@@ -8,9 +8,7 @@ import { MunicipioService } from '../municipio/municipio.service';
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
-import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
-import { fileFilter } from 'src/helpers/fileFilter';
-
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class EstacionService {
@@ -21,6 +19,8 @@ export class EstacionService {
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
     private readonly municipioService: MunicipioService,
+
+    private eventEmitter: EventEmitter2,
 
   ) { }
 
@@ -172,7 +172,7 @@ export class EstacionService {
     }
   }
 
-  async disabledStation(stationId: string) {
+  async disableStation(stationId: string) {
     try {
       const station = await this.findOne(stationId);
 
@@ -188,7 +188,7 @@ export class EstacionService {
     }
   }
 
-  async enabledStation(stationId: string) {
+  async enableStation(stationId: string) {
     try {
       const station = await this.findOne(stationId);
 
@@ -206,6 +206,7 @@ export class EstacionService {
 
   async getStationsByServiceType(providerId: string, serviceTypes: string[]) {
     try {
+      // Buscar proveedor con estaciones y sus servicios
       const provider = await this.proveedorRepository.findOne({
         where: { id: providerId },
         relations: ["estaciones", "estaciones.servicios"],
@@ -215,23 +216,35 @@ export class EstacionService {
         throw new NotFoundException(`El proveedor con ID ${providerId} no fue encontrado.`);
       }
 
-      const filteredStations = provider.estaciones.filter(estacion =>
-        estacion.servicios.some(service => serviceTypes.includes(service.tipoDeServicio))
-      );
+      const servicesToDisable: string[] = [];
 
-      for (const station of filteredStations) {
-        if (station.estatus === true) {
-          await this.disabledStation(station.id);
+      for (const station of provider.estaciones) {
+        const activeServices = station.servicios.filter(service => service.estatus === true);
+        const servicesMatchingCriteria = station.servicios.filter(service => serviceTypes.includes(service.tipoDeServicio));
+
+        servicesMatchingCriteria.forEach(service => {
+          if (service.estatus === true) {
+            servicesToDisable.push(service.id);
+          }
+        });
+
+        const remainingActiveServices = activeServices.filter(service => !servicesToDisable.includes(service.id));
+
+        if (remainingActiveServices.length === 0) {
+          console.log(`🚨 Desactivando estación: ${station.id}`);
+          await this.disableStation(station.id);
         }
-        
-        // Agregar el evento que le voy a pasar un array de serviciosID PARA DESACTIVARLO QUE PASAS SI el la estación tiene servicioS QUE
       }
 
-      // return filteredStations;
+      if (servicesToDisable.length > 0) {
+        this.eventEmitter.emit("disable-multiple-services", { providerId, serviceIds: servicesToDisable });
+      }
+
     } catch (error) {
       throw handleExeptions(error);
     }
   }
+
 
 
   async getStatus(stationId: string) {

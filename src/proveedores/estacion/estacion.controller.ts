@@ -21,13 +21,13 @@ export class EstacionController {
   @Auth(...rolesEstacion)
   @Patch('desactivar')
   desactivarEstacion(@Body('estacionId', ParseUUIDPipe) estacionId: string) {
-    return this.estacionService.disabledStation(estacionId);
+    return this.estacionService.disableStation(estacionId);
   }
 
   @Auth(...rolesEstacion)
   @Patch('activar')
   activarEstacion(@Body('estacionId', ParseUUIDPipe) estacionId: string) {
-    return this.estacionService.enabledStation(estacionId);
+    return this.estacionService.enableStation(estacionId);
   }
 
   @Auth(...rolesEstacion)

@@ -178,7 +178,6 @@ export class ContratosService {
   }
 
   async getContractedServiceTypes(proveedorId: string) {
-
     try {
       const contract = await this.masterContractRepository
         .createQueryBuilder('contratoMaestro')
@@ -197,13 +196,15 @@ export class ContratosService {
           'contrato.id',
         ])
         .getRawMany();
-
-      return contract.map((result) => result.contrato_tipo_de_servicio,);
-
+  
+      const uniqueServiceTypes = [...new Set(contract.map((result) => result.contrato_tipo_de_servicio))];
+  
+      return uniqueServiceTypes;
     } catch (error) {
       handleExeptions(error);
     }
   }
+  
 
   async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
     try {
@@ -432,7 +433,6 @@ export class ContratosService {
 
     // Recorrer cada proveedor
     for (const [providerId, contratoMaestro] of Object.entries(contractsByProvider)) {
-
       // Obtener todos los servicios de los contratos secundarios que finalizan hoy
       const expiringServices = new Set<string>();
 
@@ -450,8 +450,9 @@ export class ContratosService {
           await this.masterContractRepository.update(masterContract.id, {
             estatusDeContrato: ESTATUS_DE_CONTRATO.TERMINADO,
           });
-        }
 
+          this.logger.log(`✅ Contrato ${masterContract.numeroDeContrato} desactivado.`);
+        }
       }
 
       // Obtener todos los contratos activos del proveedor
@@ -474,13 +475,12 @@ export class ContratosService {
 
       const servicesToDisable = [...expiringServices].filter(service => !activeServices.has(service));
 
-      if (servicesToDisable.length > 0) {
+      console.log(servicesToDisable);
 
-        this.eventEmitter.emit('disabled-stations', {
+      if (servicesToDisable.length > 0) {
+        this.eventEmitter.emit('disable-stations', {
           providerId: providerId, typeServices: servicesToDisable
         });
-
-        this.logger.log(`🚨 Servicios desactivados para el proveedor ${providerId}: ${servicesToDisable.join(", ")}`);
       }
     }
   }

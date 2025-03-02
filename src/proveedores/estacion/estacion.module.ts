@@ -19,6 +19,7 @@ import { StationEventsService } from './estacion.events.service';
   ],
   exports:[
     EstacionService,
+    StationEventsService
   ]
 })
 export class EstacionModule {}

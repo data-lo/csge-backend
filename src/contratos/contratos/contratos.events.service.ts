@@ -4,8 +4,8 @@ import { ContratosService } from './contratos.service';
 import { OrdenService } from 'src/ordenes/orden/orden.service';
 
 @Injectable()
-export class ContratosEventosService {
-  private readonly logger = new Logger(ContratosEventosService.name);
+export class ContractEventsService {
+  private readonly logger = new Logger(ContractEventsService.name);
 
   constructor(
     private readonly orderService: OrdenService,

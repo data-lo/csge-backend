@@ -31,7 +31,7 @@ export class ServicioController {
   @Patch('desactivar-servicio')
   desactivarServicio(
     @Body('servicioId', ParseUUIDPipe) servicioId: string) {
-    return this.servicioService.desactivarServicio(servicioId);
+    return this.servicioService.disableService(servicioId);
   }
 
 

@@ -98,7 +98,7 @@ export class ServicioService {
       });
 
       if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
-      
+
       const lastRenewal = service.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion) {
           return renovacion;
@@ -122,19 +122,33 @@ export class ServicioService {
     }
   }
 
-  async desactivarServicio(id: string) {
+  async disableService(serviceId: string) {
     try {
-      const servicio = await this.servicioRepository.findOneBy({ id: id });
+      const servicio = await this.servicioRepository.findOneBy({ id: serviceId });
+
       if (!servicio) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(
-        id, {
+      await this.servicioRepository.update(serviceId, {
         estatus: false
       });
-      await this.emitter(servicio.id, 'servicio.desactivado');
-      return { message: 'Servicio desactivado correctamente' };
+
+      return { message: "¡El servicio ha sido desactivado correctamente!" };
+
     } catch (error) {
       handleExeptions(error);
+    }
+  }
+
+  async disableMultiplyServices(typeServicesId: string[]) {
+    for (const serviceId of typeServicesId) {
+
+      const service = await this.servicioRepository.findOneBy({ id: serviceId });
+
+      if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
+
+      await this.servicioRepository.update(serviceId, {
+        estatus: false
+      });
     }
   }
 
