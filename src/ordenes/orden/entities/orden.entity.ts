@@ -56,15 +56,12 @@ export class Orden {
 
   @Column({
     name: 'fecha_de_emision',
-    type: 'date',
     nullable: false,
   })
   fechaDeEmision: Date;
 
   @Column({
     name: 'fecha_de_aprobacion',
-    type: 'date',
-    nullable: true,
     default: null,
   })
   fechaDeAprobacion: Date;
@@ -158,19 +155,19 @@ export class Orden {
   )
   serviciosContratados: ServicioContratado[];
 
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaDeEmision = formatToLocalTime(value);
-  }
+  // @BeforeInsert()
+  // localeTimeZoneInsert() {
+  //   const value = new Date();
+  //   this.creadoEn = formatToLocalTime(value);
+  //   this.actualizadoEn = formatToLocalTime(value);
+  //   this.fechaDeEmision = formatToLocalTime(value);
+  // }
 
-  @BeforeUpdate()
-  localeTimeZoneUpdate(){
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaDeAprobacion = formatToLocalTime(this.fechaDeAprobacion);
-  }
+  // @BeforeUpdate()
+  // localeTimeZoneUpdate(){
+  //   const value = new Date();
+  //   this.actualizadoEn = formatToLocalTime(value);
+  //   this.fechaDeAprobacion = formatToLocalTime(this.fechaDeAprobacion);
+  // }
   
 }

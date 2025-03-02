@@ -108,13 +108,14 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      console.log(documentoDeFirma.ordenOFacturaId);
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
       if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+        
         documentoDeFirma.estaFirmado = true;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.CANCELADA;
+
         this.emitter(documentoId, 'cancelacion.orden');
       } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
         this.emitter(documentoId, 'cancelacion.factura');

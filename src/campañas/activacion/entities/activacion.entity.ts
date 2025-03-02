@@ -25,21 +25,18 @@ export class Activacion {
 
   @Column({
     name: 'fecha_de_creacion',
-    type: 'date',
     nullable: false,
   })
   fechaDeCreacion: Date;
 
   @Column({
     name: 'fecha_de_inicio',
-    type: 'date',
     nullable: false,
   })
   fechaDeInicio: Date;
 
   @Column({
     name: 'fecha_de_aprobacion',
-    type: 'date',
     nullable: true,
     default: null,
   })
@@ -47,7 +44,6 @@ export class Activacion {
 
   @Column({
     name: 'fecha_de_cierre',
-    type: 'date',
     nullable: false,
   })
   fechaDeCierre: Date;
@@ -84,18 +80,18 @@ export class Activacion {
   })
   actualizadoEn: Date;
 
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaDeCreacion = formatToLocalTime(this.fechaDeCreacion);
-  }
+  // @BeforeInsert()
+  // localeTimeZoneInsert() {
+  //   const value = new Date();
+  //   this.creadoEn = formatToLocalTime(value);
+  //   this.actualizadoEn = formatToLocalTime(value);
+  //   this.fechaDeCreacion = formatToLocalTime(this.fechaDeCreacion);
+  // }
 
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-  }
+  // @BeforeUpdate()
+  // localeTimeZoneUpdate() {
+  //   const value = new Date();
+  //   this.actualizadoEn = formatToLocalTime(value);
+  // }
 
 }

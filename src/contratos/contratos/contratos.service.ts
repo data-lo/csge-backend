@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +19,7 @@ import { LoggerService } from 'src/logger/logger.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { handlerAmounts } from './functions/handler-amounts';
+import { Console } from 'console';
 
 
 @Injectable()
@@ -44,8 +46,14 @@ export class ContratosService {
     try {
       const {
         montoMaximoContratado, montoMinimoContratado, ivaMontoMaximoContratado,
-        ivaMontoMinimoContratado, tipoDeServicios, proveedorId, ...rest
+        ivaMontoMinimoContratado, tipoDeServicios, proveedorId, numeroDeContrato, ...rest
       } = createContratoDto;
+
+      const exists = await this.masterContractRepository.exists({
+        where: { numeroDeContrato },
+      });
+
+      if (exists) throw new ConflictException('¡El número de contrato ya existe!');
 
       const amountAvailable = montoMaximoContratado + ivaMontoMaximoContratado;
 
@@ -55,17 +63,19 @@ export class ContratosService {
 
       const contratoMaestro = this.masterContractRepository.create({
         ivaMontoMaximoContratado,
-        ivaMontoMinimoContratado: montoMinimoContratado ? ivaMontoMinimoContratado : 0,
-        montoMinimoContratado: montoMinimoContratado || 0,
+        ivaMontoMinimoContratado,
+        montoMinimoContratado,
         montoMaximoContratado,
         montoDisponible: amountAvailable,
         proveedor: provider,
+        numeroDeContrato: numeroDeContrato,
         ...rest,
       });
 
       await this.masterContractRepository.save(contratoMaestro);
 
       try {
+
         const contratos = tipoDeServicios.map(servicio =>
           this.contratoRepository.create({
             tipoDeServicio: servicio,
@@ -75,23 +85,21 @@ export class ContratosService {
         );
 
         await this.contratoRepository.save(contratos);
-
       } catch (error) {
-
         await this.remove(contratoMaestro.id);
-
-        throw new InternalServerErrorException('Error al crear los contratos');
+        throw new InternalServerErrorException('Error al crear los contratos secundarios.');
       }
 
+      // 🔹 Emitir un evento si es necesario (actualmente comentado)
       // this.eventEmitter.emit('activate.services', { masterContractId: contratoMaestro.id, providerId: proveedor.id });
 
       return contratoMaestro;
-
     } catch (error) {
       handleExeptions(error);
       throw error;
     }
   }
+
 
 
   async findAll(pagina: number) {
@@ -402,30 +410,77 @@ export class ContratosService {
   }
 
   async checkContractExpiration() {
-
     const today = new Date();
 
-    const masterContracts = await this.masterContractRepository.find({
-      where: {
-        fechaFinal: today,
-      },
+    // Obtener contratos que finalizan hoy con sus relaciones
+    const masterContractsEndsToday = await this.masterContractRepository.find({
+      where: { fechaFinal: today },
       relations: ["contratos", "proveedor"]
     });
 
-    for (const masterContract of masterContracts) {
-      if (masterContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.TERMINADO) {
+    const contractsByProvider: Record<string, ContratoMaestro[]> = {};
 
-        await this.masterContractRepository.update(masterContract.id, {
-          estatusDeContrato: ESTATUS_DE_CONTRATO.TERMINADO
+    // Agrupar los contrato maestro por proveedor
+    for (const masterContract of masterContractsEndsToday) {
+      const providerId = masterContract.proveedor.id;
+
+      if (!contractsByProvider[providerId]) {
+        contractsByProvider[providerId] = [];
+      }
+      contractsByProvider[providerId].push(masterContract);
+    }
+
+    // Recorrer cada proveedor
+    for (const [providerId, contratoMaestro] of Object.entries(contractsByProvider)) {
+
+      // Obtener todos los servicios de los contratos secundarios que finalizan hoy
+      const expiringServices = new Set<string>();
+
+      // Recorrer cada contrato maestro
+      for (const masterContract of contratoMaestro) {
+
+        if (masterContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.TERMINADO &&
+          masterContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO) {
+
+          masterContract.contratos.forEach(subContract => {
+            expiringServices.add(subContract.tipoDeServicio);
+          });
+
+          // Marcar el contrato maestro como terminado
+          await this.masterContractRepository.update(masterContract.id, {
+            estatusDeContrato: ESTATUS_DE_CONTRATO.TERMINADO,
+          });
+        }
+
+      }
+
+      // Obtener todos los contratos activos del proveedor
+      const activeContracts = await this.masterContractRepository.find({
+        where: {
+          proveedor: { id: providerId },
+          estatusDeContrato: ESTATUS_DE_CONTRATO.LIBERADO,
+        },
+        relations: ["contratos"]
+      });
+
+      // Obtener todos los servicios aún vigentes en contratos activos
+      const activeServices = new Set<string>();
+
+      activeContracts.forEach(contract => {
+        contract.contratos.forEach(subContract => {
+          activeServices.add(subContract.tipoDeServicio);
+        });
+      });
+
+      const servicesToDisable = [...expiringServices].filter(service => !activeServices.has(service));
+
+      if (servicesToDisable.length > 0) {
+
+        this.eventEmitter.emit('disabled-stations', {
+          providerId: providerId, typeServices: servicesToDisable
         });
 
-        const typeServices = masterContract.contratos.map(contract => contract.tipoDeServicio);
-
-        this.eventEmitter.emit('disabled-provider', { providerId: masterContract.proveedor.id });
-
-        this.eventEmitter.emit('disabled-stations', { providerId: masterContract.proveedor.id, typeServices: typeServices });
-
-        this.logger.log(`✅ El contrato ${masterContract.numeroDeContrato} a expirado y se ha marcado como inactivo.`);
+        this.logger.log(`🚨 Servicios desactivados para el proveedor ${providerId}: ${servicesToDisable.join(", ")}`);
       }
     }
   }

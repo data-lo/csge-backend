@@ -103,7 +103,7 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id: userId });
       if (!usuario) {
-        throw new NotFoundException('Usuario no encontrado');
+        throw new NotFoundException('¡Usuario no encontrado!');
       };
       delete usuario.password;
       delete usuario.puestoId;
@@ -162,7 +162,7 @@ export class UsuariosService {
       const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo.toUpperCase() }));
 
       if (!dbUser) {
-        throw new UnauthorizedException('Usuario no encontrado')
+        throw new UnauthorizedException('¡Usuario no encontrado!')
       }
 
       if (await this.verificarPrimerInicioDeSesion(password, dbUser.password)) {
@@ -173,14 +173,15 @@ export class UsuariosService {
       }
 
       if (!bcrypt.compareSync(password, dbUser.password)) {
-        throw new UnauthorizedException('Contraseña no valida')
+        throw new UnauthorizedException('¡Contraseña no válida!')
       }
 
       if (dbUser.estatus === false) {
-        throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
+        throw new UnauthorizedException('¡Usuario deshabilitado! Por favor, contacte al administrador.');
       }
 
       delete dbUser.password;
+      
       const currentTime = new Date();
 
       const gmtMinus6Offset = -6 * 60;
@@ -276,7 +277,7 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
       return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
       handleExeptions(error);

@@ -100,7 +100,6 @@ export class SeedService {
 
   async seedDb() {
     try {
-      console.log("Ok")
       await this.seedAdministracion();
       await this.seedCatalogos();
       await this.seedConfiguracion();
@@ -112,8 +111,8 @@ export class SeedService {
 
   async seedAdministracion() {
     try {
-      // await this.insertarDepartamentos();
-      // await this.insertarPuestos();
+      await this.insertarDepartamentos();
+      await this.insertarPuestos();
       await this.insertarUsuarios();
       return { message: 'Datos de Usuarios, Departamentos y Puestos insertados correctamente' };
     } catch (error: any) {

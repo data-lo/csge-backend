@@ -72,7 +72,7 @@ export class ContratoMaestro {
     type: 'decimal',
     default: null,
     scale: 2,
-    nullable: true,
+    nullable: false,
   })
   montoMaximoContratado: number;
 
@@ -81,7 +81,7 @@ export class ContratoMaestro {
     type: 'decimal',
     default: null,
     scale: 2,
-    nullable: true,
+    nullable: false,
   })
   ivaMontoMaximoContratado: number;
 

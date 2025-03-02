@@ -89,7 +89,7 @@ export class FirmaService {
         relations: ['documentosParaFirmar'],
       });
 
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
       const ordenesConDocumentosPorFirmar = await this.ordenRepository
         .createQueryBuilder('orden')
@@ -127,7 +127,7 @@ export class FirmaService {
           relations: ['documentosParaFirmar'],
         });
 
-        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
         const facturasConDocumentosPorFirmar = await this.facturaRepository
           .createQueryBuilder('factura')
@@ -167,7 +167,7 @@ export class FirmaService {
         relations: ['documentosParaFirmar'],
       });
 
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
       const campaniaConDocumentosPorFirmar = await this.campaniaRepository
         .createQueryBuilder('campania')

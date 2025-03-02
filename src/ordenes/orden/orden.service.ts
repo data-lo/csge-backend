@@ -1,42 +1,59 @@
+/**
+ * OrdenService
+ * ------------------------------------------------------
+ * Servicio encargado de la gestión de órdenes de servicio en la aplicación.
+ * Permite la creación, actualización, eliminación y recuperación de órdenes de servicio,
+ * así como la gestión de su estado, firma y generación de documentos PDF.
+ */
+
+// Importaciones necesarias
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { plainToClass } from 'class-transformer';
+import { isUUID } from 'class-validator';
+
+// Entidades y DTOs
+import { Orden } from './entities/orden.entity';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orden } from './entities/orden.entity';
-import { Repository } from 'typeorm';
+import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
+import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
+
+// Servicios relacionados
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ProveedorService } from 'src/proveedores/proveedor/proveedor.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
+import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
+import { FirmaService } from '../../firma/firma/firma.service';
+
+// Utilidades y helpers
 import { handleExeptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
-import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
-import { ServicioContratadoService } from '../servicio_contratado/servicio_contratado.service';
-import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
-import { plainToClass } from 'class-transformer';
-import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
-import { FirmaService } from '../../firma/firma/firma.service';
-import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
-import { isUUID } from 'class-validator';
 import { IvaGetter } from 'src/helpers/iva.getter';
-import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
-import { foliosResponse } from './interfaces/folios-interface';
+import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 
+// Enums e interfaces
+import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
+import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
+import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
+
+/**
+ * Servicio para la gestión de órdenes de servicio.
+ */
 @Injectable()
 export class OrdenService {
   constructor(
-
     @InjectRepository(Orden)
     private ordenRepository: Repository<Orden>,
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
-
     private readonly firmaService: FirmaService,
     private readonly campañaService: CampañasService,
     private readonly proveedorService: ProveedorService,
@@ -44,85 +61,69 @@ export class OrdenService {
     private readonly servicioContratadoService: ServicioContratadoService,
   ) { }
 
+
   async create(createOrderDto: CreateOrdenDto) {
     try {
-      const {
-        campaniaId,
-        proveedorId,
-        contratoId,
-        tipoDeServicio,
-        serviciosContratados,
-        ...rest
-      } = createOrderDto;
+      const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
 
-      let campania = null;
-      
-      let contratoMaestro = null;
+      const currentDate = new Date();
 
-      if (campaniaId) {
-        campania = await this.campañaService.findOne(campaniaId);
+      // Buscar proveedor, contrato y campaña en paralelo
+      const [proveedor, masterContract, campaign] = await Promise.all([
+        this.proveedorService.findOne(proveedorId),
+        contratoId ? this.contratoService.findOne(contratoId) : null,
+        campaniaId ? this.campañaService.findOne(campaniaId) : null,
+      ]);
+
+      // Validar si el proveedor puede agregarse sin contrato
+      if (!masterContract && proveedor.tipoProveedor !== TipoProveedor.SERVICIOS) {
+        throw new BadRequestException('SOLO LOS PROVEEDORES DE SERVICIOS SE PUEDEN AGREGAR SIN CONTRATO');
       }
 
-      if (contratoId) {
-        contratoMaestro = await this.contratoService.findOne(contratoId);
-      }
+      // Obtener la última partida de la campaña (si existe)
+      const match = campaign?.activaciones.at(-1)?.partida ?? null;
 
-      const proveedor = await this.proveedorService.findOne(proveedorId);
+      // Generar el folio de la orden basado en el tipo de servicio
+      const folio = await this.getCurrentFolio(tipoDeServicio);
 
-      if (!contratoMaestro) {
-        if (proveedor.tipoProveedor !== TipoProveedor.SERVICIOS) {
-          throw new BadRequestException('SOLO LOS PROVEEDORES DE SERVICIOS SE PUEDEN AGREGAR SIN CONTRATO');
-        }
-      }
-
-      const partida = campania.activaciones.at(-1).partida;
-
-      const folio = await this.obtenerFolioDeOrden(tipoDeServicio);
-
-      const orden = this.ordenRepository.create({
-        campaña: campania,
+      // Crear la orden
+      const order = this.ordenRepository.create({
+        campaña: campaign,
         proveedor: proveedor,
-        contratoMaestro: contratoMaestro,
-        partida: partida,
+        contratoMaestro: masterContract,
+        partida: match,
         folio: folio,
         tipoDeServicio,
+        fechaDeEmision: currentDate,
         ...rest,
       });
 
-      await this.ordenRepository.save(orden);
+      await this.ordenRepository.save(order);
 
       try {
-        for (const servicioContratado of serviciosContratados) {
-          const { cantidad, carteleraId, ...rest } = servicioContratado;
-          let cartelera = null;
-          if (isUUID(carteleraId)) {
-            cartelera = carteleraId;
-          }
-          await this.servicioContratadoService.create({
-            ...rest,
-            cantidad: servicioContratado.cantidad,
-            ordenId: orden.id,
-            carteleraId: cartelera,
-          });
-        }
+        // Registrar servicios contratados
+        await Promise.all(
+          serviciosContratados.map(async (servicioContratado) => {
+            const { cantidad, carteleraId, ...rest } = servicioContratado;
+            await this.servicioContratadoService.create({
+              ...rest,
+              cantidad,
+              ordenId: order.id,
+              carteleraId: isUUID(carteleraId) ? carteleraId : null,
+            });
+          })
+        );
 
-        const montos = await this.calcularMontosDeOrden(orden.id);
+        // Calcular montos de la orden
+        await this.calcularMontosDeOrden(order.id);
 
-        delete orden.contratoMaestro;
-        delete orden.campaña.activaciones;
-        delete orden.campaña.dependencias;
-        delete orden.campaña.creadoEn;
-        delete orden.campaña.actualizadoEn;
-        delete orden.partida;
-        delete orden.proveedor;
+        // Eliminar campos innecesarios antes de devolver la orden
+        const camposAEliminar = ["contratoMaestro", "campaña.activaciones", "campaña.dependencias", "campaña.creadoEn", "campaña.actualizadoEn", "partida", "proveedor"];
+        camposAEliminar.forEach((campo) => delete order[campo]);
+        return order;
 
-        orden.subtotal = Number(montos.subtotal.toFixed(2));
-        orden.iva = Number(montos.iva.toFixed(2));
-        orden.total = Number(montos.total.toFixed(2));
-
-        return orden;
       } catch (error) {
-        await this.remove(orden.id);
+        await this.remove(order.id);
         throw error;
       }
     } catch (error) {
@@ -194,6 +195,7 @@ export class OrdenService {
           esCampania: false
         }
       });
+
       return ordenes;
     } catch (error) {
       handleExeptions(error);
@@ -309,7 +311,6 @@ export class OrdenService {
   }
 
   async findByRfc(rfc: string) {
-    console.log(rfc)
     try {
       const estatus = ESTATUS_ORDEN_DE_SERVICIO.ACTIVA;
       const ordenes = await this.ordenRepository
@@ -319,7 +320,6 @@ export class OrdenService {
         .andWhere('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
         .getMany();
 
-      console.log(ordenes)
       if (ordenes.length === 0) return null;
 
       const ordenesPorProveedor = ordenes.reduce((acc, orden) => {
@@ -344,37 +344,47 @@ export class OrdenService {
     }
   }
 
-  async obtenerFolioDeOrden(TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
+  async getCurrentFolio(serviceType: TIPO_DE_SERVICIO): Promise<string> {
     try {
-      let ultimosFolios: foliosResponse[];
-      const year = new Date().getFullYear();
-      ultimosFolios = await this.ordenRepository
+      // 1. Obtener el año actual
+      const currentYear = new Date().getFullYear();
+
+      // 2. Traer los folios desde la base de datos
+      const rawRecords = await this.ordenRepository
         .createQueryBuilder('orden')
-        .select("orden.folio", "folio")
-        .where('orden.tipoDeServicio = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
-        .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year })
-        .getRawMany();
+        .select('orden.folio', 'folio')
+        .where('orden.tipoDeServicio = :serviceType', { serviceType })
+        .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :currentYear', { currentYear })
+        .getRawMany<{ folio: string }>();
 
-      // Verificar si ultimosFolios es nulo o vacío
-      let numeroDeFolio: number;
-      if (!ultimosFolios || ultimosFolios.length === 0) {
-        numeroDeFolio = 1;
-      } else {
-        const ultimoFolio = ultimosFolios[ultimosFolios.length - 1];
-        const numero = ultimoFolio.folio.split('-')[0];
-        numeroDeFolio = parseInt(numero) + 1;
-      }
+      // 3. Ordenar los registros por la parte numérica antes del primer guion
+      rawRecords.sort((a, b) => {
+        const numA = parseInt(a.folio.split('-')[0], 10);
+        const numB = parseInt(b.folio.split('-')[0], 10);
+        return numA - numB;
+      });
 
+      // 4. Calcular el siguiente número de folio
+      //    Si no hay registros, comenzamos en 1
+      //    Si existen, obtenemos el último folio y sumamos 1 a la parte numérica
+      const latestFolio = rawRecords.at(-1)?.folio;  // "?.folio" retorna undefined si no hay elemento
+
+      const newFolioNumber = latestFolio
+        ? parseInt(latestFolio.split('-')[0], 10) + 1
+        : 1;
+
+      // 5. Obtener la abreviación para el tipo de servicio
       const serviciosParaFolio = new ServiciosParaFolio();
-      const abreviacionFolio = await serviciosParaFolio.obtenerAbreviacion(TIPO_DE_SERVICIO);
-      const folio = `${numeroDeFolio}-${abreviacionFolio}-${year}`;
+      const abbreviation = await serviciosParaFolio.obtenerAbreviacion(serviceType);
 
-      return folio;
+      // 6. Construir la cadena final del folio
+      return `${newFolioNumber}-${abbreviation}-${currentYear}`;
     } catch (error) {
-      console.error("Error al obtener el folio de orden:", error);
-      throw new Error("No se pudo generar el folio de orden");
+      console.error('Error al obtener el folio de orden:', error);
+      throw new Error('No se pudo generar el folio de orden');
     }
   }
+
 
   // async actualizarEstatusOrden(
   //   id: string,
@@ -518,6 +528,10 @@ export class OrdenService {
 
       if (!order) {
         throw new Error(`La Orden con ID: ${orderId} no se encontró.`);
+      }
+
+      if (status === ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) {
+        await this.ordenRepository.update(orderId, { estatus: status, fechaDeAprobacion: new Date() });
       }
 
       await this.ordenRepository.update(orderId, { estatus: status });
