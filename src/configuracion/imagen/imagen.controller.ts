@@ -12,7 +12,7 @@ import { LoggerService } from 'src/logger/logger.service';
 import { rolesImagen } from './valid-imagen-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { MinioService } from 'src/minio/minio.service';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 
 
 
@@ -35,7 +35,7 @@ export class ImagenController {
       }
       return { url: 'url/no_imagen' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

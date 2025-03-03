@@ -15,7 +15,6 @@ import {
 
 export class CreateContratoDto {
 
-  @IsOptional()
   @IsUUID()
   proveedorId: string;
 

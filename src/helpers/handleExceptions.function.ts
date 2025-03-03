@@ -5,7 +5,7 @@ import {
     ConflictException,
   } from "@nestjs/common";
   
-  export const handleExeptions = (error: any) => {
+  export const handleExceptions = (error: any) => {
 
 
     if(error.message){

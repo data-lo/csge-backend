@@ -8,7 +8,7 @@ import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { Repository } from 'typeorm';
 import { EstatusDeFirma } from 'src/firma/firma/interfaces/estatus-de-firma.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
@@ -76,7 +76,7 @@ export class WebhooksService {
       await this.firmaRepository.save(document);
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -97,7 +97,7 @@ export class WebhooksService {
       }
     } catch (error) {
       //eliminar documento de firmamex
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -123,7 +123,7 @@ export class WebhooksService {
       await this.firmaRepository.save(documentoDeFirma);
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

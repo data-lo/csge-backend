@@ -16,6 +16,6 @@ import { ProviderEventService } from './proveedor.events.service';
   ],
   controllers: [ProveedorController],
   providers: [ProveedorService, ProviderEventService],
-  exports:[ProveedorService]
+  exports:[ProveedorService, ProviderEventService]
 })
 export class ProveedorModule {}

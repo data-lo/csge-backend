@@ -13,5 +13,6 @@ export class CronJobsService {
     @Cron('45 * * * * *')
     async handleCron() {
         await this.contractsService.checkContractExpiration();
+        await this.contractsService.disableProvidersWithoutActiveContracts();
     }
 }

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateImpresionDto } from './dto/create-impresion.dto';
 import { UpdateImpresionDto } from './dto/update-impresion.dto';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Impresion } from './entities/impresion.entity';
 import { Repository } from 'typeorm';
@@ -31,7 +31,7 @@ export class ImpresionesService {
       await this.impresionRepository.save(impresion);
       return impresion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -44,7 +44,7 @@ export class ImpresionesService {
       });
       return impresiones;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -60,7 +60,7 @@ export class ImpresionesService {
         throw new NotFoundException('No se encuentra la medida de impresion');
       return impresion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -83,7 +83,7 @@ export class ImpresionesService {
         return await this.findOne(id);
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -95,7 +95,7 @@ export class ImpresionesService {
         return { message: 'medida de impresion eliminada correctamente' };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

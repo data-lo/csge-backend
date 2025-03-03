@@ -4,7 +4,7 @@ import { UpdateDependenciaDto } from './dto/update-dependencia.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Dependencia } from './entities/dependencia.entity';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 
@@ -22,7 +22,7 @@ export class DependenciaService {
       await this.dependenciaRepository.save(dependencia);
       return dependencia;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -36,7 +36,7 @@ export class DependenciaService {
       });
       return dependencias;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -46,7 +46,7 @@ export class DependenciaService {
       const dependencias = await this.dependenciaRepository.find();
       return dependencias;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -58,7 +58,7 @@ export class DependenciaService {
       if(!dependencia) throw new NotFoundException('La dependencia no existe');
       return dependencia;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -69,7 +69,7 @@ export class DependenciaService {
       await this.dependenciaRepository.save(dependenciaDb);
       return {message:'DEPENDENCIA ACTUALZIADA CORRECTAMENTE'};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -79,7 +79,7 @@ export class DependenciaService {
       await this.dependenciaRepository.remove(dependenciaDb);
       return {message:"Dependencia eliminada correctamente"};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

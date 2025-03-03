@@ -3,7 +3,7 @@ import { CreateServicioDto } from './dto/create-servicio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Servicio } from './entities/servicio.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
 import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
@@ -39,7 +39,7 @@ export class ServicioService {
       delete servicio.estacion;
       return servicio;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -70,7 +70,7 @@ export class ServicioService {
       return servicesFromDB;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -84,7 +84,7 @@ export class ServicioService {
       });
       return servicios;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -118,7 +118,7 @@ export class ServicioService {
       return service;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -135,7 +135,7 @@ export class ServicioService {
       return { message: "¡El servicio ha sido desactivado correctamente!" };
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -167,7 +167,7 @@ export class ServicioService {
 
       return { message: '¡El servicio ha sido actualizado con éxito!' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -180,7 +180,7 @@ export class ServicioService {
       await this.emitter(servicio.id, 'servicio.activado');
       return { message: 'Servicio activado correctamente' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -192,7 +192,7 @@ export class ServicioService {
         estatus: servicio.estatus
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

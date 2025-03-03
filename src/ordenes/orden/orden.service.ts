@@ -33,7 +33,7 @@ import { ServicioContratadoService } from '../servicio_contratado/servicio_contr
 import { FirmaService } from '../../firma/firma/firma.service';
 
 // Utilidades y helpers
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
@@ -127,7 +127,7 @@ export class OrdenService {
         throw error;
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -166,7 +166,7 @@ export class OrdenService {
       });
       return ordenes;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -198,7 +198,7 @@ export class OrdenService {
 
       return ordenes;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -219,7 +219,7 @@ export class OrdenService {
       return orden;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -286,8 +286,7 @@ export class OrdenService {
 
       return { message: 'ORDEN ACTUALIZADA CON EXITO' };
     } catch (error) {
-      console.log(error);
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -306,7 +305,7 @@ export class OrdenService {
         'No es posible eliminar la orden debido a su estatus, cancelar orden',
       );
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -340,7 +339,7 @@ export class OrdenService {
       const result = Object.values(ordenesPorProveedor);
       return result;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -403,7 +402,7 @@ export class OrdenService {
   //       message: 'Estatus actualizado correctamente',
   //     };
   //   } catch (error) {
-  //     handleExeptions(error);
+  //     handleExceptions(error);
   //   }
   // }
 
@@ -412,7 +411,7 @@ export class OrdenService {
       const orden = await this.findOne(id);
       return { ordenId: orden.id, estatus: orden.estatus };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -429,7 +428,7 @@ export class OrdenService {
         'La orden no cuenta con estatus valido para su cancelacion, Eliminar orden',
       );
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -471,7 +470,7 @@ export class OrdenService {
         total: orden.total,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -499,7 +498,7 @@ export class OrdenService {
         throw error;
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -538,7 +537,7 @@ export class OrdenService {
 
       return { message: "¡El estatus de la orden se ha actualizado correctamente!", };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

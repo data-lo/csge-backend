@@ -4,7 +4,7 @@ import { UpdateCarteleraGobiernoDto } from './dto/update-cartelera_gobierno.dto'
 import { InjectRepository } from '@nestjs/typeorm';
 import { CarteleraGobierno } from './entities/cartelera_gobierno.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class CarteleraGobiernoService {
       await this.carteleraGobiernoRepository.save(carteleraGob);
       return carteleraGob;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -35,7 +35,7 @@ export class CarteleraGobiernoService {
       });
       return cartelerasGobierno;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -44,7 +44,7 @@ export class CarteleraGobiernoService {
       const cartelerasGobierno  = this.carteleraGobiernoRepository.find();
       return cartelerasGobierno;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -54,7 +54,7 @@ export class CarteleraGobiernoService {
       if(!cartelera) throw new NotFoundException('Caretelera no encontrada');
       return cartelera;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -66,7 +66,7 @@ export class CarteleraGobiernoService {
         return await this.findOne(id);
       }
     }catch(error:any){  
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -78,7 +78,7 @@ export class CarteleraGobiernoService {
         return {message:'Cartelera eliminada correctamente'};
       }
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

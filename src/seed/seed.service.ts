@@ -8,7 +8,7 @@ import { plainToClass } from 'class-transformer';
 import { CreateDepartamentoDto } from '../administracion/departamentos/dto/create-departamento.dto';
 import { usuariosData } from './data/administracion/usuarios.data';
 import { CreateUsuarioDto } from '../administracion/usuarios/dto/create-usuario.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { CreatePuestoDto } from 'src/administracion/puestos/dto/create-puesto.dto';
 import { longitudData } from './data/catalogos/longitud.data';
 import { FormatosService } from 'src/catalogos/formatos/formatos.service';
@@ -105,7 +105,7 @@ export class SeedService {
       await this.seedConfiguracion();
       return { message: 'Datos insertados en la DB' }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -116,7 +116,7 @@ export class SeedService {
       await this.insertarUsuarios();
       return { message: 'Datos de Usuarios, Departamentos y Puestos insertados correctamente' };
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -129,7 +129,7 @@ export class SeedService {
       }
       return;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -141,7 +141,7 @@ export class SeedService {
       };
       return;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -163,7 +163,7 @@ export class SeedService {
       }
       return;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -178,7 +178,7 @@ export class SeedService {
       //await this.insertarCaracterisitcas();
       return { message: 'Datos de catalgos insertados correctamente' };
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -186,7 +186,7 @@ export class SeedService {
     try {
       //relacion con los opcionales de las caracteristicas
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -209,7 +209,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -221,7 +221,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -233,7 +233,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -245,7 +245,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -257,7 +257,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -277,7 +277,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -289,7 +289,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -301,7 +301,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -330,7 +330,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -351,7 +351,7 @@ export class SeedService {
       }
       return;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -366,7 +366,7 @@ export class SeedService {
         await this.serviciosService.create(servicioDto);
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -408,7 +408,7 @@ export class SeedService {
       }
       return;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -417,7 +417,7 @@ export class SeedService {
       await this.insertarContratos();
       return { message: "contratos insertados exitosamente" };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -463,7 +463,7 @@ export class SeedService {
         }
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -496,7 +496,7 @@ export class SeedService {
         }
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

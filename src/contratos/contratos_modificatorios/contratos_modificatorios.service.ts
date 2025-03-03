@@ -4,7 +4,7 @@ import { UpdateContratoModificatorioDto } from './dto/update-contratos_modificat
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContratoModificatorio } from './entities/contratos_modificatorio.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { ESTATUS_DE_CONTRATO } from '../interfaces/estatus-de-contrato';
 import { ContratosService } from '../contratos/contratos.service';
@@ -43,7 +43,7 @@ export class ContratosModificatoriosService {
       await this.contratoModificatorioRepository.save(contratoModificatorio);
       return contratoModificatorio;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -58,7 +58,7 @@ export class ContratosModificatoriosService {
       );
       return contratosModificatorios;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -71,7 +71,7 @@ export class ContratosModificatoriosService {
       }
       return contratoModificatorio;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -95,7 +95,7 @@ export class ContratosModificatoriosService {
         return await this.findOne(id);
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -111,7 +111,7 @@ export class ContratosModificatoriosService {
         return { message: 'contrato eliminado' };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -121,7 +121,7 @@ export class ContratosModificatoriosService {
       const estatusDeContrato = contratoModificatorio.estatusDeContrato;
       return { estatus: estatusDeContrato };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -138,7 +138,7 @@ export class ContratosModificatoriosService {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -160,7 +160,7 @@ export class ContratosModificatoriosService {
         );
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

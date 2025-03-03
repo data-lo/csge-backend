@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Content } from 'pdfmake/interfaces';
 import sharp from 'sharp';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { MinioService } from 'src/minio/minio.service';
 
 interface HeaderOptions {
@@ -104,6 +104,6 @@ export const headerSection = async (
 
   } catch (error) {
     console.log('Error en la construcción del image buffer');
-    handleExeptions(error);
+    handleExceptions(error);
   }
 };

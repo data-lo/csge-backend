@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Estacion } from './entities/estacion.entity';
 import { Repository } from 'typeorm';
 import { MunicipioService } from '../municipio/municipio.service';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -48,7 +48,7 @@ export class EstacionService {
       return estacion;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -62,7 +62,7 @@ export class EstacionService {
       });
       return estaciones;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -78,7 +78,7 @@ export class EstacionService {
       });
       return estaciones;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -95,7 +95,7 @@ export class EstacionService {
       );
       return estacionesFiltradas;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
 
   }
@@ -126,10 +126,10 @@ export class EstacionService {
       });
       if (!estacion) throw new BadRequestException('La estacion no se encuentra');
 
-      console.log(estacion)
+
       return estacion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -168,7 +168,7 @@ export class EstacionService {
       return await this.findOne(stationId);
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -184,7 +184,7 @@ export class EstacionService {
 
       return await this.findOne(stationId);
     } catch (error) {
-      throw handleExeptions(error);
+      throw handleExceptions(error);
     }
   }
 
@@ -200,7 +200,7 @@ export class EstacionService {
 
       return await this.findOne(stationId);
     } catch (error) {
-      throw handleExeptions(error);
+      throw handleExceptions(error);
     }
   }
 
@@ -237,11 +237,11 @@ export class EstacionService {
       }
 
       if (servicesToDisable.length > 0) {
-        this.eventEmitter.emit("disable-multiple-services", { providerId, serviceIds: servicesToDisable });
+        this.eventEmitter.emit("disable-multiple-services", { providerId, typeServicesId: servicesToDisable });
       }
 
     } catch (error) {
-      throw handleExeptions(error);
+      throw handleExceptions(error);
     }
   }
 
@@ -261,7 +261,7 @@ export class EstacionService {
         estatus: station.estatus
       };
     } catch (error) {
-      throw handleExeptions(error);
+      throw handleExceptions(error);
     }
   }
 
@@ -277,7 +277,7 @@ export class EstacionService {
 
       return { message: `Estación con ID ${stationId} eliminada correctamente.` };
     } catch (error) {
-      throw handleExeptions(error);
+      throw handleExceptions(error);
     }
   }
 }

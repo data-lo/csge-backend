@@ -8,7 +8,7 @@ import { UpdatePuestoDto } from './dto/update-puesto.dto';
 import { Puesto } from './entities/puesto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class PuestosService {
@@ -23,7 +23,7 @@ export class PuestosService {
       await this.puestoRepository.save(puesto);
       return puesto;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -31,7 +31,7 @@ export class PuestosService {
     try {
       return await this.puestoRepository.find();
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -41,7 +41,7 @@ export class PuestosService {
       if (!puesto) throw new NotFoundException('Puesto no encontrado');
       return puesto;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -53,7 +53,7 @@ export class PuestosService {
       }
       return puesto;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -69,7 +69,7 @@ export class PuestosService {
       if (!puestoUpdated) throw new InternalServerErrorException('ERROR AL ACTUALIZR EL PUESTO');
       return puestoUpdated;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -81,7 +81,7 @@ export class PuestosService {
         return { deleted: true, message: 'Puesto eliminado' };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTiempoDto } from './dto/create-tiempo.dto';
 import { UpdateTiempoDto } from './dto/update-tiempo.dto';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tiempo } from './entities/tiempo.entity';
 import { Repository } from 'typeorm';
@@ -20,7 +20,7 @@ export class TiemposService {
       await this.tiempoRepository.save(tiempo);
       return tiempo;
     }catch(error:any){
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -29,7 +29,7 @@ export class TiemposService {
       const tiempos = await this.tiempoRepository.find();
       return tiempos;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -43,7 +43,7 @@ export class TiemposService {
       }
       return tiempo;
     }catch(error:any){
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -55,7 +55,7 @@ export class TiemposService {
         return await this.findOne(id);
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -67,7 +67,7 @@ export class TiemposService {
         return {message:'Unidad de tiempo Eliminada Correctamente'}
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

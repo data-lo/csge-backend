@@ -4,7 +4,7 @@ import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class ColoresService {
@@ -25,7 +25,7 @@ export class ColoresService {
         primario:false
       }})
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -39,7 +39,7 @@ export class ColoresService {
       }
       return colorPrimario;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -49,7 +49,7 @@ export class ColoresService {
       await this.colorRepository.update(id,updateColorDto);
       return await this.findColorPrimario();
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -64,7 +64,7 @@ export class ColoresService {
         return;
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }
