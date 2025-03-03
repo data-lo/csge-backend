@@ -54,6 +54,8 @@ export class ContratosService {
         ...rest
       } = createContratoDto;
 
+      
+
       const exists = await this.masterContractRepository.exists({
         where: { numeroDeContrato },
       });
@@ -68,6 +70,14 @@ export class ContratosService {
 
       if (!provider) {
         throw new NotFoundException('¡El proveedor especificado no existe!');
+      }
+
+      const activeContractsCount = await this.countActiveContracts(provider.id);
+
+      if (activeContractsCount == 0 && !provider.estatus) {
+        this.eventEmitter.emit("enable-provider", {
+          providerId: provider.id
+        });
       }
 
       const availableFunds = montoMaximoContratado + ivaMontoMaximoContratado;
@@ -101,16 +111,13 @@ export class ContratosService {
 
         await this.remove(masterContract.id);
 
+        this.eventEmitter.emit("disable-provider", {
+          providerId: provider.id
+        });
+
         throw new InternalServerErrorException('¡Error al crear los contratos secundarios!');
       }
 
-      const activeContractsCount = await this.countActiveContracts(provider.id);
-
-      if (activeContractsCount == 0 && !provider.estatus) {
-        this.eventEmitter.emit("enable-provider", {
-          providerId: provider.id
-        });
-      }
 
       return masterContract;
     } catch (error) {

@@ -8,11 +8,13 @@ import { PassportModule } from '@nestjs/passport';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ProviderEventService } from './proveedor.events.service';
+import { ContratosModule } from 'src/contratos/contratos/contratos.module';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Proveedor, ContratoMaestro, Contrato]),
     AuthModule,
-    PassportModule
+    PassportModule,
+    ContratosModule
   ],
   controllers: [ProveedorController],
   providers: [ProveedorService, ProviderEventService],

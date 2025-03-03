@@ -9,53 +9,64 @@ import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ContratosService } from 'src/contratos/contratos/contratos.service';
 
 @Injectable()
 export class EstacionService {
 
   constructor(
     @InjectRepository(Estacion)
-    private estacionRepository: Repository<Estacion>,
+    private stationRepository: Repository<Estacion>,
+
     @InjectRepository(Proveedor)
-    private proveedorRepository: Repository<Proveedor>,
+    private providerRepository: Repository<Proveedor>,
+
     private readonly municipioService: MunicipioService,
 
     private eventEmitter: EventEmitter2,
 
+    private readonly contractService: ContratosService
+
   ) { }
 
-  async create(createEstacionDto: CreateEstacionDto) {
+  async create(createStationDto: CreateEstacionDto) {
     try {
+      const { municipiosIds, proveedorId, estatus, ...rest } = createStationDto;
 
-      const { municipiosIds, proveedorId, ...rest } = createEstacionDto;
+      const municipalities = await Promise.all(
+        municipiosIds.map(municipality => this.municipioService.findOne(municipality))
+      );
+      
+      const provider = await this.providerRepository.findOneBy({ id: proveedorId });
 
-      let municipios = [];
-      for (const municipio of municipiosIds) {
-        const municipioDb = await this.municipioService.findOne(municipio)
-        municipios.push(municipioDb);
+      if (!provider) {
+        throw new NotFoundException('¡El proveedor !');
       }
 
-      const proveedor = await this.proveedorRepository.findOneBy({ id: proveedorId });
-      if (!proveedor) throw new NotFoundException('Proveedor no encontrado, crear primero proveedor');
+      const activeContracts = await this.contractService.countActiveContracts(provider.id);
 
-      const estacion = this.estacionRepository.create({
-        municipios: municipios,
-        proveedor: proveedor,
+      const status = activeContracts > 0;
+
+      const station = this.stationRepository.create({
+        municipios: municipalities,
+        proveedor: provider,
+        estatus: status,
         ...rest
       });
 
-      await this.estacionRepository.save(estacion);
-      return estacion;
+      await this.stationRepository.save(station);
 
+      return station;
     } catch (error) {
       handleExceptions(error);
     }
   }
 
 
+
   async findAllBusqueda() {
     try {
-      const estaciones = await this.estacionRepository.find({
+      const estaciones = await this.stationRepository.find({
         relations: {
           municipios: true,
         }
@@ -69,7 +80,7 @@ export class EstacionService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter;
-      const estaciones = await this.estacionRepository.find({
+      const estaciones = await this.stationRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina),
         relations: {
@@ -84,7 +95,7 @@ export class EstacionService {
 
   async findAllByServicio(servicio: string) {
     try {
-      const estaciones = await this.estacionRepository.find({
+      const estaciones = await this.stationRepository.find({
         relations: {
           municipios: true,
           servicios: true,
@@ -102,7 +113,7 @@ export class EstacionService {
 
   async findOne(id: string) {
     try {
-      const estacion = await this.estacionRepository.findOne({
+      const estacion = await this.stationRepository.findOne({
         where: { id: id },
         relations: {
           municipios: true,
@@ -137,7 +148,7 @@ export class EstacionService {
     try {
 
       const { municipiosIds, ...rest } = updateEstacionDto;
-      const station = await this.estacionRepository.findOne({
+      const station = await this.stationRepository.findOne({
         where: { id: stationId },
         relations: {
           municipios: true
@@ -164,7 +175,7 @@ export class EstacionService {
         station.municipios = [];
       };
 
-      await this.estacionRepository.save(station);
+      await this.stationRepository.save(station);
       return await this.findOne(stationId);
 
     } catch (error) {
@@ -180,7 +191,7 @@ export class EstacionService {
         throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
 
-      await this.estacionRepository.update(stationId, { estatus: false });
+      await this.stationRepository.update(stationId, { estatus: false });
 
       return await this.findOne(stationId);
     } catch (error) {
@@ -196,7 +207,7 @@ export class EstacionService {
         throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
 
-      await this.estacionRepository.update(stationId, { estatus: true });
+      await this.stationRepository.update(stationId, { estatus: true });
 
       return await this.findOne(stationId);
     } catch (error) {
@@ -207,7 +218,7 @@ export class EstacionService {
   async getStationsByServiceType(providerId: string, serviceTypes: string[]) {
     try {
       // Buscar proveedor con estaciones y sus servicios
-      const provider = await this.proveedorRepository.findOne({
+      const provider = await this.providerRepository.findOne({
         where: { id: providerId },
         relations: ["estaciones", "estaciones.servicios"],
       });
@@ -246,11 +257,10 @@ export class EstacionService {
   }
 
 
-
   async getStatus(stationId: string) {
 
     try {
-      const station = await this.estacionRepository.findOneBy({ id: stationId });
+      const station = await this.stationRepository.findOneBy({ id: stationId });
 
       if (!station) {
         throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
@@ -273,7 +283,7 @@ export class EstacionService {
         throw new NotFoundException(`¡La estación con ID ${stationId} no fue encontrada!`);
       }
 
-      await this.estacionRepository.delete(stationId);
+      await this.stationRepository.delete(stationId);
 
       return { message: `Estación con ID ${stationId} eliminada correctamente.` };
     } catch (error) {
