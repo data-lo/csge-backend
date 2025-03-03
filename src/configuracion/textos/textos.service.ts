@@ -3,7 +3,7 @@ import { CreateTextoDto } from './dto/create-texto.dto';
 import { UpdateTextoDto } from './dto/update-texto.dto';
 import { Repository } from 'typeorm';
 import { Texto } from './entities/texto.entity';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CamposDeTexto } from './interfaces/textos.campos';
 
@@ -20,7 +20,7 @@ export class TextosService {
       await this.textosRepository.save(texto);
       return texto;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
     
   }
@@ -29,7 +29,7 @@ export class TextosService {
     try{
       return await this.textosRepository.find();
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -38,7 +38,7 @@ export class TextosService {
       const texto = this.textosRepository.findOneBy({id:id});
       return texto;
     }catch(error){
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -50,7 +50,7 @@ export class TextosService {
       }
       return this.findOne(id);
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -58,7 +58,7 @@ export class TextosService {
     try{
       return await this.textosRepository.findOneBy({campo:CamposDeTexto.ENCABEZADO})
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -66,7 +66,7 @@ export class TextosService {
     try{
       return await this.textosRepository.findOneBy({campo:CamposDeTexto.PIE_DE_PAGINA})
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -76,7 +76,7 @@ export class TextosService {
       await this.textosRepository.update(id,{texto:texto});
       return {message:"Texto eliminado"}
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

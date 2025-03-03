@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateRenovacionDto } from './dto/create-renovacion.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Renovacion } from './entities/renovacion.entity';
 import { Repository } from 'typeorm';
@@ -62,7 +62,7 @@ export class RenovacionService {
       return renovacion;
 
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -72,7 +72,7 @@ export class RenovacionService {
       if (!renovacion) throw new NotFoundException('No se encuentra la renovacion');
       return renovacion;
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -84,7 +84,7 @@ export class RenovacionService {
         return { message: 'Renovacion eliminada existosamente' };
       }
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -95,7 +95,7 @@ export class RenovacionService {
         return { renovacionId: `${id}`, estatus: renovacionDb.estatus };
       }
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -111,7 +111,7 @@ export class RenovacionService {
       return servicioDb.renovaciones;
 
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -124,7 +124,7 @@ export class RenovacionService {
       return false;
     } catch (error) {
       ;
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -146,7 +146,7 @@ export class RenovacionService {
       await this.renovacionRepository.save(renovacion);
       return;
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -170,13 +170,12 @@ export class RenovacionService {
 
       if (!renovacion) throw new InternalServerErrorException('No se encuentra la renovacion');
 
-      console.log(renovacion);
       renovacion.estatus = false;
       await this.renovacionRepository.save(renovacion);
       return;
 
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 
@@ -203,7 +202,7 @@ export class RenovacionService {
       return;
 
     } catch (error: any) {
-      handleExeptions(error)
+      handleExceptions(error)
     }
   }
 }

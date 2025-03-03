@@ -4,7 +4,7 @@ import { UpdateMunicipioDto } from './dto/update-municipio.dto';
 import { Repository } from 'typeorm';
 import { Municipio } from './entities/municipio.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class MunicipioService {
@@ -19,7 +19,7 @@ export class MunicipioService {
       await this.municipioRepository.save(municipio);
       return municipio;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -28,7 +28,7 @@ export class MunicipioService {
       const municipios = await this.municipioRepository.find();
       return municipios;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -40,7 +40,7 @@ export class MunicipioService {
       if (!municipio) throw new NotFoundException('Municipio no encontrado');
       return municipio;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -54,7 +54,7 @@ export class MunicipioService {
       if (!estatal) throw new InternalServerErrorException('No hay estatus estatal');
       return estatal;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -65,7 +65,7 @@ export class MunicipioService {
       await this.municipioRepository.update(id, updateMunicipioDto);
       return await this.municipioRepository.findOneBy({ id: id });
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -76,7 +76,7 @@ export class MunicipioService {
       await this.municipioRepository.delete(id);
       return { message: 'Municipio Eliminado con exito' };
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -86,7 +86,7 @@ export class MunicipioService {
       if (municipio.frontera) return { esfrontera: true };
       return { esfrontera: false };
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

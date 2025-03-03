@@ -46,7 +46,7 @@ export class OrdenController {
   obtenerFolios(
     @Query('servicio',new ParseEnumPipe(TIPO_DE_SERVICIO)) servicio:TIPO_DE_SERVICIO
   ){
-    return this.ordenService.obtenerFolioDeOrden(servicio);
+    return this.ordenService.getCurrentFolio(servicio);
   }
 
   @Auth(...rolesOrdenes)

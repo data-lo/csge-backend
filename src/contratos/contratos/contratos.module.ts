@@ -7,7 +7,7 @@ import { ContratoModificatorio } from '../contratos_modificatorios/entities/cont
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { ContratosEventosService } from './contratos.events.service';
+import { ContractEventsService } from './contratos.events.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { OrdenService } from 'src/ordenes/orden/orden.service';
@@ -52,7 +52,7 @@ import { Iva } from 'src/configuracion/iva/entities/iva.entity';
   controllers: [ContratosController],
   providers: [
     ContratosService,
-    ContratosEventosService,
+    ContractEventsService,
     OrdenService,
     IvaGetter,
     ActivacionService,
@@ -62,9 +62,9 @@ import { Iva } from 'src/configuracion/iva/entities/iva.entity';
     IvaService,
     PartidaService
   ],
-  exports: [ // 🔹 Exportamos los servicios para que otros módulos los usen sin crear nuevas instancias
+  exports: [
+    ContractEventsService,
     ContratosService, 
-    ContratosEventosService, 
     OrdenService,
     IvaGetter,
     ActivacionService,

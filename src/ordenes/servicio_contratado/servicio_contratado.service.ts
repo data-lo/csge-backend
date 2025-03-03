@@ -4,7 +4,7 @@ import { UpdateServicioContratadoDto } from './dto/update-servicio_contratado.dt
 import { Repository } from 'typeorm';
 import { ServicioContratado } from './entities/servicio_contratado.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { CarteleraGobierno } from '../cartelera_gobierno/entities/cartelera_gobierno.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Orden } from '../orden/entities/orden.entity';
@@ -46,7 +46,7 @@ export class ServicioContratadoService {
       return servicioContratado;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -68,7 +68,7 @@ export class ServicioContratadoService {
       });
       return serviciosContratados;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -88,7 +88,7 @@ export class ServicioContratadoService {
       if (!servicioContratado) throw new NotFoundException('No se encuentra el servicio contratado');
       return servicioContratado;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -112,7 +112,7 @@ export class ServicioContratadoService {
       }
       return await this.findOne(id);
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -124,7 +124,7 @@ export class ServicioContratadoService {
         return { message: 'Servicio de orden eliminado correctamente' };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

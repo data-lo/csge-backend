@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { PartidaService } from './partida.service';
 import { OrdenEvent } from "src/ordenes/interfaces/orden-event";
-import { handleExeptions } from "src/helpers/handleExceptions.function";
+import { handleExceptions } from "src/helpers/handleExceptions.function";
 
 @Injectable()
 export class PartidaEventosService {
@@ -17,7 +17,7 @@ export class PartidaEventosService {
             const {ordenId,evento} = orden;
             await this.activacionService.actualizarMontos(ordenId,evento);
         }catch(error){
-            handleExeptions(error);
+            handleExceptions(error);
         }
         
     }

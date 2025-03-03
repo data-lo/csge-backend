@@ -1,6 +1,6 @@
 import { ContratoModificatorio } from 'src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity';
-import { EstatusDeContrato } from 'src/contratos/interfaces/estatus-de-contrato';
-import { TipoDeContrato } from 'src/contratos/interfaces/tipo-de-contrato';
+import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
+import { TIPO_DE_CONTRATO } from 'src/contratos/interfaces/tipo-de-contrato';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
   BeforeInsert,
@@ -15,7 +15,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Contrato } from './contrato.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity({ name: 'contrato_maestro' })
 export class ContratoMaestro {
@@ -32,17 +32,17 @@ export class ContratoMaestro {
   @Column({
     name: 'estatus_de_contrato',
     type: 'enum',
-    enum: EstatusDeContrato,
-    default: EstatusDeContrato.PENDIENTE,
+    enum: ESTATUS_DE_CONTRATO,
+    default: ESTATUS_DE_CONTRATO.PENDIENTE,
   })
-  estatusDeContrato: EstatusDeContrato;
+  estatusDeContrato: ESTATUS_DE_CONTRATO;
 
   @Column({
     name: 'tipo_de_contrato',
     type: 'enum',
-    enum: TipoDeContrato,
+    enum: TIPO_DE_CONTRATO,
   })
-  tipoDeContrato: TipoDeContrato;
+  tipoDeContrato: TIPO_DE_CONTRATO;
 
   @Column({
     name: 'objeto_del_contrato',
@@ -72,7 +72,7 @@ export class ContratoMaestro {
     type: 'decimal',
     default: null,
     scale: 2,
-    nullable: true,
+    nullable: false,
   })
   montoMaximoContratado: number;
 
@@ -81,21 +81,21 @@ export class ContratoMaestro {
     type: 'decimal',
     default: null,
     scale: 2,
-    nullable: true,
+    nullable: false,
   })
   ivaMontoMaximoContratado: number;
 
   @Column({
     name: 'fecha_inicial',
     type: 'date',
-    nullable: false,
+    nullable: true,
   })
   fechaInicial: Date;
 
   @Column({
     name: 'fecha_final',
     type: 'date',
-    nullable: false,
+    nullable: true,
   })
   fechaFinal: Date;
 
@@ -131,7 +131,7 @@ export class ContratoMaestro {
   })
   montoDisponible: number;
 
-  //Se incrementa al momento de un pago de SH
+  //Se incrementa al momento de un pago de Secretaría de Hacienda
   @Column({
     name: 'monto_pagado',
     type: 'decimal',
@@ -140,7 +140,6 @@ export class ContratoMaestro {
     nullable: false,
   })
   montoPagado: number;
-
 
   //Se incrementa al momento de una facturacion
   @Column({
@@ -165,9 +164,9 @@ export class ContratoMaestro {
   @OneToMany(() => Contrato, (contrato) => contrato.contratoMaestro)
   contratos: Contrato[];
 
-  @ManyToOne(() => Proveedor, (proveedor) => proveedor.contratosMaestros,{
-    onDelete:'CASCADE',
-    cascade:true
+  @ManyToOne(() => Proveedor, (proveedor) => proveedor.contratosMaestros, {
+    onDelete: 'CASCADE',
+    cascade: true
   })
   proveedor: Proveedor;
 
@@ -186,21 +185,4 @@ export class ContratoMaestro {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = localeTimeFormatter(value);
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
-    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
-  }
-  
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = localeTimeFormatter(value);
-    this.fechaInicial = localeTimeFormatter(this.fechaInicial);
-    this.fechaFinal = localeTimeFormatter(this.fechaFinal);
-  }
 }

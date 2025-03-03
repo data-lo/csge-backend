@@ -4,7 +4,7 @@ import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Partida } from './entities/partida.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
@@ -31,7 +31,7 @@ export class PartidaService {
       await this.partidaRepository.save(partidaDb);
       return partidaDb;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -44,7 +44,7 @@ export class PartidaService {
       });
       return partidas;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -56,7 +56,7 @@ export class PartidaService {
       if(!partida) throw new NotFoundException('La partida no exisite');
       return partida;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -70,7 +70,7 @@ export class PartidaService {
       await this.partidaRepository.save(partidaDb);
       return {message:'Partida actualziada correctamente'};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -81,7 +81,7 @@ export class PartidaService {
       await this.partidaRepository.save(partidaDb);
       return {message:'Partida desactivada correctamente'};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -90,7 +90,7 @@ export class PartidaService {
       const partida = await this.findOne(id);
       return {id: partida.id, estatus:partida.estatus};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -103,7 +103,7 @@ export class PartidaService {
         montoPagado:partida.montoPagado
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -114,7 +114,7 @@ export class PartidaService {
       await this.partidaRepository.remove(partidaDb);
       return {message:'Partida eliminada exitosamente'};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -146,7 +146,6 @@ export class PartidaService {
 
       switch(evento){
         case 'orden.aprobada':
-          console.log(partidaDb.montoActivo, ordenDb.total, 'ok');
           partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
           break;
         case 'orden.canelada':   
@@ -170,7 +169,7 @@ export class PartidaService {
       return;
 
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

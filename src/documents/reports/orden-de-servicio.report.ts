@@ -13,7 +13,7 @@ import { facturarAOrdenSection } from './orden-de-servicio-sections/facturar-a.-
 import { serviciosContratadosSection } from './orden-de-servicio-sections/servicios-contratados.section';
 import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-pago.section';
 import { firmasDeRecepcionSection } from './aprobacion-de-factura-sections/firmas-de-recepcion-section';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 
 interface OrdenDeServicioOptions {
   ordenDeServicio: Orden;
@@ -146,6 +146,6 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
     };
     return docDefinition;
   } catch (error) {
-    handleExeptions(error);
+    handleExceptions(error);
   }
 };

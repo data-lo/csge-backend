@@ -6,7 +6,7 @@ import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { defaultPassowrd } from './interfaces/usuarios.contrasenia.defecto';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -37,7 +37,7 @@ export class UsuariosService {
       delete usuario.password;
       return usuario;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -68,7 +68,7 @@ export class UsuariosService {
 
       return usuarios;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -95,7 +95,7 @@ export class UsuariosService {
       return usuarios;
     }
     catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -103,14 +103,14 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepository.findOneBy({ id: userId });
       if (!usuario) {
-        throw new NotFoundException('Usuario no encontrado');
+        throw new NotFoundException('¡Usuario no encontrado!');
       };
       delete usuario.password;
       delete usuario.puestoId;
       delete usuario.departamentoId;
       return usuario;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     };
   }
 
@@ -122,7 +122,7 @@ export class UsuariosService {
       if (!updatedResult) throw new InternalServerErrorException('NO SE ENCUENTRA EL USUARIO');
       return updatedResult;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -135,7 +135,7 @@ export class UsuariosService {
       return { message: 'usuario desactivado' }
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -151,7 +151,7 @@ export class UsuariosService {
       return { message: "CONTRASEÑA ACTUALIADA EXISTOSAMENTE" };
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
 
   }
@@ -162,7 +162,7 @@ export class UsuariosService {
       const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo.toUpperCase() }));
 
       if (!dbUser) {
-        throw new UnauthorizedException('Usuario no encontrado')
+        throw new UnauthorizedException('¡Usuario no encontrado!')
       }
 
       if (await this.verificarPrimerInicioDeSesion(password, dbUser.password)) {
@@ -173,14 +173,15 @@ export class UsuariosService {
       }
 
       if (!bcrypt.compareSync(password, dbUser.password)) {
-        throw new UnauthorizedException('Contraseña no valida')
+        throw new UnauthorizedException('¡Contraseña no válida!')
       }
 
       if (dbUser.estatus === false) {
-        throw new UnauthorizedException('Usuario deshabilitado, contactar al administrador')
+        throw new UnauthorizedException('¡Usuario deshabilitado! Por favor, contacte al administrador.');
       }
 
       delete dbUser.password;
+      
       const currentTime = new Date();
 
       const gmtMinus6Offset = -6 * 60;
@@ -197,7 +198,7 @@ export class UsuariosService {
 
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -213,7 +214,7 @@ export class UsuariosService {
         return false;
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
 
   }
@@ -225,7 +226,7 @@ export class UsuariosService {
       await this.usuarioRepository.save(usuarioDb);
       return { message: "Contraseña reestablecida" };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -245,7 +246,7 @@ export class UsuariosService {
       return { message: 'PERMISOS REMOVIDOS EXITOSAMENTE' };
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -265,7 +266,7 @@ export class UsuariosService {
       return { message: 'PERMISOS ACTUALIZADOS EXITOSAMENTE' };
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -276,10 +277,10 @@ export class UsuariosService {
         relations: [],
         select: ['id', 'estatus'],
       });
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
       return { usuario: usuario.id, estatus: usuario.estatus };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

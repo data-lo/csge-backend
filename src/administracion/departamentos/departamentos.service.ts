@@ -7,7 +7,7 @@ import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Departamento } from './entities/departamento.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 
 @Injectable()
 export class DepartamentosService {
@@ -24,7 +24,7 @@ export class DepartamentosService {
       await this.departamentoRepository.save(departamento);
       return departamento;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -32,7 +32,7 @@ export class DepartamentosService {
     try {
       return await this.departamentoRepository.find();
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -46,7 +46,7 @@ export class DepartamentosService {
       }
       return departameto;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -57,7 +57,7 @@ export class DepartamentosService {
       });
       return departamento;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -73,7 +73,7 @@ export class DepartamentosService {
       await this.departamentoRepository.save(departamentoDb);
       return await this.findOne(id);
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -85,7 +85,7 @@ export class DepartamentosService {
         return { message: 'departamento eliminado' };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

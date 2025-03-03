@@ -1,4 +1,4 @@
-import { EstatusDeContrato } from "src/contratos/interfaces/estatus-de-contrato";
+import { ESTATUS_DE_CONTRATO } from "src/contratos/interfaces/estatus-de-contrato";
 import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, Min } from "class-validator";
 import { Transform } from "class-transformer";
 
@@ -8,9 +8,9 @@ export class CreateContratoModificatorioDto {
     @IsString()
     contratoId:string
     
-    @IsEnum(EstatusDeContrato)
+    @IsEnum(ESTATUS_DE_CONTRATO)
     @IsOptional()
-    estatusDeContrato:EstatusDeContrato;
+    estatusDeContrato:ESTATUS_DE_CONTRATO;
 
     @IsString()
     numeroDeContrato:string;

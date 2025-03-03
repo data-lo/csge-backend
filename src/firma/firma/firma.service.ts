@@ -6,7 +6,7 @@ import {
 import { CreateFirmaDto } from './dto/create-firma.dto';
 import { UpdateFirmaDto } from './dto/update-firma.dto';
 import { FirmamexService } from '../firmamex/firmamex.service';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { createWriteStream } from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
@@ -78,7 +78,7 @@ export class FirmaService {
         documentoAFirmar: documentoParaFirmar,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -89,7 +89,7 @@ export class FirmaService {
         relations: ['documentosParaFirmar'],
       });
 
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
       const ordenesConDocumentosPorFirmar = await this.ordenRepository
         .createQueryBuilder('orden')
@@ -115,7 +115,7 @@ export class FirmaService {
 
       return ordenesConDocumentosPorFirmar;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -127,7 +127,7 @@ export class FirmaService {
           relations: ['documentosParaFirmar'],
         });
 
-        if (!usuario) throw new NotFoundException('Usuario no encontrado');
+        if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
         const facturasConDocumentosPorFirmar = await this.facturaRepository
           .createQueryBuilder('factura')
@@ -153,10 +153,10 @@ export class FirmaService {
 
         return facturasConDocumentosPorFirmar;
       } catch (error) {
-        handleExeptions(error);
+        handleExceptions(error);
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -167,7 +167,7 @@ export class FirmaService {
         relations: ['documentosParaFirmar'],
       });
 
-      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
 
       const campaniaConDocumentosPorFirmar = await this.campaniaRepository
         .createQueryBuilder('campania')
@@ -193,7 +193,7 @@ export class FirmaService {
 
       return campaniaConDocumentosPorFirmar;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -272,7 +272,7 @@ export class FirmaService {
       return usuarios;
     } catch (error) {
       console.log('ERROR EN USUARIOS FIRMANTES');
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -317,7 +317,7 @@ export class FirmaService {
 
       return documento.documentoUrlFirmamex;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -341,7 +341,7 @@ export class FirmaService {
       }
     } catch (error) {
       console.log('error en costruir pdf');
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -388,7 +388,7 @@ export class FirmaService {
       return stickers;
     } catch (error) {
       console.log('error en crearStickers');
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -465,7 +465,7 @@ export class FirmaService {
       return "Ok";
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -498,7 +498,7 @@ export class FirmaService {
     } catch (error) {
       console.log('error en firmamex');
       console.log(error.response.data || error.message);
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -512,7 +512,7 @@ export class FirmaService {
     } catch (error) {
       console.log('ERROR EN CREAR EXPEDIENTE', error.message);
       console.log(error);
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -524,7 +524,7 @@ export class FirmaService {
       let documentos = await serviciosFirmamex.listDocuments(from, to);
       return documentos;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -562,7 +562,7 @@ export class FirmaService {
 
     } catch (error) {
       console.log(error);
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -626,7 +626,7 @@ export class FirmaService {
         rect: coordenadasCancelador,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

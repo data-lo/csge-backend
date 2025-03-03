@@ -16,13 +16,9 @@ export class FacturaEventosService {
     async applyDiscountsToContract(payload: { invoiceId: string, eventType: TYPE_EVENT_INVOICE }) {
         try {
             console.log(`Iniciando evento "invoice-approval-or-cancellation" para la factura: ${payload.invoiceId}`);
-
             const invoice = await this.invoiceService.findOne(payload.invoiceId);
-
             for (const orderFromInvoice of invoice.ordenesDeServicio) {
-
                 const order = await this.orderService.findOne(orderFromInvoice.id);
-
                 await this.contractService.updateContractAmountByOrder(
                     order.id,
                     order.contratoMaestro.id,

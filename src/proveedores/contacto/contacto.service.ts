@@ -4,7 +4,7 @@ import { UpdateContactoDto } from './dto/update-contacto.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Contacto } from './entities/contacto.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
 import { ProveedorService } from '../proveedor/proveedor.service';
@@ -41,7 +41,7 @@ export class ContactoService {
       await this.contactoRepository.save(contacto);
       return contacto;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -54,7 +54,7 @@ export class ContactoService {
       });
       return contactos;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -66,7 +66,7 @@ export class ContactoService {
       if (!contacto) throw new NotFoundException('No se encuentra el contacto');
       return contacto;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -96,7 +96,7 @@ export class ContactoService {
       return await this.findOne(id);
     
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -108,7 +108,7 @@ export class ContactoService {
         return { message: 'Contacto eliminado correctamente' };
       }
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

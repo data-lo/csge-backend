@@ -3,7 +3,7 @@ import { CreateServicioDto } from './dto/create-servicio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Servicio } from './entities/servicio.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
 import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
@@ -39,7 +39,7 @@ export class ServicioService {
       delete servicio.estacion;
       return servicio;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -70,7 +70,7 @@ export class ServicioService {
       return servicesFromDB;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -84,7 +84,7 @@ export class ServicioService {
       });
       return servicios;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -98,7 +98,7 @@ export class ServicioService {
       });
 
       if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
-      
+
       const lastRenewal = service.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion) {
           return renovacion;
@@ -118,23 +118,37 @@ export class ServicioService {
       return service;
 
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
-  async desactivarServicio(id: string) {
+  async disableService(serviceId: string) {
     try {
-      const servicio = await this.servicioRepository.findOneBy({ id: id });
+      const servicio = await this.servicioRepository.findOneBy({ id: serviceId });
+
       if (!servicio) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(
-        id, {
+      await this.servicioRepository.update(serviceId, {
         estatus: false
       });
-      await this.emitter(servicio.id, 'servicio.desactivado');
-      return { message: 'Servicio desactivado correctamente' };
+
+      return { message: "¡El servicio ha sido desactivado correctamente!" };
+
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
+    }
+  }
+
+  async disableMultiplyServices(typeServicesId: string[]) {
+    for (const serviceId of typeServicesId) {
+
+      const service = await this.servicioRepository.findOneBy({ id: serviceId });
+
+      if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
+
+      await this.servicioRepository.update(serviceId, {
+        estatus: false
+      });
     }
   }
 
@@ -153,7 +167,7 @@ export class ServicioService {
 
       return { message: '¡El servicio ha sido actualizado con éxito!' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -166,7 +180,7 @@ export class ServicioService {
       await this.emitter(servicio.id, 'servicio.activado');
       return { message: 'Servicio activado correctamente' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -178,7 +192,7 @@ export class ServicioService {
         estatus: servicio.estatus
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

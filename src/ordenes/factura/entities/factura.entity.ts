@@ -14,7 +14,7 @@ import {
 import { EstatusFactura } from '../interfaces/estatus-factura';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('facturas')
 export class Factura {
@@ -127,13 +127,13 @@ export class Factura {
   @BeforeInsert()
   localeTimeZoneInsert() {
     const value = new Date()
-    this.fechaDeRecepcion = localeTimeFormatter(value);
-    this.fechaValidacion = localeTimeFormatter(value);
+    this.fechaDeRecepcion = formatToLocalTime(value);
+    this.fechaValidacion = formatToLocalTime(value);
   }
 
   @BeforeUpdate()
   localeTimeZoneUpdate(){
-    this.fechaDePago = localeTimeFormatter(this.fechaDePago);
-    this.fechaAprobacion = localeTimeFormatter(this.fechaAprobacion);
+    this.fechaDePago = formatToLocalTime(this.fechaDePago);
+    this.fechaAprobacion = formatToLocalTime(this.fechaAprobacion);
   }
 }

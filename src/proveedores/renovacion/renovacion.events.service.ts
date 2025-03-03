@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { RenovacionService } from "./renovacion.service";
 import { OnEvent } from "@nestjs/event-emitter";
 import { ServicioEvent } from "../servicio/interfaces/servicio-event";
-import { handleExeptions } from "src/helpers/handleExceptions.function";
+import { handleExceptions } from "src/helpers/handleExceptions.function";
 
 @Injectable()
 export class RenovacionEventosService {
@@ -17,7 +17,7 @@ export class RenovacionEventosService {
             return;
         }
         catch(error){
-            handleExeptions(error);
+            handleExceptions(error);
         }
     }
 
@@ -28,7 +28,7 @@ export class RenovacionEventosService {
             return;
         }
         catch(error){
-            handleExeptions(error);
+            handleExceptions(error);
         }
     }
 }

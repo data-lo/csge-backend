@@ -22,13 +22,13 @@ export class ProveedorController {
   @Auth(...rolesProveedores)
   @Patch('desactivar')
   desactivarProveedor(@Body('proveedorId', ParseUUIDPipe) proveedorId: string) {
-    return this.proveedorService.desactivarProveedor(proveedorId);
+    return this.proveedorService.desactivateProvider(proveedorId);
   }
 
   @Auth(...rolesProveedores)
   @Patch('activar')
   activarProveedor(@Body('proveedorId', ParseUUIDPipe) proveedorId: string) {
-    return this.proveedorService.activarProveedor(proveedorId);
+    return this.proveedorService.activateProvider(proveedorId);
   }
 
   @Auth(...rolesProveedores)
@@ -39,7 +39,7 @@ export class ProveedorController {
 
   @Auth(...rolesProveedores)
   @Get('contratos/:id')
-  obtenerTipoDeContrato(
+  obtenerTIPO_DE_CONTRATO(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('TIPO_DE_SERVICIO', new ParseEnumPipe(TIPO_DE_SERVICIO)) TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
     return this.proveedorService.obtenerContartoDelProveedor(id, TIPO_DE_SERVICIO);

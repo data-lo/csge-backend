@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Campaña } from './entities/campaña.entity';
 import { Repository } from 'typeorm';
@@ -84,7 +84,7 @@ export class CampañasService {
       return campaña;
     } catch (error) {
       await this.remove(error.campaniaId);
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -109,7 +109,7 @@ export class CampañasService {
       });
       return campañas;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -131,7 +131,7 @@ export class CampañasService {
       });
       return campañas;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -170,7 +170,7 @@ export class CampañasService {
       };
     } catch (error) {
       this.logger.log('Error en encontrar una campaña');
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -192,7 +192,7 @@ export class CampañasService {
       await this.campañaRepository.save(campañaDb);
       return { message: 'Campaña cancelada exitosamente' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -203,8 +203,6 @@ export class CampañasService {
         where: { id: campañaId },
         relations: ['activaciones'],
       });
-
-      console.log(campaign.activaciones);
 
       // if (!campaign) throw new NotFoundException('No se ha encontrado la campaña solicitada.');
 
@@ -219,7 +217,7 @@ export class CampañasService {
 
       // throw new BadRequestException('Estatus de campaña no válido para actualizar o cancelar.');
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -249,7 +247,7 @@ export class CampañasService {
         'Estatus de campaña no valido para eliminar, cancelar campaña',
       );
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -312,10 +310,10 @@ export class CampañasService {
     } catch (error) {
       //Si no se reactiva bien la campaña, eliminar las entidades creadas
       if (!error.partidaId) {
-        handleExeptions(error);
+        handleExceptions(error);
       }
       await this.partidaService.remove(error.partidaId);
-      handleExeptions(error.message);
+      handleExceptions(error.message);
     }
   }
 
@@ -348,7 +346,7 @@ export class CampañasService {
       await this.campañaRepository.save(campaniaDb);
       return { message: 'CAMPAÑA ESPERANDO APROBACIÓN' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

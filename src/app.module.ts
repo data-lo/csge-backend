@@ -41,37 +41,36 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MinioModule } from './minio/minio.module';
-import { EventsService } from './events/events.service';
-import { EventsModule } from './events/events.module';
+import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal:true,
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type:"postgres",
-      url:process.env.DATABASE_URL,
-      ssl:false,
-      synchronize:true,
-      autoLoadEntities:true
-      }),
+      type: "postgres",
+      url: process.env.DATABASE_URL,
+      ssl: false,
+      synchronize: true,
+      autoLoadEntities: true,
+    }),
     EventEmitterModule.forRoot({
-      delimiter:'.'
+      delimiter: '.'
     }),
     ScheduleModule.forRoot(),
     CacheModule.register({
-      isGlobal:true
+      isGlobal: true
     }),
-    UsuariosModule, 
-    PuestosModule, 
-    DepartamentosModule, 
-    IvaModule, 
-    TextosModule, 
-    ColoresModule, 
-    SeedModule, 
-    AuthModule, 
+    UsuariosModule,
+    PuestosModule,
+    DepartamentosModule,
+    IvaModule,
+    TextosModule,
+    ColoresModule,
+    SeedModule,
+    AuthModule,
     ImagenModule,
     ContratosModule,
     ContratosModificatoriosModule,
@@ -101,8 +100,8 @@ import { EventsModule } from './events/events.module';
     FirmamexModule,
     WebhooksModule,
     MinioModule,
-    EventsModule
+    CronJobsModule,
   ],
-  providers: [EventsService],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule { }

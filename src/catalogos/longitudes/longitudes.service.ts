@@ -4,7 +4,7 @@ import { UpdateLongitudDto } from './dto/update-longitud.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Longitud } from './entities/longitud.entity';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class LongitudesService {
       await this.longitudRepository.save(longitud);
       return longitud;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -30,7 +30,7 @@ export class LongitudesService {
       const longitudes = await this.longitudRepository.find({});
       return longitudes;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -44,7 +44,7 @@ export class LongitudesService {
       }
       return longitud;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -54,7 +54,7 @@ export class LongitudesService {
       if(!longitud) throw new NotFoundException('La Longitud no se encuentra');
       return longitud;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -66,7 +66,7 @@ export class LongitudesService {
         return await this.findOne(id);
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -78,7 +78,7 @@ export class LongitudesService {
         return {message:'Longitud Eliminada Correctamente'}
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

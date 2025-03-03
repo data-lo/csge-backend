@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import * as Minio from 'minio';
 import { MinioFileI } from './interfaces/minio.file.interface';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 
 
 @Injectable()
@@ -72,7 +72,7 @@ export class MinioService {
       }
       return { message: 'ARCHIVOS SUBIDOS EXITOSAMENTE' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -112,7 +112,7 @@ export class MinioService {
         dataStream.on('error', (error) => reject(error));
       });
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -151,7 +151,7 @@ export class MinioService {
       }
       return rutaCompleta;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -172,7 +172,7 @@ export class MinioService {
         }
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

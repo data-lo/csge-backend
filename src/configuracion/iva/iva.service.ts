@@ -4,7 +4,7 @@ import { UpdateIvaDto } from './dto/update-iva.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Iva } from './entities/iva.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { Territorio } from './interfaces/territorios';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class IvaService {
         "territorio":iva.territorio
       };
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -38,7 +38,7 @@ export class IvaService {
       });
       return ivas;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -54,7 +54,7 @@ export class IvaService {
       }
       throw new NotFoundException('El Iva no existe');
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -69,7 +69,7 @@ export class IvaService {
         return this.findOne(id);
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -82,7 +82,7 @@ export class IvaService {
         "territorio":iva.territorio
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -95,7 +95,7 @@ export class IvaService {
         "territorio":iva.territorio
       }
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

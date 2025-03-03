@@ -22,7 +22,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import {v4 as uuidv4} from 'uuid'
 
 @Controller('ordenes/facturas')
@@ -61,7 +61,7 @@ export class FacturaController {
       await this.minioService.subirArchivosAMinio(minioFiles);
     }catch(error){
       this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
-      handleExeptions(error);
+      handleExceptions(error);
     }
 
     createFacturaDto.id = uuid;

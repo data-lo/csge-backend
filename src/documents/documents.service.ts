@@ -7,7 +7,7 @@ import { PrinterService } from './printer.service';
 import { ordenDeServicioPdf } from './reports/orden-de-servicio.report';
 import { TextosService } from 'src/configuracion/textos/textos.service';
 import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { campaignApprovalStructure } from './reports/campaign-approval-report';
 
@@ -49,7 +49,7 @@ export class DocumentsService {
       const document = this.printerService.createPdf(definicionDeOrden);
       return document;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -78,7 +78,7 @@ export class DocumentsService {
 
       return document;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -103,7 +103,7 @@ export class DocumentsService {
 
       return document;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

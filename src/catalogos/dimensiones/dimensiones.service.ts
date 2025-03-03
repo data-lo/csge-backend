@@ -4,7 +4,7 @@ import { UpdateDimensionDto } from './dto/update-dimension.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Dimension } from './entities/dimension.entity';
 import { Repository } from 'typeorm';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { LongitudesService } from '../longitudes/longitudes.service';
 
@@ -30,7 +30,7 @@ export class DimensionesService {
       await this.dimensionRepository.save(dimension);
       return dimension;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -43,7 +43,7 @@ export class DimensionesService {
       })
       return dimensiones;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -56,7 +56,7 @@ export class DimensionesService {
       if(!dimension) throw new NotFoundException('Dimension no encontrada');
       return dimension;
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -76,7 +76,7 @@ export class DimensionesService {
       });
       return await this.findOne(id);
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -87,7 +87,7 @@ export class DimensionesService {
       await this.dimensionRepository.delete(id);
       return {message:'Dimension eliminada existosamente'};
     }catch(error){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

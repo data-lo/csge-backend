@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
 import { Repository } from 'typeorm';
@@ -132,7 +132,7 @@ export class FacturaService {
         throw error;
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   } d
 
@@ -156,7 +156,7 @@ export class FacturaService {
       });
       return facturasFilter;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -184,7 +184,7 @@ export class FacturaService {
       });
       return facturasFilter;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -199,7 +199,7 @@ export class FacturaService {
       });
       return factura;
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -209,7 +209,7 @@ export class FacturaService {
       if (factura) {
       }
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -254,7 +254,7 @@ export class FacturaService {
         conceptos: conceptosPrecargados,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
       throw new Error('Error al procesar el archivo XML');
     }
   }
@@ -279,7 +279,7 @@ export class FacturaService {
         return { message: `Factura cancelada correctamente, ${message}` };
       }
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -291,7 +291,7 @@ export class FacturaService {
       await this.facturaRepository.update(id, factura);
       return { message: 'estatus de factura actualizado' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -304,7 +304,7 @@ export class FacturaService {
         estatus: factura.estatus,
       };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -313,7 +313,7 @@ export class FacturaService {
       const documento = await this.firmaService.descargarDocumento(id, TipoDeDocumento.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 

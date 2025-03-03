@@ -15,7 +15,7 @@ import { EstatusCampaña } from '../interfaces/estatus-campaña.enum';
 import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.entity';
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { TipoCampaña } from '../interfaces/tipo-campaña.enum';
-import { localeTimeFormatter } from 'src/helpers/localeTimeZoneFormater.function';
+import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('campanias')
 export class Campaña {
@@ -69,13 +69,13 @@ export class Campaña {
   //@BeforeInsert()
   //localeTimeZoneInsert() {
   //  const value = new Date();
-  //  this.creadoEn = localeTimeFormatter(value);
-  //  this.actualizadoEn = localeTimeFormatter(value);
+  //  this.creadoEn = formatToLocalTime(value);
+  //  this.actualizadoEn = formatToLocalTime(value);
   //}
 
   //@BeforeUpdate()
   //localeTimeZoneUpdate() {
   //  const value = new Date();
-  //  this.actualizadoEn = localeTimeFormatter(value);
+  //  this.actualizadoEn = formatToLocalTime(value);
   //}
 }

@@ -9,7 +9,7 @@ import { ImpresionesService } from '../impresiones/impresiones.service';
 import { DimensionesService } from '../dimensiones/dimensiones.service';
 import { LongitudesService } from '../longitudes/longitudes.service';
 import { TiemposService } from '../tiempos/tiempos.service';
-import { handleExeptions } from '../../helpers/handleExceptions.function';
+import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { TipoUnidad } from './interfaces/tipo-unidad.interface';
 import { flattenCaracteristica } from '../../helpers/flattenCaracterisitcas.function';
 
@@ -76,7 +76,7 @@ export class CaracteristicasService {
       };
 
       }catch(error:any){
-        handleExeptions(error);
+        handleExceptions(error);
       }
   }
 
@@ -85,7 +85,7 @@ export class CaracteristicasService {
       const caracteristicas = await this.caracteristicasRepository.find({});
       return caracteristicas;
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -114,7 +114,7 @@ export class CaracteristicasService {
       return {...rest,unidadId:unidad};
     
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -162,7 +162,7 @@ export class CaracteristicasService {
       return flattenCaracteristica(updatedCaracteristica);
   
     } catch (error: any) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -173,7 +173,7 @@ export class CaracteristicasService {
       await this.caracteristicasRepository.delete({id:id});
       return {message:'caracteristica eliminada correctamente'};
     }catch(error:any){
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }

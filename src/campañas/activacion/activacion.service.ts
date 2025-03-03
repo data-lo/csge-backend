@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateActivacionDto } from './dto/create-activacion.dto';
 import { UpdateActivacionDto } from './dto/update-activacion.dto';
-import { handleExeptions } from 'src/helpers/handleExceptions.function';
+import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Activacion } from './entities/activacion.entity';
 import { Repository } from 'typeorm';
@@ -42,7 +42,7 @@ export class ActivacionService {
       await this.activacionRepository.save(activacion);
       return activacion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -55,7 +55,7 @@ export class ActivacionService {
       });
       return activaciones;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -67,7 +67,7 @@ export class ActivacionService {
       if (!activacion) throw new NotFoundException('No se encuentra la activacion');
       return activacion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -78,7 +78,7 @@ export class ActivacionService {
       const updatedActivacion = await this.activacionRepository.save(activacionDb);
       return updatedActivacion;
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -88,7 +88,7 @@ export class ActivacionService {
       await this.activacionRepository.remove(activacion);
       return { message: 'Activacion eliminada correctamente' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -97,7 +97,7 @@ export class ActivacionService {
       const activacion = await this.findOne(id);
       return { id: activacion.id, estatus: activacion.estatus };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 
@@ -109,7 +109,7 @@ export class ActivacionService {
       await this.activacionRepository.save(activacionDb);
       return { estatus: true, message: 'Activacion Desactivada Exitosamente' };
     } catch (error) {
-      handleExeptions(error);
+      handleExceptions(error);
     }
   }
 }
