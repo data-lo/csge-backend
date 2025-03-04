@@ -41,7 +41,7 @@ import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
 // Enums e interfaces
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
 
 /**
@@ -55,7 +55,9 @@ export class OrdenService {
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
     private readonly firmaService: FirmaService,
-    private readonly campañaService: CampañasService,
+
+    private readonly campaignService: CampañasService,
+
     private readonly proveedorService: ProveedorService,
     private readonly contratoService: ContratosService,
     private readonly servicioContratadoService: ServicioContratadoService,
@@ -72,7 +74,7 @@ export class OrdenService {
       const [proveedor, masterContract, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
         contratoId ? this.contratoService.findOne(contratoId) : null,
-        campaniaId ? this.campañaService.findOne(campaniaId) : null,
+        campaniaId ? this.campaignService.findOne(campaniaId) : null,
       ]);
 
       // Validar si el proveedor puede agregarse sin contrato
@@ -250,7 +252,7 @@ export class OrdenService {
       }
 
       if (campaniaId) {
-        currentlyOrder.campaña = await this.campañaService.findOne(campaniaId);
+        currentlyOrder.campaña = await this.campaignService.findOne(campaniaId);
       }
       if (proveedorId) {
         currentlyOrder.proveedor = await this.proveedorService.findOne(proveedorId);
@@ -480,7 +482,7 @@ export class OrdenService {
       if (!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
       const documentoFirmaDto: CreateFirmaDto = {
         ordenOFacturaId: ordenId,
-        tipoDeDocumento: TipoDeDocumento.ORDEN_DE_SERVICIO,
+        tipoDeDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         estaFirmado: false,
       };
 
@@ -505,7 +507,7 @@ export class OrdenService {
   async obtenerOrdenEnPdf(id: string) {
     const documento = await this.firmaService.descargarDocumento(
       id,
-      TipoDeDocumento.ORDEN_DE_SERVICIO,
+      TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
     );
     return documento;
   }
@@ -536,8 +538,22 @@ export class OrdenService {
       await this.ordenRepository.update(orderId, { estatus: status });
 
       return { message: "¡El estatus de la orden se ha actualizado correctamente!", };
+
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+  async getOrdersCreatedByCampaignModule(campaignId: string) {
+    const orders = await this.ordenRepository.find({
+      where: {
+        campaña: { id: campaignId },
+        esCampania: true
+      },
+      relations: ['contratoMaestro']
+    });
+
+    return orders;
+  }
+
 }

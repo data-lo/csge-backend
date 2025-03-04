@@ -7,7 +7,7 @@ import { rolesFirma } from './valid-firma-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 
 @Controller('firma')
 export class FirmaController {
@@ -26,17 +26,17 @@ export class FirmaController {
     @Param('documentoId', ParseUUIDPipe) documentoId: string,
     @GetUser() usuario: Usuario
   ) {
-    return this.firmaService.firmarDocumento(usuario.id, documentoId);
+    return this.firmaService.documentSigning(usuario.id, documentoId);
   }
 
-  @Auth(...rolesFirma)
-  @Get('firmar-campania/:campaniaId')
-  firmarCampania(
-    @Param('campaniaId', ParseUUIDPipe) campaniaId: string,
-    @GetUser() usuario: Usuario
-  ) {
-    return this.firmaService.firmarCampania(usuario.id, campaniaId);
-  }
+  // @Auth(...rolesFirma)
+  // @Get('firmar-campania/:campaniaId')
+  // firmarCampania(
+  //   @Param('campaniaId', ParseUUIDPipe) campaniaId: string,
+  //   @GetUser() usuario: Usuario
+  // ) {
+  //   return this.firmaService.firmarCampania(usuario.id, campaniaId);
+  // }
 
   @Auth(...rolesFirma)
   @Get('documentos-firmamex')
@@ -56,7 +56,7 @@ export class FirmaController {
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
     @Param('id', ParseUUIDPipe) ordenOFacturaId: string,
-    @Query('tipo-de-documento', new ParseEnumPipe(TipoDeDocumento)) tipoDeDocumento: TipoDeDocumento
+    @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) tipoDeDocumento: TIPO_DE_DOCUMENTO
   ) {
     return this.firmaService.descargarDocumento(ordenOFacturaId, tipoDeDocumento);
   }

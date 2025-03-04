@@ -17,7 +17,7 @@ import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstatusFactura } from './interfaces/estatus-factura';
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../orden/interfaces/estatus-orden-de-servicio';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
@@ -310,7 +310,7 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const documento = await this.firmaService.descargarDocumento(id, TipoDeDocumento.APROBACION_DE_FACTURA);
+      const documento = await this.firmaService.descargarDocumento(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
       handleExceptions(error);
@@ -322,12 +322,12 @@ export class FacturaService {
 
     const documentoFirmaDto: CreateFirmaDto = {
       ordenOFacturaId: facturaId,
-      tipoDeDocumento: TipoDeDocumento.APROBACION_DE_FACTURA,
+      tipoDeDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
       estaFirmado: false,
     }
 
     const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);
-    const linkDeFacturaACotejar = await this.firmaService.firmarDocumento(usuario.id, documentoFirma.id);
+    const linkDeFacturaACotejar = await this.firmaService.documentSigning(usuario.id, documentoFirma.id);
     const factura = await this.facturaRepository.findOneBy({ id: facturaId });
     factura.usuarioTestigo = usuario;
     await this.facturaRepository.save(factura);

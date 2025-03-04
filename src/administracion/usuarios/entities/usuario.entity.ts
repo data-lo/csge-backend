@@ -15,7 +15,7 @@ import { ValidPermises } from '../interfaces/usuarios.permisos';
 import { VALID_ROLES } from '../interfaces/usuarios.roles';
 import { Departamento } from 'src/administracion/departamentos/entities/departamento.entity';
 import { Puesto } from 'src/administracion/puestos/entities/puesto.entity';
-import { TipoDeDocumento } from '../interfaces/usuarios.tipo-de-documento';
+import { TIPO_DE_DOCUMENTO } from '../interfaces/usuarios.tipo-de-documento';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { formatToLocalTime } from 'src/helpers/format-to-local-time';
@@ -112,12 +112,12 @@ export class Usuario {
 
   @Column({
     type: 'enum',
-    enum: TipoDeDocumento,
+    enum: TIPO_DE_DOCUMENTO,
     array: true,
     nullable: true,
     default: [],
   })
-  documentosDeFirma: TipoDeDocumento[];
+  documentosDeFirma: TIPO_DE_DOCUMENTO[];
 
   @Column({
     type: 'enum',

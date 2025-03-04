@@ -1,4 +1,4 @@
-export enum EstatusCampaña {
+export enum CAMPAIGN_STATUS {
     CREADA = "CREADA",
     COTIZANDO = "COTIZANDO",
     PENDIENTE = "PENDIENTE",

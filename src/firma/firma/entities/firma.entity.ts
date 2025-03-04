@@ -1,7 +1,7 @@
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 import { Column, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
 import { EstatusDeFirma } from "../interfaces/estatus-de-firma.enum";
-import { TipoDeDocumento } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
+import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 
 @Entity('documentos_firma')
 export class Firma {
@@ -22,9 +22,9 @@ export class Firma {
     @Column({
         name:'tipo_de_documento',
         type:'enum',
-        enum:TipoDeDocumento
+        enum:TIPO_DE_DOCUMENTO
     })
-    tipoDeDocumento:TipoDeDocumento
+    tipoDeDocumento:TIPO_DE_DOCUMENTO
 
     @Column({
         type:'boolean',

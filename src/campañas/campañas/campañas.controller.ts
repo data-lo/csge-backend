@@ -4,7 +4,7 @@ import { CampañasService } from './campañas.service';
 import { CreateCampañaDto } from './dto/create-campaña.dto';
 import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
-import { EstatusCampaña } from './interfaces/estatus-campaña.enum';
+import { CAMPAIGN_STATUS } from './interfaces/estatus-campaña.enum';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
 

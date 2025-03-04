@@ -10,10 +10,12 @@ import { PartidaModule } from '../partida/partida.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { FirmaModule } from 'src/firma/firma/firma.module';
+import { CampaignEventsService } from './campaign-events.service';
+import { Activacion } from '../activacion/entities/activacion.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Campaña, Dependencia]),
+    TypeOrmModule.forFeature([Campaña, Dependencia, Activacion]),
     DependenciaModule,
     ActivacionModule,
     PartidaModule,
@@ -22,7 +24,7 @@ import { FirmaModule } from 'src/firma/firma/firma.module';
     FirmaModule
   ],
   controllers: [CampañasController],
-  providers: [CampañasService],
-  exports: [CampañasService],
+  providers: [CampañasService, CampaignEventsService],
+  exports: [CampañasService, CampaignEventsService],
 })
-export class CampañasModule {}
+export class CampañasModule { }

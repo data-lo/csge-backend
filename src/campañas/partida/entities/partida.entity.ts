@@ -61,16 +61,16 @@ export class Partida {
   })
   actualizadoEn: Date;
 
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-  }
+  // @BeforeInsert()
+  // localeTimeZoneInsert() {
+  //   const value = new Date();
+  //   this.creadoEn = formatToLocalTime(value);
+  //   this.actualizadoEn = formatToLocalTime(value);
+  // }
 
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-  }
+  // @BeforeUpdate()
+  // localeTimeZoneUpdate() {
+  //   const value = new Date();
+  //   this.actualizadoEn = formatToLocalTime(value);
+  // }
 }

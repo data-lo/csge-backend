@@ -17,3 +17,11 @@ export const QRCotejo = {
 export const QRAprobacionFactura = {
     
 }
+
+export const QR_APPROVAL_CAMPAIGN = {
+    width:100,
+    height:100,
+    x:30,
+    y:550,
+    page:1   
+}

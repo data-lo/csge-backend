@@ -9,9 +9,10 @@ import { Repository } from 'typeorm';
 import { EstatusDeFirma } from 'src/firma/firma/interfaces/estatus-de-firma.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
+import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
 
 @Injectable()
 export class WebhooksService {
@@ -60,13 +61,19 @@ export class WebhooksService {
 
       const documentoId = document.ordenOFacturaId;
 
-      if (document.tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+      if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         this.eventEmitter.emit('modify-contract-amounts', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
         this.eventEmitter.emit('modified-order-status', { orderId: documentoId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
 
-      } else if (document.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentoId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+
+      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        this.eventEmitter.emit('modified-campaign-status', { campaignId: documentoId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
+
+        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentoId});
+
       }
 
       document.estaFirmado = true;
@@ -89,7 +96,7 @@ export class WebhooksService {
 
       const documentoId = documentoDeFirma.ordenOFacturaId;
 
-      if (documentoDeFirma.tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      if (documentoDeFirma.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         documentoDeFirma.estaFirmado = false;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.PENDIENTE_DE_FIRMA;
         await this.firmaRepository.save(documentoDeFirma);
@@ -111,13 +118,13 @@ export class WebhooksService {
       const documentoId = documentoDeFirma.ordenOFacturaId;
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-        
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+
         documentoDeFirma.estaFirmado = true;
         documentoDeFirma.estatusDeFirma = EstatusDeFirma.CANCELADA;
 
         this.emitter(documentoId, 'cancelacion.orden');
-      } else if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      } else if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         this.emitter(documentoId, 'cancelacion.factura');
       }
       await this.firmaRepository.save(documentoDeFirma);

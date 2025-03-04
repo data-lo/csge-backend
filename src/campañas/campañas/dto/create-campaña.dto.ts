@@ -1,5 +1,5 @@
 import { IsArray, IsEnum, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
-import { EstatusCampaña } from "../interfaces/estatus-campaña.enum";
+import { CAMPAIGN_STATUS } from "../interfaces/estatus-campaña.enum";
 import { TipoCampaña } from "../interfaces/tipo-campaña.enum";
 import { CreateActivacionDto } from "src/campañas/activacion/dto/create-activacion.dto";
 import { Type } from "class-transformer";
@@ -9,9 +9,9 @@ export class CreateCampañaDto {
     @IsString()
     nombre:string;
 
-    @IsEnum(EstatusCampaña)
+    @IsEnum(CAMPAIGN_STATUS)
     @IsOptional()
-    estatus:EstatusCampaña;
+    estatus:CAMPAIGN_STATUS;
 
     @IsEnum(TipoCampaña)
     tipoDeCampaña:TipoCampaña;

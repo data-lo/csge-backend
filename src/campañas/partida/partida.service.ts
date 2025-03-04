@@ -3,18 +3,19 @@ import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Partida } from './entities/partida.entity';
-import { Repository } from 'typeorm';
+import { Repository, ReturnDocument } from 'typeorm';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
+import { timeStamp } from 'console';
 
 @Injectable()
 export class PartidaService {
   constructor(
     
     @InjectRepository(Partida)
-    private partidaRepository:Repository<Partida>,
+    private matchRepository:Repository<Partida>,
     
     @InjectRepository(Campaña)
     private campañaRepository:Repository<Campaña>,
@@ -27,9 +28,11 @@ export class PartidaService {
   
   async create(createPartidaDto: CreatePartidaDto) {
     try{
-      const partidaDb = this.partidaRepository.create(createPartidaDto);
-      await this.partidaRepository.save(partidaDb);
-      return partidaDb;
+      const match = this.matchRepository.create(createPartidaDto);
+
+      await this.matchRepository.save(match);
+
+      return match;
     }catch(error){
       handleExceptions(error);
     }
@@ -38,7 +41,7 @@ export class PartidaService {
   async findAll(pagina:number) {
     try{
       const paginationSetter = new PaginationSetter()
-      const partidas = await this.partidaRepository.find({
+      const partidas = await this.matchRepository.find({
         take:paginationSetter.castPaginationLimit(),
         skip:paginationSetter.getSkipElements(pagina)
       });
@@ -50,7 +53,7 @@ export class PartidaService {
 
   async findOne(partidaId: string) {
     try{
-      const partida = await this.partidaRepository.findOne({
+      const partida = await this.matchRepository.findOne({
         where:{id:partidaId},
       });
       if(!partida) throw new NotFoundException('La partida no exisite');
@@ -62,12 +65,12 @@ export class PartidaService {
 
   async update(partidaId: string, updatePartidaDto: UpdatePartidaDto) {
     try{
-      const partidaDb = await this.partidaRepository.findOne({
+      const partidaDb = await this.matchRepository.findOne({
         where:{id:partidaId}
       });  
       if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
       Object.assign(partidaDb,updatePartidaDto)
-      await this.partidaRepository.save(partidaDb);
+      await this.matchRepository.save(partidaDb);
       return {message:'Partida actualziada correctamente'};
     }catch(error){
       handleExceptions(error);
@@ -76,9 +79,9 @@ export class PartidaService {
 
   async desactivarPartida(partidaId:string){
     try{
-      const partidaDb = await this.partidaRepository.findOneBy({id:partidaId})
+      const partidaDb = await this.matchRepository.findOneBy({id:partidaId})
       partidaDb.estatus = false;
-      await this.partidaRepository.save(partidaDb);
+      await this.matchRepository.save(partidaDb);
       return {message:'Partida desactivada correctamente'};
     }catch(error){
       handleExceptions(error);
@@ -109,9 +112,9 @@ export class PartidaService {
 
   async remove(id:string){
     try{
-      const partidaDb = await this.partidaRepository.findOneBy({id:id});
+      const partidaDb = await this.matchRepository.findOneBy({id:id});
       if(!partidaDb) throw new NotFoundException('No se encuentra la partida');
-      await this.partidaRepository.remove(partidaDb);
+      await this.matchRepository.remove(partidaDb);
       return {message:'Partida eliminada exitosamente'};
     }catch(error){
       handleExceptions(error);
@@ -165,7 +168,7 @@ export class PartidaService {
           partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
           partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
       }
-      await this.partidaRepository.save(partidaDb);
+      await this.matchRepository.save(partidaDb);
       return;
 
     }catch(error){

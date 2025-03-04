@@ -1,17 +1,17 @@
 import { Content } from "pdfmake/interfaces";
 
-export const textoDeRecepcionSection = (textoDeRecepcion:string):Content => {
-    
+export const textoDeRecepcionSection = (textoDeRecepcion: string): Content => {
+
     const style = {
-        font:'Poppins',
-        fontSize:10,
-        bold:true
+        font: 'Poppins',
+        fontSize: 10,
+        bold: true
     }
-    
-    const textoDeRecepcionC:Content = {
-        text:textoDeRecepcion,
-        marginBottom:20,
-        alignment:'center',
+
+    const textoDeRecepcionC: Content = {
+        text: textoDeRecepcion,
+        marginBottom: 60,
+        alignment: 'center',
         style
     }
 
