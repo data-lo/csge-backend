@@ -328,16 +328,16 @@ export class FirmaService {
     }
   }
 
-  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO,): Promise<PDFKit.PDFDocument> {
+  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean): Promise<PDFKit.PDFDocument> {
     try {
 
       let document = null;
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        document = await this.documentsService.construirOrdenDeServicio(documentId);
+        document = await this.documentsService.buildOrderDocument(documentId, isCampaign);
 
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
-        document = await this.documentsService.construirAprobacionDeFactura(documentId);
+        document = await this.documentsService.buildInvoiceApprovalDocument(documentId);
 
       } else {
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
@@ -477,7 +477,7 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO,) {
+  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean) {
     try {
       let document: any;
 
@@ -486,12 +486,12 @@ export class FirmaService {
       });
 
       if (!documentForSignature) {
-        document = await this.construir_pdf(documentId, documentType);
+        document = await this.construir_pdf(documentId, documentType, isCampaign);
         return document;
       }
 
       if (!documentForSignature.ticket) {
-        document = await this.construir_pdf(documentId, documentType);
+        document = await this.construir_pdf(documentId, documentType, isCampaign);
         return document;
       }
 

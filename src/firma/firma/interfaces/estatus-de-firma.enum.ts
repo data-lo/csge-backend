@@ -1,4 +1,4 @@
-export enum EstatusDeFirma {
+export enum ESTATUS_DE_FIRMA {
     CANCELADA = 'CANCELADA',
     APROBADA = 'APROBADA',
     PENDIENTE_DE_FIRMA = 'PEDIENTE_DE_FIRMA'

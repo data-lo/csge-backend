@@ -6,7 +6,7 @@ import { UniversalSigned } from './interfaces/universal_signed.webhook.notificat
 import { InjectRepository } from '@nestjs/typeorm';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { Repository } from 'typeorm';
-import { EstatusDeFirma } from 'src/firma/firma/interfaces/estatus-de-firma.enum';
+import { ESTATUS_DE_FIRMA } from 'src/firma/firma/interfaces/estatus-de-firma.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
@@ -18,19 +18,13 @@ import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-camp
 export class WebhooksService {
   constructor(
     @InjectRepository(Firma)
-    private readonly firmaRepository: Repository<Firma>,
+    private readonly signatureRepository: Repository<Firma>,
 
     private eventEmitter: EventEmitter2,
   ) { }
 
   recibirWebHook(
-    firmamexWebhook:
-      | DocumentCompleted
-      | DocumentRejected
-      | OriginalSigned
-      | UniversalSigned
-      | any,
-  ) {
+    firmamexWebhook: DocumentCompleted | DocumentRejected | OriginalSigned | UniversalSigned | any,) {
     switch (firmamexWebhook.notification_type) {
       case 'document_completed':
         this.handleDocumentCompleted(firmamexWebhook);
@@ -51,11 +45,11 @@ export class WebhooksService {
     }
   }
 
-  private async handleDocumentCompleted(webhook: DocumentCompleted) {
+  private async handleDocumentCompleted(webhook: any) {
     try {
       const { firmamex_id } = webhook;
 
-      const document = await this.firmaRepository.findOneBy({
+      const document = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
       });
 
@@ -72,38 +66,54 @@ export class WebhooksService {
       } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         this.eventEmitter.emit('modified-campaign-status', { campaignId: documentoId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
 
-        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentoId});
-
+        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentoId });
       }
 
       document.estaFirmado = true;
 
-      document.estatusDeFirma = EstatusDeFirma.APROBADA;
+      document.estatusDeFirma = ESTATUS_DE_FIRMA.APROBADA;
 
-      await this.firmaRepository.save(document);
+      await this.signatureRepository.save(document);
 
     } catch (error) {
       handleExceptions(error);
     }
   }
 
-  private async handleOriginalSigned(webhook: OriginalSigned) {
+  private async handleOriginalSigned(response: OriginalSigned) {
     try {
-      const { firmamex_id } = webhook;
-      const documentoDeFirma = await this.firmaRepository.findOneBy({
+      const { firmamex_id } = response;
+
+      const signatureDocument = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
       });
 
-      const documentoId = documentoDeFirma.ordenOFacturaId;
+      const documentoId = signatureDocument.ordenOFacturaId;
 
-      if (documentoDeFirma.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
-        documentoDeFirma.estaFirmado = false;
-        documentoDeFirma.estatusDeFirma = EstatusDeFirma.PENDIENTE_DE_FIRMA;
-        await this.firmaRepository.save(documentoDeFirma);
+      if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+
+        signatureDocument.estaFirmado = false;
+
+        signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA;
+
+        await this.signatureRepository.save(signatureDocument);
+
         this.emitter(documentoId, 'cotejada.facura');
+
+      } else if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        
+        const values = {
+          signedAt: new Date().toISOString(),
+          signerRfc: response.signer_data.name,
+          signerEmail: response.signer_data.email,
+        };
+
+        await this.signatureRepository.update(signatureDocument.id, {
+          signedBy: values
+        });
       }
+
     } catch (error) {
-      //eliminar documento de firmamex
       handleExceptions(error);
     }
   }
@@ -111,7 +121,7 @@ export class WebhooksService {
   private async handleDocumentRejected(webhook: DocumentRejected) {
     try {
       const { firmamex_id } = webhook;
-      const documentoDeFirma = await this.firmaRepository.findOneBy({
+      const documentoDeFirma = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
       });
 
@@ -121,13 +131,13 @@ export class WebhooksService {
       if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
         documentoDeFirma.estaFirmado = true;
-        documentoDeFirma.estatusDeFirma = EstatusDeFirma.CANCELADA;
+        documentoDeFirma.estatusDeFirma = ESTATUS_DE_FIRMA.CANCELADA;
 
         this.emitter(documentoId, 'cancelacion.orden');
       } else if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         this.emitter(documentoId, 'cancelacion.factura');
       }
-      await this.firmaRepository.save(documentoDeFirma);
+      await this.signatureRepository.save(documentoDeFirma);
 
     } catch (error) {
       handleExceptions(error);

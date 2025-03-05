@@ -1,7 +1,8 @@
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
 import { Column, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
-import { EstatusDeFirma } from "../interfaces/estatus-de-firma.enum";
+import { ESTATUS_DE_FIRMA } from "../interfaces/estatus-de-firma.enum";
 import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
+import { SignedBy } from "../interfaces/signed-by";
 
 @Entity('documentos_firma')
 export class Firma {
@@ -9,56 +10,65 @@ export class Firma {
 
     @PrimaryColumn('uuid')
     @Generated('uuid')
-    id:string;
+    id: string;
 
     @Column({
-        type:'uuid',
-        name:'orden_o_factura_id',
-        nullable:false,
-        unique:true
+        type: 'uuid',
+        name: 'orden_o_factura_id',
+        nullable: false,
+        unique: true
     })
-    ordenOFacturaId:string;
+    ordenOFacturaId: string;
 
     @Column({
-        name:'tipo_de_documento',
-        type:'enum',
-        enum:TIPO_DE_DOCUMENTO
+        name: 'tipo_de_documento',
+        type: 'enum',
+        enum: TIPO_DE_DOCUMENTO
     })
-    tipoDeDocumento:TIPO_DE_DOCUMENTO
+    tipoDeDocumento: TIPO_DE_DOCUMENTO
 
     @Column({
-        type:'boolean',
-        name:'esta_firmado',
-        nullable:false,
-        default:false
+        type: 'boolean',
+        name: 'esta_firmado',
+        nullable: false,
+        default: false
     })
-    estaFirmado:boolean;
+    estaFirmado: boolean;
 
     @Column({
-        type:'enum',
-        enum:EstatusDeFirma,
-        nullable:false,
-        default:EstatusDeFirma.PENDIENTE_DE_FIRMA
+        type: 'enum',
+        enum: ESTATUS_DE_FIRMA,
+        nullable: false,
+        default: ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA
     })
-    estatusDeFirma:EstatusDeFirma;
+    estatusDeFirma: ESTATUS_DE_FIRMA;
 
     @Column({
-        name:'url_de_documento_en_firmamex',
-        nullable:false,
-        default:'sin_url'
+        name: 'url_de_documento_en_firmamex',
+        nullable: false,
+        default: 'sin_url'
     })
-    documentoUrlFirmamex:string
-    
+    documentoUrlFirmamex: string
+
     @Column({
-        name:'ticket_de_documento_firmamex',
-        type:'uuid',
-        nullable:true,
-        default:null
+        name: 'ticket_de_documento_firmamex',
+        type: 'uuid',
+        nullable: true,
+        default: null
     })
-    ticket:string;
+    ticket: string;
+
+
+    @Column({
+        name: 'signed_by',
+        nullable: false,
+        default: {},
+        type: 'jsonb'
+    })
+    signedBy: SignedBy;
 
     @ManyToMany(
-        () => Usuario, 
+        () => Usuario,
         (usuario) => usuario.documentosParaFirmar
     )
     @JoinTable({
@@ -72,5 +82,5 @@ export class Firma {
             referencedColumnName: 'id'
         }
     })
-    usuariosFirmadores:Usuario[];
+    usuariosFirmadores: Usuario[];
 }

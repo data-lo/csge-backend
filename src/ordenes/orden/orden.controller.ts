@@ -44,8 +44,8 @@ export class OrdenController {
 
   @Get('folios')
   obtenerFolios(
-    @Query('servicio',new ParseEnumPipe(TIPO_DE_SERVICIO)) servicio:TIPO_DE_SERVICIO
-  ){
+    @Query('servicio', new ParseEnumPipe(TIPO_DE_SERVICIO)) servicio: TIPO_DE_SERVICIO
+  ) {
     return this.ordenService.getCurrentFolio(servicio);
   }
 
@@ -67,7 +67,7 @@ export class OrdenController {
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string
   ) {
-    const pdfDoc = await this.ordenService.obtenerOrdenEnPdf(id);
+    const pdfDoc = await this.ordenService.getOrderInPDF(id);
     if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
     }

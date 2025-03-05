@@ -51,7 +51,7 @@ import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveed
 export class OrdenService {
   constructor(
     @InjectRepository(Orden)
-    private ordenRepository: Repository<Orden>,
+    private orderRepository: Repository<Orden>,
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
     private readonly firmaService: FirmaService,
@@ -89,7 +89,7 @@ export class OrdenService {
       const folio = await this.getCurrentFolio(tipoDeServicio);
 
       // Crear la orden
-      const order = this.ordenRepository.create({
+      const order = this.orderRepository.create({
         campaña: campaign,
         proveedor: proveedor,
         contratoMaestro: masterContract,
@@ -100,7 +100,7 @@ export class OrdenService {
         ...rest,
       });
 
-      await this.ordenRepository.save(order);
+      await this.orderRepository.save(order);
 
       try {
         // Registrar servicios contratados
@@ -136,7 +136,7 @@ export class OrdenService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const ordenes = await this.ordenRepository.find({
+      const ordenes = await this.orderRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina),
         relations: {
@@ -174,7 +174,7 @@ export class OrdenService {
 
   async findAllBusqueda() {
     try {
-      const ordenes = await this.ordenRepository.find({
+      const ordenes = await this.orderRepository.find({
         relations: {
           proveedor: true,
           campaña: true,
@@ -206,7 +206,7 @@ export class OrdenService {
 
   async findOne(id: string) {
     try {
-      const orden = await this.ordenRepository.findOne({
+      const orden = await this.orderRepository.findOne({
         where: { id },
         relations: {
           proveedor: true,
@@ -238,7 +238,7 @@ export class OrdenService {
 
       let newServices = [];
 
-      const currentlyOrder = await this.ordenRepository.findOne(
+      const currentlyOrder = await this.orderRepository.findOne(
         {
           where: {
             id: id,
@@ -283,7 +283,7 @@ export class OrdenService {
       }
 
 
-      await this.ordenRepository.save(currentlyOrder);
+      await this.orderRepository.save(currentlyOrder);
       await this.calcularMontosDeOrden(currentlyOrder.id);
 
       return { message: 'ORDEN ACTUALIZADA CON EXITO' };
@@ -300,7 +300,7 @@ export class OrdenService {
         for (const servicioContratado of orden.serviciosContratados) {
           await this.servicioContratadoService.remove(servicioContratado.id);
         }
-        await this.ordenRepository.remove(orden);
+        await this.orderRepository.remove(orden);
         return { message: 'Orden eliminada exitosamente' };
       }
       throw new BadRequestException(
@@ -314,7 +314,7 @@ export class OrdenService {
   async findByRfc(rfc: string) {
     try {
       const estatus = ESTATUS_ORDEN_DE_SERVICIO.ACTIVA;
-      const ordenes = await this.ordenRepository
+      const ordenes = await this.orderRepository
         .createQueryBuilder('ordenes')
         .innerJoinAndSelect('ordenes.proveedor', 'proveedor')
         .where('ordenes.estatus = :estatus', { estatus })
@@ -351,7 +351,7 @@ export class OrdenService {
       const currentYear = new Date().getFullYear();
 
       // 2. Traer los folios desde la base de datos
-      const rawRecords = await this.ordenRepository
+      const rawRecords = await this.orderRepository
         .createQueryBuilder('orden')
         .select('orden.folio', 'folio')
         .where('orden.tipoDeServicio = :serviceType', { serviceType })
@@ -394,7 +394,7 @@ export class OrdenService {
   //   try {
   //     const orden = await this.findOne(id);
   //     if (orden) {
-  //       await this.ordenRepository.update(id, {
+  //       await this.orderRepository.update(id, {
   //         estatus: nuevoEstatus,
   //       });
   //     }
@@ -421,7 +421,7 @@ export class OrdenService {
     try {
       const orden = await this.findOne(id);
       if (orden.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
-        await this.ordenRepository.update(id, {
+        await this.orderRepository.update(id, {
           estatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA,
         });
         return { message: 'Orden cancelada exitosamente' };
@@ -465,7 +465,7 @@ export class OrdenService {
       orden.iva = parseFloat(iva.toFixed(2));
       orden.total = parseFloat(total.toFixed(2));
 
-      await this.ordenRepository.save(orden);
+      await this.orderRepository.save(orden);
       return {
         subtotal: orden.subtotal,
         iva: orden.iva,
@@ -478,7 +478,7 @@ export class OrdenService {
 
   async mandarOrdenAFirmar(ordenId: string) {
     try {
-      const ordenDb = await this.ordenRepository.findOneBy({ id: ordenId });
+      const ordenDb = await this.orderRepository.findOneBy({ id: ordenId });
       if (!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
       const documentoFirmaDto: CreateFirmaDto = {
         ordenOFacturaId: ordenId,
@@ -504,16 +504,26 @@ export class OrdenService {
     }
   }
 
-  async obtenerOrdenEnPdf(id: string) {
-    const documento = await this.firmaService.descargarDocumento(
-      id,
-      TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
-    );
-    return documento;
+  async getOrderInPDF(orderId: string) {
+
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      throw new Error(`¡No se encontró la orden con ID: ${orderId}!`);
+    }
+
+    const isCampaign = !!order.esCampania;
+
+    console.log(isCampaign)
+
+    return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign);
+
   }
 
   async obtenerOrdenesPorCampaniaId(campaignId: string) {
-    return await this.ordenRepository.find({
+    return await this.orderRepository.find({
       where: {
         campaña: { id: campaignId }
       },
@@ -525,17 +535,17 @@ export class OrdenService {
 
   async updateOrderStatus(orderId: string, status: ESTATUS_ORDEN_DE_SERVICIO) {
     try {
-      const order = await this.ordenRepository.findOne({ where: { id: orderId } });
+      const order = await this.orderRepository.findOne({ where: { id: orderId } });
 
       if (!order) {
         throw new Error(`La Orden con ID: ${orderId} no se encontró.`);
       }
 
       if (status === ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) {
-        await this.ordenRepository.update(orderId, { estatus: status, fechaDeAprobacion: new Date() });
+        await this.orderRepository.update(orderId, { estatus: status, fechaDeAprobacion: new Date() });
       }
 
-      await this.ordenRepository.update(orderId, { estatus: status });
+      await this.orderRepository.update(orderId, { estatus: status });
 
       return { message: "¡El estatus de la orden se ha actualizado correctamente!", };
 
@@ -545,7 +555,7 @@ export class OrdenService {
   }
 
   async getOrdersCreatedByCampaignModule(campaignId: string) {
-    const orders = await this.ordenRepository.find({
+    const orders = await this.orderRepository.find({
       where: {
         campaña: { id: campaignId },
         esCampania: true
