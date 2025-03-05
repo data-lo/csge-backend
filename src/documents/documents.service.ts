@@ -36,7 +36,8 @@ export class DocumentsService {
   ) { }
 
 
-  async buildOrderDocument(orderId: string, isCampaign?: boolean) {
+  async buildOrderDocument(orderId: string, isCampaign?: boolean, isFromCampaign?: boolean) {
+    console.log(isFromCampaign)
     try {
       const order = await this.ordenDeServicioRepository.findOne({
         where: { id: orderId },
@@ -75,7 +76,7 @@ export class DocumentsService {
         qrCode
       });
 
-      if (isCampaign) {
+      if (isCampaign && isFromCampaign) {
         const pdfDoc = this.printerService.createPdf(definicionDeOrden);
 
         const pdfBytes = await new Promise<Uint8Array>((resolve, reject) => {
@@ -91,7 +92,7 @@ export class DocumentsService {
       const document = this.printerService.createPdf(definicionDeOrden);
 
       return document;
-      
+
     } catch (error) {
       handleExceptions(error);
     }

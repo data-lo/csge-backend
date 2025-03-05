@@ -516,7 +516,9 @@ export class OrdenService {
 
     const isCampaign = !!order.esCampania;
 
-    return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign);
+    const isFromCampaing = false;
+
+    return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing);
   }
 
   async generateCampaignOrdersInPDF(campaignId: string) {
@@ -540,7 +542,7 @@ export class OrdenService {
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        const pdfBytes = await this.firmaService.descargarDocumento(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign);
+        const pdfBytes = await this.firmaService.descargarDocumento(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
 
         const pdfLibDoc = await PDFDocument.load(pdfBytes);
 

@@ -1,5 +1,6 @@
-export enum EstatusFactura {
+export enum INVOICE_STATUS {
     RECIBIDA = 'RECIBIDA',
+    CONTEJADA ="COTEJADA",
     APROBADA = 'APROBADA',
     PROGRMADA_PARA_PAGO = 'PROGRAMADA_PARA_PAGO',
     PAGADA = 'PAGADA',

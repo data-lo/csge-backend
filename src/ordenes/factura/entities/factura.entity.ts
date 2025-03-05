@@ -11,7 +11,7 @@ import {
   ManyToOne,
   PrimaryColumn,
 } from 'typeorm';
-import { EstatusFactura } from '../interfaces/estatus-factura';
+import { INVOICE_STATUS } from '../interfaces/estatus-factura';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { formatToLocalTime } from 'src/helpers/format-to-local-time';
@@ -98,11 +98,11 @@ export class Factura {
   @Column({
     name: 'estatus_de_factura',
     type: 'enum',
-    enum: EstatusFactura,
-    default: EstatusFactura.RECIBIDA,
+    enum: INVOICE_STATUS,
+    default: INVOICE_STATUS.RECIBIDA,
     nullable: false,
   })
-  estatus: EstatusFactura;
+  estatus: INVOICE_STATUS;
 
   @Column({
     name: 'motivo_cancelacion',

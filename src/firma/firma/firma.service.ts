@@ -328,13 +328,13 @@ export class FirmaService {
     }
   }
 
-  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean): Promise<PDFKit.PDFDocument> {
+  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?:boolean): Promise<PDFKit.PDFDocument> {
     try {
 
       let document = null;
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        document = await this.documentsService.buildOrderDocument(documentId, isCampaign);
+        document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign);
 
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         document = await this.documentsService.buildInvoiceApprovalDocument(documentId);
@@ -342,7 +342,7 @@ export class FirmaService {
       } else {
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
       }
-
+console.log(document)
       return document;
     } catch (error) {
       console.log('error en costruir pdf');
@@ -477,7 +477,7 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean) {
+  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean) {
     try {
       let document: any;
 
@@ -486,12 +486,12 @@ export class FirmaService {
       });
 
       if (!documentForSignature) {
-        document = await this.construir_pdf(documentId, documentType, isCampaign);
+        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
         return document;
       }
 
       if (!documentForSignature.ticket) {
-        document = await this.construir_pdf(documentId, documentType, isCampaign);
+        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
         return document;
       }
 

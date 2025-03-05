@@ -14,7 +14,7 @@ import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import * as xmls2js from 'xml-js';
 import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { EstatusFactura } from './interfaces/estatus-factura';
+import { INVOICE_STATUS } from './interfaces/estatus-factura';
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../orden/interfaces/estatus-orden-de-servicio';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
@@ -105,7 +105,7 @@ export class FacturaService {
         });
       }
       try {
-        const factura =await this.facturaRepository.create({
+        const factura = await this.facturaRepository.create({
           id: id,
           ordenesDeServicio: ordenes,
           proveedor: proveedor,
@@ -283,13 +283,18 @@ export class FacturaService {
     }
   }
 
-  async actualizarEstatusDeFactura(id: string, estatus: EstatusFactura) {
+  async updateStatus(invoiceId: string, status: INVOICE_STATUS) {
     try {
-      const factura = await this.facturaRepository.findOneBy({ id: id });
-      if (!factura) throw new NotFoundException('No se encontro la factura');
-      factura.estatus = estatus;
-      await this.facturaRepository.update(id, factura);
-      return { message: 'estatus de factura actualizado' };
+      const invoice = await this.facturaRepository.findOneBy({ id: invoiceId });
+
+      if (!invoice) throw new NotFoundException('¡Factura no encontrada!');
+
+      invoice.estatus = status;
+
+      await this.facturaRepository.update(invoiceId, invoice);
+
+      return { message: '¡El estatus de la factura ha sido actualizado exitosamente!' };
+
     } catch (error) {
       handleExceptions(error);
     }

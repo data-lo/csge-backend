@@ -13,6 +13,7 @@ import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuari
 import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
+import { INVOICE_STATUS } from 'src/ordenes/factura/interfaces/estatus-factura';
 
 @Injectable()
 export class WebhooksService {
@@ -88,7 +89,7 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      const documentoId = signatureDocument.ordenOFacturaId;
+      const documentId = signatureDocument.ordenOFacturaId;
 
       if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
@@ -98,10 +99,12 @@ export class WebhooksService {
 
         await this.signatureRepository.save(signatureDocument);
 
-        this.emitter(documentoId, 'cotejada.facura');
+        this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
+
+        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
 
       } else if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
-        
+
         const values = {
           signedAt: new Date().toISOString(),
           signerRfc: response.signer_data.name,
@@ -131,12 +134,16 @@ export class WebhooksService {
       if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
         documentoDeFirma.estaFirmado = true;
+
         documentoDeFirma.estatusDeFirma = ESTATUS_DE_FIRMA.CANCELADA;
 
         this.emitter(documentoId, 'cancelacion.orden');
+
       } else if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+
         this.emitter(documentoId, 'cancelacion.factura');
       }
+
       await this.signatureRepository.save(documentoDeFirma);
 
     } catch (error) {
