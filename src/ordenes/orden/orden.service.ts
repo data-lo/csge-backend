@@ -17,6 +17,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
+import { PDFDocument } from 'pdf-lib';
 
 // Entidades y DTOs
 import { Orden } from './entities/orden.entity';
@@ -386,7 +387,6 @@ export class OrdenService {
     }
   }
 
-
   // async actualizarEstatusOrden(
   //   id: string,
   //   nuevoEstatus: ESTATUS_ORDEN_DE_SERVICIO,
@@ -511,16 +511,52 @@ export class OrdenService {
     });
 
     if (!order) {
-      throw new Error(`¡No se encontró la orden con ID: ${orderId}!`);
+      throw new BadRequestException(`¡No se encontró la orden con ID: ${orderId}!`);
     }
 
     const isCampaign = !!order.esCampania;
 
-    console.log(isCampaign)
-
     return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign);
-
   }
+
+  async generateCampaignOrdersInPDF(campaignId: string) {
+    try {
+      const campaign = await this.campaignService.findOne(campaignId);
+
+      if (!campaign) {
+        throw new BadRequestException(`¡No se encontró la campaña con ID: ${campaignId}!`);
+      }
+
+      const orders = await this.orderRepository.find({
+        where: { campaña: { id: campaignId } }
+      });
+
+      if (orders.length === 0) {
+        throw new BadRequestException(`¡No hay órdenes asociadas a la campaña con ID: ${campaignId}!`);
+      }
+
+      const mergedPdf = await PDFDocument.create();
+
+      for (const order of orders) {
+        const isCampaign = !!order.esCampania;
+
+        const pdfBytes = await this.firmaService.descargarDocumento(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign);
+
+        const pdfLibDoc = await PDFDocument.load(pdfBytes);
+
+        const copiedPages = await mergedPdf.copyPages(pdfLibDoc, pdfLibDoc.getPageIndices());
+
+        copiedPages.forEach(page => mergedPdf.addPage(page));
+      }
+
+      const mergedPdfBytes = await mergedPdf.save();
+      
+      return mergedPdfBytes;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
 
   async obtenerOrdenesPorCampaniaId(campaignId: string) {
     return await this.orderRepository.find({

@@ -35,7 +35,7 @@ export class DocumentsService {
     private textosService: TextosService,
   ) { }
 
-  
+
   async buildOrderDocument(orderId: string, isCampaign?: boolean) {
     try {
       const order = await this.ordenDeServicioRepository.findOne({
@@ -75,8 +75,23 @@ export class DocumentsService {
         qrCode
       });
 
+      if (isCampaign) {
+        const pdfDoc = this.printerService.createPdf(definicionDeOrden);
+
+        const pdfBytes = await new Promise<Uint8Array>((resolve, reject) => {
+          const buffers: Buffer[] = [];
+          pdfDoc.on('data', (chunk) => buffers.push(chunk));
+          pdfDoc.on('end', () => resolve(new Uint8Array(Buffer.concat(buffers))));
+          pdfDoc.on('error', (err) => reject(err));
+          pdfDoc.end();
+        });
+        return pdfBytes;
+      }
+
       const document = this.printerService.createPdf(definicionDeOrden);
+
       return document;
+      
     } catch (error) {
       handleExceptions(error);
     }

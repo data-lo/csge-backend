@@ -13,7 +13,6 @@ import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 @Controller('ordenes/ordenes-de-servicio')
 export class OrdenController {
   constructor(private readonly ordenService: OrdenService) { }
-  private readonly logger = new LoggerService(OrdenController.name);
 
   @Auth(...rolesOrdenes)
   @Post()
@@ -28,6 +27,7 @@ export class OrdenController {
   ) {
     return this.ordenService.mandarOrdenAFirmar(id);
   }
+
 
   @Auth(...rolesOrdenes)
   @Get()
@@ -61,6 +61,8 @@ export class OrdenController {
     return this.ordenService.obtenerEstatusOrden(id);
   }
 
+  
+
   @Auth(...rolesOrdenes)
   @Get('pdf/:id')
   async obtenerOrdenEnPdf(
@@ -77,6 +79,27 @@ export class OrdenController {
       pdfDoc.end();
     }
   }
+
+  @Auth(...rolesOrdenes)
+  @Get('pdf/campaign-orders/:id')
+  async getCampaignOrdersInPDF(
+    @Res() res: Response,
+    @Param('id', ParseUUIDPipe) id: string
+    
+  ) {
+    const pdfUint8Array = await this.ordenService.generateCampaignOrdersInPDF(id);
+
+    const pdfBuffer = Buffer.from(pdfUint8Array);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="orden_campaña_${id}.pdf"`,
+      'Content-Length': pdfBuffer.length
+    });
+
+    return res.send(pdfBuffer);
+  }
+
 
   @Auth(...rolesOrdenes)
   @Get(':id')
@@ -113,7 +136,4 @@ export class OrdenController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordenService.remove(id);
   }
-
-
-
 }
