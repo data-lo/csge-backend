@@ -295,32 +295,35 @@ export class FirmaService {
       // Si el documento no existe, lanzar una excepción
       if (!document) throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
 
-      // Construir el documento en formato PDF a partir de su orden o factura
-      const documentInPdf = await this.construir_pdf(document.ordenOFacturaId, document.tipoDeDocumento);
+      if (document.firmamexDocumentUrl === "sin_url") {
+        // Construir el documento en formato PDF a partir de su orden o factura
+        const documentInPdf = await this.construir_pdf(document.ordenOFacturaId, document.tipoDeDocumento);
 
-      // Generar stickers para la firma digital del documento
-      const stickers = await this.createStickers([user], document.tipoDeDocumento, document.usuariosFirmadores);
+        // Generar stickers para la firma digital del documento
+        const stickers = await this.createStickers([user], document.tipoDeDocumento, document.usuariosFirmadores);
 
-      // Convertir el documento PDF a formato Base64
-      const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
+        // Convertir el documento PDF a formato Base64
+        const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
 
-      // Enviar el documento al servicio de firma digital (Firmamex SDK)
-      const response = await this.submitDocumentToFirmamexSDK(
-        documentInBase64,
-        documentInPdf.info.Title,
-        stickers,
-        document.tipoDeDocumento,
-      );
+        // Enviar el documento al servicio de firma digital (Firmamex SDK)
+        const response = await this.submitDocumentToFirmamexSDK(
+          documentInBase64,
+          documentInPdf.info.Title,
+          stickers,
+          document.tipoDeDocumento,
+        );
 
-      // Guardar los datos de la firma en el documento
-      document.ticket = response.document_ticket;
-      document.documentoUrlFirmamex = response.document_url;
+        // Guardar los datos de la firma en el documento
+        document.ticket = response.document_ticket;
 
-      // Guardar los cambios en la base de datos
-      await this.firmaRepository.save(document);
+        document.firmamexDocumentUrl = response.document_url;
+
+        // Guardar los cambios en la base de datos
+        await this.firmaRepository.save(document);
+      }
 
       // Retornar la URL del documento generado en los servidor de Gobierno del Estado
-      return document.documentoUrlFirmamex;
+      return document.firmamexDocumentUrl;
 
     } catch (error) {
       // Manejo de errores centralizado
@@ -328,7 +331,7 @@ export class FirmaService {
     }
   }
 
-  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?:boolean): Promise<PDFKit.PDFDocument> {
+  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean): Promise<PDFKit.PDFDocument> {
     try {
 
       let document = null;
@@ -342,7 +345,7 @@ export class FirmaService {
       } else {
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
       }
-console.log(document)
+      console.log(document)
       return document;
     } catch (error) {
       console.log('error en costruir pdf');
@@ -497,7 +500,7 @@ console.log(document)
 
       return {
         tipo: 'url',
-        url: documentForSignature.documentoUrlFirmamex
+        url: documentForSignature.firmamexDocumentUrl
       };
 
     } catch (error) {

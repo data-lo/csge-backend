@@ -12,6 +12,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -37,13 +38,16 @@ import { FirmaService } from '../../firma/firma/firma.service';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { IvaGetter } from 'src/helpers/iva.getter';
-import { ServiciosParaFolio } from './interfaces/servicios-para-folio';
+import { FolioServices } from './interfaces/servicios-para-folio';
 
 // Enums e interfaces
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
+import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { number } from 'joi';
+import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 
 /**
  * Servicio para la gestión de órdenes de servicio.
@@ -53,6 +57,10 @@ export class OrdenService {
   constructor(
     @InjectRepository(Orden)
     private orderRepository: Repository<Orden>,
+
+    @InjectRepository(ContratoMaestro)
+    private masterContract: Repository<ContratoMaestro>,
+
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
     private readonly firmaService: FirmaService,
@@ -68,19 +76,62 @@ export class OrdenService {
   async create(createOrderDto: CreateOrdenDto) {
     try {
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
-
+      console.log(serviciosContratados)
       const currentDate = new Date();
 
       // Buscar proveedor, contrato y campaña en paralelo
-      const [proveedor, masterContract, campaign] = await Promise.all([
+      const [provider, masterContract, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
-        contratoId ? this.contratoService.findOne(contratoId) : null,
-        campaniaId ? this.campaignService.findOne(campaniaId) : null,
+        this.contratoService.findOne(contratoId),
+        this.campaignService.findOne(campaniaId),
       ]);
 
+
+      let totalAmount: number = 0;
+      let categorizedServices: any[] = [];
+
+      for (const contractedService of serviciosContratados) {
+        const serviceTotal = contractedService.cantidad *
+          (Number(contractedService.servicio.tarifaUnitaria) + Number(contractedService.servicio.iva));
+
+        totalAmount += serviceTotal;
+        categorizedServices.push(contractedService);
+      }
+
+      const availableFunds = masterContract.montoDisponible - masterContract.committedAmount;
+
+      console.log(availableFunds);
+
+      if (availableFunds > totalAmount) {
+        console.log("Se hizo la actualización.");
+        await this.masterContract.update(masterContract.id, {
+          committedAmount: totalAmount
+        });
+      } else {
+
+        const formattedServices = categorizedServices.map((contractedService: { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
+          // total: contractedService.cantidad * (contractedService.servicio.tarifaUnitaria + contractedService.servicio.iva),
+          quantity: contractedService.cantidad,
+          serviceName: contractedService.servicio.nombreDeServicio,
+          uniqueId: contractedService.uniqueId
+        }));
+
+        return {
+          status: "NOT_CREATED",
+          data: {
+            amount: totalAmount,
+            providerName: provider.razonSocial,
+            serviceType: tipoDeServicio,
+            services: formattedServices,
+          }
+        };
+      }
+
+
+
       // Validar si el proveedor puede agregarse sin contrato
-      if (!masterContract && proveedor.tipoProveedor !== TipoProveedor.SERVICIOS) {
-        throw new BadRequestException('SOLO LOS PROVEEDORES DE SERVICIOS SE PUEDEN AGREGAR SIN CONTRATO');
+      if (!masterContract && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
+        throw new BadRequestException('¡Solo los proveedores de servicios pueden agregarse sin contrato!');
       }
 
       // Obtener la última partida de la campaña (si existe)
@@ -92,7 +143,7 @@ export class OrdenService {
       // Crear la orden
       const order = this.orderRepository.create({
         campaña: campaign,
-        proveedor: proveedor,
+        proveedor: provider,
         contratoMaestro: masterContract,
         partida: match,
         folio: folio,
@@ -104,7 +155,6 @@ export class OrdenService {
       await this.orderRepository.save(order);
 
       try {
-        // Registrar servicios contratados
         await Promise.all(
           serviciosContratados.map(async (servicioContratado) => {
             const { cantidad, carteleraId, ...rest } = servicioContratado;
@@ -376,8 +426,9 @@ export class OrdenService {
         : 1;
 
       // 5. Obtener la abreviación para el tipo de servicio
-      const serviciosParaFolio = new ServiciosParaFolio();
-      const abbreviation = await serviciosParaFolio.obtenerAbreviacion(serviceType);
+      const folioServices = new FolioServices();
+
+      const abbreviation = await folioServices.getAbbreviation(serviceType);
 
       // 6. Construir la cadena final del folio
       return `${newFolioNumber}-${abbreviation}-${currentYear}`;
@@ -552,7 +603,7 @@ export class OrdenService {
       }
 
       const mergedPdfBytes = await mergedPdf.save();
-      
+
       return mergedPdfBytes;
     } catch (error) {
       handleExceptions(error);

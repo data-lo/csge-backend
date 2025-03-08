@@ -15,7 +15,7 @@ import { PassportModule } from '@nestjs/passport';
 import { IvaModule } from 'src/configuracion/iva/iva.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Orden]),
+  imports: [TypeOrmModule.forFeature([Orden]),
     CampañasModule,
     ProveedorModule,
     ContratosModule,
@@ -27,6 +27,6 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
     PassportModule
   ],
   controllers: [OrdenController],
-  providers: [OrdenService,OrderEventsService],
+  providers: [OrdenService, OrderEventsService],
 })
-export class OrdenModule {}
+export class OrdenModule { }

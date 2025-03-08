@@ -53,17 +53,19 @@ export class DocumentsService {
       let qrCode: any;
 
       if (isCampaign) {
-        const documentSigned = await this.signatureRepository.findOne(({
+        const documentSigned = await this.signatureRepository.findOne({
           where: { ordenOFacturaId: order.campaña.id }
-        }));
-
-        if (documentSigned.estaFirmado && documentSigned.signedBy) {
-          qrCode = await this.generatePdfWithQR({
-            signedAt: new Date(documentSigned.signedBy.signedAt),
-            signerRfc: documentSigned.signedBy.signerRfc,
-            signerEmail: documentSigned.signedBy.signerEmail,
-            url: documentSigned.documentoUrlFirmamex
-          });
+        });
+      
+        if (documentSigned) {
+          if (documentSigned.estaFirmado && documentSigned.signedBy) {
+            qrCode = await this.generatePdfWithQR({
+              signedAt: new Date(documentSigned.signedBy.signedAt),
+              signerRfc: documentSigned.signedBy.signerRfc,
+              signerEmail: documentSigned.signedBy.signerEmail,
+              url: documentSigned.firmamexDocumentUrl
+            });
+          }
         }
       }
 

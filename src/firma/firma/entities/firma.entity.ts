@@ -44,11 +44,11 @@ export class Firma {
     estatusDeFirma: ESTATUS_DE_FIRMA;
 
     @Column({
-        name: 'url_de_documento_en_firmamex',
+        name: 'url_documento_firmamex',
         nullable: false,
         default: 'sin_url'
     })
-    documentoUrlFirmamex: string
+    firmamexDocumentUrl: string
 
     @Column({
         name: 'ticket_de_documento_firmamex',

@@ -307,7 +307,7 @@ export class SeedService {
 
 
   async seedProveedores() {
-    // await this.insertarProveedores();
+    await this.insertarProveedores();
     await this.insertarMunicipios();
     //await this.insertarContactos();
     //await this.insertarServicios();
