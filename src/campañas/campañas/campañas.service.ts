@@ -9,7 +9,7 @@ import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Campaña } from './entities/campaña.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Dependencia } from '../dependencia/entities/dependencia.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { ActivacionService } from '../activacion/activacion.service';
@@ -40,8 +40,8 @@ export class CampañasService {
     private activationRepository: Repository<Activacion>,
 
     @InjectRepository(Dependencia)
-    private dependeciaRepository: Repository<Dependencia>,
-    private readonly activacionService: ActivacionService,
+    private dependencyRepository: Repository<Dependencia>,
+    private readonly activationService: ActivacionService,
     private readonly matchService: PartidaService,
     private readonly firmaService: FirmaService,
   ) { }
@@ -52,7 +52,7 @@ export class CampañasService {
       const { dependenciasIds, activacion, ...rest } = createCampañaDto;
 
       for (const dependenciaId of dependenciasIds) {
-        const dependencia = await this.dependeciaRepository.findOneBy({
+        const dependencia = await this.dependencyRepository.findOneBy({
           id: dependenciaId,
         });
         if (!dependencia)
@@ -80,9 +80,10 @@ export class CampañasService {
         });
 
       activacion.campaniaId = campaña.id;
+
       activacion.partidaId = partidaDb.id;
 
-      const activacionDb = await this.activacionService.create(activacion);
+      const activacionDb = await this.activationService.create(activacion);
 
       if (!activacionDb)
         throw new InternalServerErrorException({
@@ -143,42 +144,21 @@ export class CampañasService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(campaignId: string) {
     try {
+      const campaign = await this.campaignRepository
+        .createQueryBuilder("campaign")
+        .leftJoinAndSelect("campaign.activaciones", "activacion", "activacion.estatus = :status", { status: true })
+        .leftJoinAndSelect("activacion.partida", "partida")
+        .leftJoinAndSelect("campaign.dependencias", "dependencia")
+        .where("campaign.id = :campaignId", { campaignId })
+        .getOne();
 
-      let montoEjercido = 0;
-      let montoActivo = 0;
-      let montoPagado = 0;
 
-      const campaña = await this.campaignRepository.findOne({
-        where: { id: id },
-        relations: {
-          activaciones: {
-            partida: true,
-          },
-          dependencias: true,
-        },
-      });
+      if (!campaign) throw new NotFoundException('¡La campaña no ha sido encontrada!');
 
-      if (!campaña) throw new NotFoundException('Campaña no encontrada');
+      return campaign;
 
-      const partidas = campaña.activaciones.map((activacion) => {
-        return activacion.partida;
-      });
-
-      partidas.forEach((partida) => {
-        montoActivo += Number(partida.montoActivo);
-        montoEjercido += Number(partida.montoEjercido);
-        montoPagado += Number(partida.montoPagado);
-      });
-      return {
-        ...campaña,
-        montos: {
-          montoActivo: montoActivo,
-          montoEjercido: montoEjercido,
-          montoPagado: montoPagado,
-        },
-      };
     } catch (error) {
       this.logger.log('Error en encontrar una campaña');
       handleExceptions(error);
@@ -208,34 +188,83 @@ export class CampañasService {
   }
 
   async update(campañaId: string, updateCampañaDto: UpdateCampañaDto) {
-    try {
 
+    const { dependenciasIds } = updateCampañaDto;
+
+    try {
       const campaign = await this.campaignRepository.findOne({
         where: { id: campañaId },
-        relations: ['activaciones'],
+        relations: ['activaciones', "dependencias"],
       });
 
-      if (!campaign) throw new NotFoundException('No se ha encontrado la campaña solicitada.');
+      if (!campaign) {
+        throw new NotFoundException('¡No se ha encontrado la campaña solicitada!');
+      }
 
       if (campaign.estatus === CAMPAIGN_STATUS.CREADA || campaign.estatus === CAMPAIGN_STATUS.COTIZANDO) {
 
-        const campaignUpdateData = this.campaignRepository.merge(campaign, updateCampañaDto);
+        const campaignUpdateData = await this.campaignRepository.merge(campaign, updateCampañaDto);
 
         await this.campaignRepository.save(campaignUpdateData);
 
-        return { message: 'Campaña actualizada exitosamente' };
+        const newDependencies = await this.dependencyRepository.findBy({
+          id: In(dependenciasIds),
+        });
+
+        campaign.dependencias = newDependencies;
+
+        await this.campaignRepository.save(campaign);
+
+        return { message: '¡Campaña actualizada exitosamente!' };
       }
 
-      throw new BadRequestException('Estatus de campaña no válido para actualizar o cancelar.');
+      throw new BadRequestException('¡El estatus de la campaña no permite actualizaciones ni cancelaciones!');
+
     } catch (error) {
       handleExceptions(error);
+    }
+  }
+
+  async closeCampaign(campaignId: string) {
+    try {
+      const campaign = await this.campaignRepository.findOne({
+        where: { id: campaignId },
+        relations: {
+          activaciones: { partida: true },
+        },
+      });
+
+      if (!campaign) {
+        throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
+      }
+
+      for (const activation of campaign.activaciones) {
+        console.log("activation");
+        if (activation.estatus) {
+          await this.activationService.disableActivation(activation.id);
+          if (activation.partida) {
+            console.log("match");
+            await this.matchService.disableMatch(activation.partida.id);
+          }
+        }
+      }
+
+      campaign.estatus = CAMPAIGN_STATUS.INACTIVA
+
+      await this.campaignRepository.save(campaign);
+
+      return { success: true, message: "¡Campaña cerrada exitosamente!" };
+
+    } catch (error) {
+      console.error(`Error al cerrar la campaña (ID: ${campaignId}):`, error);
+      throw new InternalServerErrorException("Hubo un problema al cerrar la campaña. Inténtalo de nuevo.");
     }
   }
 
 
   async remove(campaniaId: string) {
     try {
-      const campaniaDb = await this.campaignRepository.findOne({
+      const campaignId = await this.campaignRepository.findOne({
         where: {
           id: campaniaId,
         },
@@ -245,13 +274,13 @@ export class CampañasService {
           },
         },
       });
-      if (!campaniaDb)
-        throw new NotFoundException('No se encuentra la campaña');
+      if (!campaignId)
+        throw new Error(`La Campaña con ID: ${campaignId} no se encontró.`);
       if (
-        campaniaDb.estatus === CAMPAIGN_STATUS.CREADA ||
-        campaniaDb.estatus === CAMPAIGN_STATUS.COTIZANDO
+        campaignId.estatus === CAMPAIGN_STATUS.CREADA ||
+        campaignId.estatus === CAMPAIGN_STATUS.COTIZANDO
       ) {
-        await this.campaignRepository.remove(campaniaDb);
+        await this.campaignRepository.remove(campaignId);
         return { message: 'Campaña eliminada existosamente' };
       }
       throw new BadRequestException(
@@ -262,64 +291,39 @@ export class CampañasService {
     }
   }
 
-  async agregarActivacion(
-    campañaId: string,
-    createActivacionDto: CreateActivacionDto,
-  ) {
+  async createRenovation(campaignId: string, createActivationDto: CreateActivacionDto,) {
     try {
-      const campañaDb = await this.campaignRepository.findOne({
-        where: { id: campañaId },
-        relations: {
-          activaciones: true,
-        },
-      });
+      const campaign = await this.campaignRepository.findOne({ where: { id: campaignId }, });
 
-      if (!campañaDb) throw new NotFoundException('¡La campaña no fue encontrada!');
+      if (!campaign) {
+        throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
+      }
 
-      if (campañaDb.estatus !== CAMPAIGN_STATUS.INACTIVA) throw new BadRequestException('El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser INACTIVA.');
+      if (campaign.estatus !== CAMPAIGN_STATUS.INACTIVA) {
+        throw new BadRequestException('El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser INACTIVA.');
+      }
 
-      const activaciones = campañaDb.activaciones;
-      const index = activaciones.length;
-      const ultimaActivacion = activaciones[index - 1];
-      const activacionResponse = await this.activacionService.desactivar(
-        ultimaActivacion.id,
-      );
-      if (!activacionResponse.estatus)
-        throw new InternalServerErrorException(
-          'Desactivacion de activacion fallido',
-        );
+      const newMatchObject = { montoActivo: 0, montoEjercido: 0, montoPagado: 0, };
 
-      const partida = {
-        montoActivo: 0,
-        montoEjercido: 0,
-        montoPagado: 0,
-      };
-      const partidaDb = await this.matchService.create(partida);
-      if (!partidaDb)
-        throw new InternalServerErrorException(
-          'Creacion de nueva partida fallida',
-        );
+      const newMatch = await this.matchService.create(newMatchObject);
 
-      const activacionDb = await this.activacionService.create({
-        partidaId: partidaDb.id,
-        campaniaId: campañaDb.id,
-        ...createActivacionDto,
-      });
+      const newActivationObject = {
+        campaniaId: campaignId,
+        partidaId: newMatch.id,
+        fechaDeCierre: createActivationDto.fechaDeCierre,
+        fechaDeInicio: createActivationDto.fechaDeInicio,
+        fechaDeAprobacion: null
+      }
+      campaign.estatus = CAMPAIGN_STATUS.REACTIVADA
 
-      if (!activacionDb)
-        throw new InternalServerErrorException({
-          message: 'No se creo la activacion correctamente',
-          partidaId: partidaDb.id,
-        });
+      await this.campaignRepository.save(campaign);
 
-      campañaDb.estatus = CAMPAIGN_STATUS.REACTIVADA;
-      await this.campaignRepository.save(campañaDb);
-      return {
-        message: 'campaña reactivada exitosamente',
-        activacion: activacionDb,
-      };
+      const newActivation = await this.activationService.create(newActivationObject)
+
+      return { message: '¡La campaña ha sido reactivada con éxito!' };
+
     } catch (error) {
-      //Si no se reactiva bien la campaña, eliminar las entidades creadas
+
       if (!error.partidaId) {
         handleExceptions(error);
       }
@@ -372,11 +376,9 @@ export class CampañasService {
   }
 
   async getActiveMatch(campaignId: string) {
-
     try {
       const lastMatch = await this.matchRepository.findOne({
         where: {
-
           estatus: true
         }
       })
@@ -408,7 +410,7 @@ export class CampañasService {
       if (status == CAMPAIGN_STATUS.APROBADA) {
         await this.activationRepository.update(currentlyActivation.id, { fechaDeAprobacion: new Date() });
       }
-      
+
       await this.campaignRepository.update(campaignId, { estatus: status });
 
       return { message: "¡El estatus de la campaña se ha actualizado correctamente!", };
@@ -417,8 +419,6 @@ export class CampañasService {
       handleExceptions(error);
     }
   }
-
-
 
   async emitter(campaniaId: string, evento: string) {
     this.eventEmitter.emit(`campania.${evento}`, new CampaniaEvent(campaniaId));

@@ -1,6 +1,6 @@
 import { VALID_ROLES } from "src/administracion/usuarios/interfaces/usuarios.roles";
 
-export const rolesCampanias = [
+export const CAMPAIGN_ROLES = [
     VALID_ROLES.AGENTE,
     VALID_ROLES.DIRECCION,
     VALID_ROLES.JURIDICO,

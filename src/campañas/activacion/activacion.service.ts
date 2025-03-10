@@ -70,17 +70,23 @@ export class ActivacionService {
       handleExceptions(error);
     }
   }
-
-  async update(id: string, updateActivacionDto: UpdateActivacionDto) {
+  async update(activationId: string, updateActivacionDto: UpdateActivacionDto) {
     try {
-      const activacionDb = await this.findOne(id);
-      Object.assign(activacionDb, updateActivacionDto);
-      const updatedActivacion = await this.activacionRepository.save(activacionDb);
-      return updatedActivacion;
+      const activation = await this.findOne(activationId);
+
+      if (!activation) {
+        throw new NotFoundException("¡Activación no encontrada!");
+      }
+      await this.activacionRepository.update(activationId, updateActivacionDto);
+
+      return
+
     } catch (error) {
+      console.error("Error al actualizar activación:", error);
       handleExceptions(error);
     }
   }
+
 
   async remove(id: string) {
     try {
@@ -101,14 +107,25 @@ export class ActivacionService {
     }
   }
 
-  async desactivar(id: string) {
+  async disableActivation(activationId: string) {
     try {
-      const activacionDb = await this.activacionRepository.findOneBy({ id: id });
-      if (!activacionDb) throw new NotFoundException('No se encuentra la activacion');
-      activacionDb.estatus = false;
-      await this.activacionRepository.save(activacionDb);
-      return { estatus: true, message: 'Activacion Desactivada Exitosamente' };
+      const activation = await this.activacionRepository.findOneBy({ id: activationId });
+
+      if (!activation) {
+        throw new NotFoundException('¡Activación no encontrada!');
+      }
+
+      activation.estatus = false;
+      
+      await this.activacionRepository.save(activation);
+
+      return {
+        status: true,
+        message: '¡Activación desactivada exitosamente!'
+      };
+
     } catch (error) {
+      console.error("Error al desactivar activación:", error);
       handleExceptions(error);
     }
   }

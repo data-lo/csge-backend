@@ -7,7 +7,9 @@ import { allowedOrigins } from './allowedOrigins';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
   const { httpAdapter } = app.get(HttpAdapterHost);
+
   app.enableCors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],

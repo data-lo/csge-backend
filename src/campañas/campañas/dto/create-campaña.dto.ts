@@ -5,27 +5,27 @@ import { CreateActivacionDto } from "src/campañas/activacion/dto/create-activac
 import { Type } from "class-transformer";
 
 export class CreateCampañaDto {
-    
+
     @IsString()
-    nombre:string;
+    nombre: string;
 
     @IsEnum(CAMPAIGN_STATUS)
     @IsOptional()
-    estatus:CAMPAIGN_STATUS;
+    estatus: CAMPAIGN_STATUS;
 
     @IsEnum(TipoCampaña)
-    tipoDeCampaña:TipoCampaña;
-    
+    tipoDeCampaña: TipoCampaña;
+
     @IsString()
     @IsOptional()
-    motivoCancelacion:string;
+    motivoCancelacion: string;
 
     @IsObject()
     @ValidateNested()
     @Type(() => CreateActivacionDto)
-    activacion:CreateActivacionDto;
+    activacion: CreateActivacionDto;
 
     @IsArray({})
-    @IsString({each:true})
-    dependenciasIds:string[]
+    @IsString({ each: true })
+    dependenciasIds: string[]
 }
