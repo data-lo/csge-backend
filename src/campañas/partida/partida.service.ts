@@ -84,23 +84,13 @@ export class PartidaService {
   }
 
   async disableMatch(matchId: string) {
-    try {
+
       const match = await this.matchRepository.findOneBy({ id: matchId });
 
       if (!match) {
         throw new NotFoundException('¡Partida no encontrada!');
       }
 
-      match.estatus = false;
-
-      await this.matchRepository.save(match);
-
-      return { success: true, message: '¡Partida desactivada exitosamente!' };
-
-    } catch (error) {
-      console.error("Error al desactivar la partida:", error);
-      handleExceptions(error);
-    }
   }
 
 

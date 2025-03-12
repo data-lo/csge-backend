@@ -48,7 +48,7 @@ export class CampañasController {
 
 
   @Auth(...CAMPAIGN_ROLES)
-  @Patch('activar/:id')
+  @Post('enable/:id')
   activar(@Param('id', ParseUUIDPipe) id: string, @Body() createActivacionDto: CreateActivacionDto) {
     return this.campañasService.createRenovation(id, createActivacionDto);
   }

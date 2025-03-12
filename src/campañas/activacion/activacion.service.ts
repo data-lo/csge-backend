@@ -36,6 +36,7 @@ export class ActivacionService {
         partida: partidaDb,
         campaña: campañaDb,
         fechaDeCreacion: fechaDeCreacion,
+        status: true,
         ...rest
       });
 
@@ -101,32 +102,26 @@ export class ActivacionService {
   async obtenerEstatus(id: string) {
     try {
       const activacion = await this.findOne(id);
-      return { id: activacion.id, estatus: activacion.estatus };
+      return { id: activacion.id, estatus: activacion.status };
     } catch (error) {
       handleExceptions(error);
     }
   }
 
   async disableActivation(activationId: string) {
-    try {
-      const activation = await this.activacionRepository.findOneBy({ id: activationId });
+    const activation = await this.activacionRepository.findOne({
+      where: { id: activationId },
+      relations: { partida: true }
+    });
 
-      if (!activation) {
-        throw new NotFoundException('¡Activación no encontrada!');
-      }
+    if (!activation) {
+      throw new NotFoundException('¡Activación no encontrada!');
+    }
 
-      activation.estatus = false;
-      
-      await this.activacionRepository.save(activation);
+    await this.activacionRepository.update(activationId, { status: false });
 
-      return {
-        status: true,
-        message: '¡Activación desactivada exitosamente!'
-      };
-
-    } catch (error) {
-      console.error("Error al desactivar activación:", error);
-      handleExceptions(error);
+    if (activation.partida) {
+      await this.partidaRepository.update(activation.partida.id, { estatus: false });
     }
   }
 }

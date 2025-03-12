@@ -148,7 +148,7 @@ export class CampañasService {
     try {
       const campaign = await this.campaignRepository
         .createQueryBuilder("campaign")
-        .leftJoinAndSelect("campaign.activaciones", "activacion", "activacion.estatus = :status", { status: true })
+        .leftJoinAndSelect("campaign.activaciones", "activacion", "activacion.status = :status", { status: true })
         .leftJoinAndSelect("activacion.partida", "partida")
         .leftJoinAndSelect("campaign.dependencias", "dependencia")
         .where("campaign.id = :campaignId", { campaignId })
@@ -227,6 +227,7 @@ export class CampañasService {
 
   async closeCampaign(campaignId: string) {
     try {
+
       const campaign = await this.campaignRepository.findOne({
         where: { id: campaignId },
         relations: {
@@ -238,20 +239,15 @@ export class CampañasService {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
-      for (const activation of campaign.activaciones) {
-        console.log("activation");
-        if (activation.estatus) {
-          await this.activationService.disableActivation(activation.id);
-          if (activation.partida) {
-            console.log("match");
-            await this.matchService.disableMatch(activation.partida.id);
-          }
-        }
-      }
-
-      campaign.estatus = CAMPAIGN_STATUS.INACTIVA
+      campaign.estatus = CAMPAIGN_STATUS.INACTIVA;
 
       await this.campaignRepository.save(campaign);
+
+      for (const activation of campaign.activaciones) {
+        if (activation.status) {
+          await this.activationService.disableActivation(activation.id);
+        }
+      }
 
       return { success: true, message: "¡Campaña cerrada exitosamente!" };
 
@@ -260,7 +256,6 @@ export class CampañasService {
       throw new InternalServerErrorException("Hubo un problema al cerrar la campaña. Inténtalo de nuevo.");
     }
   }
-
 
   async remove(campaniaId: string) {
     try {
@@ -312,13 +307,14 @@ export class CampañasService {
         partidaId: newMatch.id,
         fechaDeCierre: createActivationDto.fechaDeCierre,
         fechaDeInicio: createActivationDto.fechaDeInicio,
+        status: true,
         fechaDeAprobacion: null
       }
       campaign.estatus = CAMPAIGN_STATUS.REACTIVADA
 
       await this.campaignRepository.save(campaign);
 
-      const newActivation = await this.activationService.create(newActivationObject)
+      await this.activationService.create(newActivationObject)
 
       return { message: '¡La campaña ha sido reactivada con éxito!' };
 
