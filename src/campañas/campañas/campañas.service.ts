@@ -398,7 +398,7 @@ export class CampañasService {
         .createQueryBuilder('campaña')
         .innerJoinAndSelect('campaña.activaciones', 'activacion')
         .where('campaña.id = :campaignId', { campaignId })
-        .andWhere('activacion.estatus = :status', { status: true })
+        .andWhere('activacion.status = :status', { status: true })
         .getOne();
 
       const currentlyActivation = campaignWithActiveActivation.activaciones[0];

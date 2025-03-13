@@ -33,9 +33,7 @@ export class EstacionController {
   @Auth(...rolesEstacion)
   @Get()
   findAll(@Query('pagina') pagina: string) {
-    // return this.estacionService.findAll(+pagina);
-    // TEL721214GK7
-    return this.estacionService.getStationsByServiceType("5eb568d3-50de-41ef-aed6-5a5b47156667", ["TELEVISIÓN", "LOCUCIÓN", "RADIO", "SPOTS"]);
+    return this.estacionService.findAll(+pagina);
   }
 
   @Auth(...rolesEstacion)

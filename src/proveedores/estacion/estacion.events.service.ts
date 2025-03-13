@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EstacionService } from './estacion.service';
+import { TYPE_EVENT_STATION } from './enums/type-event-station';
 
 @Injectable()
 export class StationEventsService {
@@ -9,11 +10,11 @@ export class StationEventsService {
     @OnEvent('disable-stations', { async: true })
     async disableStations(payload: { providerId: string, typeServices: string[] }) {
         try {
-            this.logger.log(`🔄 Iniciando evento "disabled-stations" para el Proveedor: ${payload.providerId}`);
-            await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices);
-            this.logger.log(`✅ Evento "disabled-station" completado. Estaciones del Proveedor: ${payload.providerId} desactivadas.`);
+            this.logger.log(`🔄 Iniciando evento "disable-stations" para el Proveedor: ${payload.providerId}`);
+            await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices, TYPE_EVENT_STATION.DISABLE_STATION);
+            this.logger.log(`✅ Evento "disable-stations" completado. Estaciones del Proveedor: ${payload.providerId} desactivadas.`);
         } catch (error) {
-            this.logger.error(`❌ Error al procesar el evento "disabled-stations": ${error.message}`, error.stack);
+            this.logger.error(`❌ Error al procesar el evento "disable-stations": ${error.message}`, error.stack);
         }
     }
 
@@ -21,11 +22,11 @@ export class StationEventsService {
     @OnEvent('enable-stations', { async: true })
     async enableStations(payload: { providerId: string, typeServices: string[] }) {
         try {
-            this.logger.log(`🔄 Iniciando evento "disabled-stations" para el Proveedor: ${payload.providerId}`);
-            await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices);
-            this.logger.log(`✅ Evento "disabled-station" completado. Estaciones del Proveedor: ${payload.providerId} desactivadas.`);
+            this.logger.log(`🔄 Iniciando evento "enable-stations" para el Proveedor: ${payload.providerId}`);
+            await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices, TYPE_EVENT_STATION.ACTIVATE_STATION);
+            this.logger.log(`✅ Evento "enable-stations" completado. Estaciones del Proveedor: ${payload.providerId} activadas.`);
         } catch (error) {
-            this.logger.error(`❌ Error al procesar el evento "disabled-stations": ${error.message}`, error.stack);
+            this.logger.error(`❌ Error al procesar el evento "enable-stations": ${error.message}`, error.stack);
         }
     }
 }

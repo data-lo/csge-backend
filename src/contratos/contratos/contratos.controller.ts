@@ -34,7 +34,7 @@ export class ContratosController {
   @Auth(...CONTRACT_USER_ROLES)
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.contratosService.obtenerEstatus(id);
+    return this.contratosService.getContractStatus(id);
   }
 
   @Auth(...CONTRACT_USER_ROLES)
@@ -49,32 +49,31 @@ export class ContratosController {
     return this.contratosService.findOne(id);
   }
 
-
   @Auth(...CONTRACT_USER_ROLES)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
-    this.logger.log('actualizar contrato')
+    this.logger.log('Actualizar Contrato')
     return this.contratosService.update(id, updateContratoDto);
   }
 
   @Auth(...CONTRACT_USER_ROLES)
   @Patch('modificar-estatus/:id')
   modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
-    this.logger.log('modificar estatus de contrato');
+    this.logger.log('Modificar Estatus del Contrato');
     return this.contratosService.modificarEstatus(id, updateContratoDto);
   }
 
   @Auth(...CONTRACT_USER_ROLES)
   @Patch('desactivar-cancelar/:id')
   desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
-    this.logger.log('desactivar o cancelar contrato');
-    return this.contratosService.desactivarCancelarContrato(id, updateContratoDto);
+    this.logger.log('Cancelar Contrato');
+    return this.contratosService.processContractCancellation(id, updateContratoDto);
   }
 
   @Auth(...CONTRACT_USER_ROLES)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    this.logger.log('eliminar contrato');
+    this.logger.log('Eliminar Contrato');
     return this.contratosService.remove(id);
   }
 }
