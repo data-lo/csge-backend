@@ -147,7 +147,8 @@ export class UsuariosService {
 
       usuarioDb.password = updatedPassword;
 
-      await this.usuarioRepository.save(usuarioDb)
+      await this.usuarioRepository.save(usuarioDb);
+      
       return { message: "CONTRASEÑA ACTUALIADA EXISTOSAMENTE" };
 
     } catch (error) {

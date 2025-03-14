@@ -77,6 +77,15 @@ export class ContratoMaestro {
   montoMaximoContratado: number;
 
   @Column({
+    name: 'monto_reservado',
+    type: 'decimal',
+    scale: 2,
+    default: 0.0,
+    nullable: false,
+  })
+  committedAmount: number;
+
+  @Column({
     name: 'iva_monto_maximo_contratado',
     type: 'decimal',
     default: null,

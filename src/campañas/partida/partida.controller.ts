@@ -3,55 +3,55 @@ import { PartidaService } from './partida.service';
 import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { rolesCampanias } from '../valid-modules-campanias-roles.ob';
+import { CAMPAIGN_ROLES } from '../valid-modules-campanias-roles.ob';
 
 @Controller('campanias/partidas')
 export class PartidaController {
   constructor(private readonly partidaService: PartidaService) {}
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Post()
   create(@Body() createPartidaDto: CreatePartidaDto) {
     return this.partidaService.create(createPartidaDto);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Get()
   findAll( @Query('pagina') pagina: string) {
     return this.partidaService.findAll(+pagina);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Get('estatus/:id')
   obtenerEstatus( @Param('id', ParseUUIDPipe) id: string) {
     return this.partidaService.obtenerEstatus(id);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Get('montos/:id')
   obtenerMontos( @Param('id', ParseUUIDPipe) id: string) {
     return this.partidaService.obtenerMontos(id);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.partidaService.findOne(id);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Patch('desactivar')
   desactivar(@Body('partidaId',ParseUUIDPipe) partidaId:string) {
-    return this.partidaService.desactivarPartida(partidaId);
+    return this.partidaService.disableMatch(partidaId);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePartidaDto: UpdatePartidaDto) {
     return this.partidaService.update(id, updatePartidaDto);
   }
 
-  @Auth(...rolesCampanias)
+  @Auth(...CAMPAIGN_ROLES)
   @Delete(':id')
   delete(@Param('id', ParseUUIDPipe) id:string){
     return this.partidaService.remove(id);

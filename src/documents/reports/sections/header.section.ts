@@ -99,7 +99,7 @@ export const headerSection = async (
           alignment: 'right',
         },
       ],
-      margin: [0, 10, 0, 0],
+      margin: [0, 10, 0, 30],
     };
 
   } catch (error) {

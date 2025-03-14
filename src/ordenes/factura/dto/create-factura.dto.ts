@@ -1,5 +1,5 @@
 import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { EstatusFactura } from "../interfaces/estatus-factura";
+import { INVOICE_STATUS } from "../interfaces/estatus-factura";
 import { Transform } from "class-transformer";
 
 export class CreateFacturaDto {
@@ -48,9 +48,9 @@ export class CreateFacturaDto {
     })
     fechaPago:string;
 
-    @IsEnum(EstatusFactura)
+    @IsEnum(INVOICE_STATUS)
     @IsOptional()
-    estatus:EstatusFactura;
+    estatus:INVOICE_STATUS;
     
     @IsOptional()
     @IsString()

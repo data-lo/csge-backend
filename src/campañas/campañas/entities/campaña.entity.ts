@@ -11,7 +11,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { EstatusCampaña } from '../interfaces/estatus-campaña.enum';
+import { CAMPAIGN_STATUS } from '../interfaces/estatus-campaña.enum';
 import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.entity';
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { TipoCampaña } from '../interfaces/tipo-campaña.enum';
@@ -32,11 +32,11 @@ export class Campaña {
   @Column({
     name: 'estatus',
     nullable: false,
-    default: EstatusCampaña.CREADA,
+    default: CAMPAIGN_STATUS.CREADA,
     type: 'enum',
-    enum: EstatusCampaña,
+    enum: CAMPAIGN_STATUS,
   })
-  estatus: EstatusCampaña;
+  estatus: CAMPAIGN_STATUS;
 
   @Column({
     name: 'tipo_de_campania',

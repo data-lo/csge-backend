@@ -15,13 +15,15 @@ import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-
 import { firmasDeRecepcionSection } from './aprobacion-de-factura-sections/firmas-de-recepcion-section';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 
-interface OrdenDeServicioOptions {
+
+interface Props {
   ordenDeServicio: Orden;
   textoEncabezado: string;
   textoPieDePagina: string;
+  qrCode?: string;
 }
 
-export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
+export const ordenDeServicioPdf = async (orden: Props) => {
   try {
     const {
       campaña,
@@ -61,14 +63,8 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
       footer: function (currentPage, pageCount) {
         return {
           columns: [
-            {
-              width: '*',
-              stack: [presupuestoTextC],
-            },
-            {
-              width: '*',
-              stack: [footerTextPieDePaginaC],
-            },
+            { width: '*', stack: [presupuestoTextC] },
+            { width: '*', stack: [footerTextPieDePaginaC] },
             {
               stack: [
                 {
@@ -142,8 +138,17 @@ export const ordenDeServicioPdf = async (orden: OrdenDeServicioOptions) => {
             },
           ],
         },
+        orden.qrCode
+        ? {
+            alignment: 'left',
+            margin: [0, 20],
+            image: orden.qrCode,
+            width: 100,
+          }
+        : undefined,
       ],
     };
+
     return docDefinition;
   } catch (error) {
     handleExceptions(error);

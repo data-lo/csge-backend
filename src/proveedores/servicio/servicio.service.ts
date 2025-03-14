@@ -152,6 +152,20 @@ export class ServicioService {
     }
   }
 
+  async enableMultiplyServices(typeServicesId: string[]) {
+    for (const serviceId of typeServicesId) {
+
+      const service = await this.servicioRepository.findOneBy({ id: serviceId });
+
+      if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
+
+      await this.servicioRepository.update(serviceId, {
+        estatus: true
+      });
+    }
+  }
+
+
   async updateService(updateServiceDto: UpdateServicioDto, id: string) {
 
     try {

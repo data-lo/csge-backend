@@ -21,7 +21,7 @@ export const campaignApprovalStructure = async (data: Props) => {
 
     const { footerTextPieDePaginaC, presupuestoTextC } = footerSection({ textoPieDePagina: data.footer, presupuestoText: budget });
 
-    const docDefinition: TDocumentDefinitions = {
+    const documentDefinition: TDocumentDefinitions = {
         info: {
             creationDate: new Date(),
             author:
@@ -67,5 +67,5 @@ export const campaignApprovalStructure = async (data: Props) => {
             firmasDeRecepcionSection(),
         ],
     };
-    return docDefinition;
+    return documentDefinition;
 }

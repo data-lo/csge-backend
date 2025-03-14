@@ -12,72 +12,72 @@ export class CarteleraGobiernoService {
 
   constructor(
     @InjectRepository(CarteleraGobierno)
-    private carteleraGobiernoRepository:Repository<CarteleraGobierno>
-  ){}
+    private carteleraGobiernoRepository: Repository<CarteleraGobierno>
+  ) { }
 
   async create(createCarteleraGobiernoDto: CreateCarteleraGobiernoDto) {
-    try{
+    try {
       const carteleraGob = this.carteleraGobiernoRepository.create(createCarteleraGobiernoDto);
       await this.carteleraGobiernoRepository.save(carteleraGob);
       return carteleraGob;
-    }catch(error:any){
+    } catch (error: any) {
       handleExceptions(error);
     }
   }
 
-  
-  findAll(pagina:number) {
-    try{
+
+  findAll(pagina: number) {
+    try {
       const pagiantionSetter = new PaginationSetter();
-      const cartelerasGobierno  = this.carteleraGobiernoRepository.find({
-        take:pagiantionSetter.castPaginationLimit(),
-        skip:pagiantionSetter.getSkipElements(pagina)
+      const cartelerasGobierno = this.carteleraGobiernoRepository.find({
+        take: pagiantionSetter.castPaginationLimit(),
+        skip: pagiantionSetter.getSkipElements(pagina)
       });
       return cartelerasGobierno;
-    }catch(error:any){
+    } catch (error: any) {
       handleExceptions(error);
     }
   }
 
   findAllBusqueda() {
-    try{
-      const cartelerasGobierno  = this.carteleraGobiernoRepository.find();
+    try {
+      const cartelerasGobierno = this.carteleraGobiernoRepository.find();
       return cartelerasGobierno;
-    }catch(error:any){
+    } catch (error: any) {
       handleExceptions(error);
     }
   }
 
   async findOne(id: string) {
-    try{
-      const cartelera = await this.carteleraGobiernoRepository.findOneBy({id:id});
-      if(!cartelera) throw new NotFoundException('Caretelera no encontrada');
+    try {
+      const cartelera = await this.carteleraGobiernoRepository.findOneBy({ id: id });
+      if (!cartelera) throw new NotFoundException('Caretelera no encontrada');
       return cartelera;
-    }catch(error:any){
+    } catch (error: any) {
       handleExceptions(error);
     }
   }
 
   async update(id: string, updateCarteleraGobiernoDto: UpdateCarteleraGobiernoDto) {
-    try{
+    try {
       const cartelera = await this.findOne(id);
-      if(cartelera){
-        await this.carteleraGobiernoRepository.update(id,updateCarteleraGobiernoDto);
+      if (cartelera) {
+        await this.carteleraGobiernoRepository.update(id, updateCarteleraGobiernoDto);
         return await this.findOne(id);
       }
-    }catch(error:any){  
+    } catch (error: any) {
       handleExceptions(error);
     }
   }
 
   async remove(id: string) {
-    try{
+    try {
       const cartelera = await this.findOne(id);
-      if(cartelera){
+      if (cartelera) {
         await this.carteleraGobiernoRepository.delete(id);
-        return {message:'Cartelera eliminada correctamente'};
+        return { message: 'Cartelera eliminada correctamente' };
       }
-    }catch(error:any){
+    } catch (error: any) {
       handleExceptions(error);
     }
   }

@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsOptional, IsUUID } from "class-validator";
-import { TipoDeDocumento } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
+import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 
 export class CreateFirmaDto {
 
@@ -10,6 +10,6 @@ export class CreateFirmaDto {
     @IsOptional()
     estaFirmado:boolean;
 
-    @IsEnum(TipoDeDocumento)
-    tipoDeDocumento:TipoDeDocumento
+    @IsEnum(TIPO_DE_DOCUMENTO)
+    tipoDeDocumento:TIPO_DE_DOCUMENTO
 }

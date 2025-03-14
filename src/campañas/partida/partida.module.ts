@@ -12,8 +12,8 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 @Module({
   controllers: [PartidaController],
   providers: [PartidaService, PartidaEventosService],
-  imports: [TypeOrmModule.forFeature([Partida,Campaña,Orden]), 
-  PassportModule, AuthModule],
+  imports: [TypeOrmModule.forFeature([Partida, Campaña, Orden, Partida]),
+    PassportModule, AuthModule],
   exports: [PartidaService]
 })
 export class PartidaModule { }

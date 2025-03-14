@@ -4,7 +4,7 @@ import {
     IsArray, IsBoolean, IsEmail, IsEnum,
     IsOptional, IsString, IsUUID, MaxLength
 } from "class-validator";
-import { TipoDeDocumento } from "../interfaces/usuarios.tipo-de-documento";
+import { TIPO_DE_DOCUMENTO } from "../interfaces/usuarios.tipo-de-documento";
 import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 
 export class CreateUsuarioDto {
@@ -59,8 +59,8 @@ export class CreateUsuarioDto {
     permisos: ValidPermises[];
 
     @IsOptional()
-    @IsEnum(TipoDeDocumento, { each: true })
-    documentosDeFirma: TipoDeDocumento[];
+    @IsEnum(TIPO_DE_DOCUMENTO, { each: true })
+    documentosDeFirma: TIPO_DE_DOCUMENTO[];
 
     @IsOptional()
     @IsEnum(TIPO_DE_SERVICIO, { each: true })

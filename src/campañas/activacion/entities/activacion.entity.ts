@@ -49,12 +49,11 @@ export class Activacion {
   fechaDeCierre: Date;
 
   @Column({
-    name: 'estatus',
+    name: 'status',
     type: 'boolean',
-    default: true,
     nullable: false,
   })
-  estatus: boolean;
+  status: boolean;
 
   @OneToOne(() => Partida, {
     eager: true,

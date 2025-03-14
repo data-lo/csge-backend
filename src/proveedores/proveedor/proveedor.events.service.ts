@@ -11,12 +11,10 @@ export class ProviderEventService {
     // 📌 Este evento desactiva a un proveedor bajo las siguientes condiciones:
     // 1. El contrato ha vencido.
     // 2. Un contrato ha sido cancelado.
-    // 3. El usuario desactivó al proveedor.
     @OnEvent('disable-provider', { async: false })
-    async disableProvider(payload: { providerId: string }) {
-        this.logger.log(`🔄 Iniciando evento "disable-provider" para el Proveedor: ${payload.providerId}`);
-        
+    async disableProvider(payload: { providerId: string }) {        
         try {
+            this.logger.log(`🔄 Iniciando evento "disable-provider" para el Proveedor: ${payload.providerId}`);
             await this.providerService.desactivateProvider(payload.providerId);
             this.logger.log(`✅ Evento "disable-provider" completado. Proveedor ${payload.providerId} desactivado.`);
         } catch (error) {
@@ -25,13 +23,11 @@ export class ProviderEventService {
     }
 
     // 📌 Este evento activa a un proveedor bajo las siguientes condiciones:
-    // 1. Hay un nuevo contrato vigente.
-    // 2. El usuario activó el proveedor.
+    // 1. El usuario crea un nuevo contrato.
     @OnEvent('enable-provider', { async: true })
-    async enableProvider(payload: { providerId: string }) {
-        this.logger.log(`🔄 Iniciando evento "enabled-provider" para el Proveedor: ${payload.providerId}`);
-        
+    async enableProvider(payload: { providerId: string }) {        
         try {
+            this.logger.log(`🔄 Iniciando evento "enabled-provider" para el Proveedor: ${payload.providerId}`);
             await this.providerService.activateProvider(payload.providerId);
             this.logger.log(`✅ Evento "enabled-provider" completado. Proveedor ${payload.providerId} activado.`);
         } catch (error) {

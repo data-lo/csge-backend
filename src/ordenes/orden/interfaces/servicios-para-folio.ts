@@ -1,13 +1,15 @@
 import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
 
-export class ServiciosParaFolio {
+export class FolioServices {
 
-    abreviaciones = {
+    private abbreviations = {
         "CIN": TIPO_DE_SERVICIO.CINE,
+        "CRE": TIPO_DE_SERVICIO.CREATIVOS,
         "DIG": TIPO_DE_SERVICIO.DIGITALES,
         "EML": TIPO_DE_SERVICIO.EMAILING,
         "ESP": TIPO_DE_SERVICIO.ESPECTACULARES,
-        "REV": TIPO_DE_SERVICIO.REVISTA,
+        "EO": TIPO_DE_SERVICIO.ESTUDIO_DE_OPINION,
+        "IMP": TIPO_DE_SERVICIO.IMPRESOS,
         "LOC": TIPO_DE_SERVICIO.LOCUCION,
         "MON": TIPO_DE_SERVICIO.MONITOREO,
         "PD": TIPO_DE_SERVICIO.PANTALLAS_DIGITALES,
@@ -15,22 +17,21 @@ export class ServiciosParaFolio {
         "PM": TIPO_DE_SERVICIO.PLAN_DE_MEDIOS,
         "PROD": TIPO_DE_SERVICIO.PRODUCCION,
         "RAD": TIPO_DE_SERVICIO.RADIO,
+        "REV": TIPO_DE_SERVICIO.REVISTA,
         "SPT": TIPO_DE_SERVICIO.SPOTS,
         "TV": TIPO_DE_SERVICIO.TELEVISION,
         "TES": TIPO_DE_SERVICIO.TESTIMONIALES,
         "VM": TIPO_DE_SERVICIO.VALLAS_MOVILES,
         "VID": TIPO_DE_SERVICIO.VIDEOS,
-    }
+        "SG": TIPO_DE_SERVICIO.SERVICIOS_GENERALES,
+    };
 
-    obtenerAbreviacion(TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
-        for (const [abreviacion, servicio] of Object.entries(this.abreviaciones)) {
-            if (servicio === TIPO_DE_SERVICIO) {
-                return abreviacion;
+    getAbbreviation(serviceType: TIPO_DE_SERVICIO) {
+        for (const [abbreviation, service] of Object.entries(this.abbreviations)) {
+            if (service === serviceType) {
+                return abbreviation;
             }
         }
         return undefined;
     }
-
 }
-
-

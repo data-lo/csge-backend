@@ -48,4 +48,7 @@ export class CreateServicioContratadoDto {
     @IsUUID()
     @IsOptional()
     ordenId:string;
+
+    @IsString()
+    uniqueId: string;
 }

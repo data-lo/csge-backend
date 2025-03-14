@@ -1,4 +1,4 @@
-export enum TipoDeDocumento {
+export enum TIPO_DE_DOCUMENTO {
     ORDEN_DE_SERVICIO = 'ORDEN_DE_SERVICIO',
     CAMPAÑA = 'CAMPAÑA',
     APROBACION_DE_FACTURA = 'APROBACION_DE_FACTURA'

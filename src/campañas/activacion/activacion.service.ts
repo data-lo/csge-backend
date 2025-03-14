@@ -36,6 +36,7 @@ export class ActivacionService {
         partida: partidaDb,
         campaña: campañaDb,
         fechaDeCreacion: fechaDeCreacion,
+        status: true,
         ...rest
       });
 
@@ -70,17 +71,23 @@ export class ActivacionService {
       handleExceptions(error);
     }
   }
-
-  async update(id: string, updateActivacionDto: UpdateActivacionDto) {
+  async update(activationId: string, updateActivacionDto: UpdateActivacionDto) {
     try {
-      const activacionDb = await this.findOne(id);
-      Object.assign(activacionDb, updateActivacionDto);
-      const updatedActivacion = await this.activacionRepository.save(activacionDb);
-      return updatedActivacion;
+      const activation = await this.findOne(activationId);
+
+      if (!activation) {
+        throw new NotFoundException("¡Activación no encontrada!");
+      }
+      await this.activacionRepository.update(activationId, updateActivacionDto);
+
+      return
+
     } catch (error) {
+      console.error("Error al actualizar activación:", error);
       handleExceptions(error);
     }
   }
+
 
   async remove(id: string) {
     try {
@@ -95,21 +102,26 @@ export class ActivacionService {
   async obtenerEstatus(id: string) {
     try {
       const activacion = await this.findOne(id);
-      return { id: activacion.id, estatus: activacion.estatus };
+      return { id: activacion.id, estatus: activacion.status };
     } catch (error) {
       handleExceptions(error);
     }
   }
 
-  async desactivar(id: string) {
-    try {
-      const activacionDb = await this.activacionRepository.findOneBy({ id: id });
-      if (!activacionDb) throw new NotFoundException('No se encuentra la activacion');
-      activacionDb.estatus = false;
-      await this.activacionRepository.save(activacionDb);
-      return { estatus: true, message: 'Activacion Desactivada Exitosamente' };
-    } catch (error) {
-      handleExceptions(error);
+  async disableActivation(activationId: string) {
+    const activation = await this.activacionRepository.findOne({
+      where: { id: activationId },
+      relations: { partida: true }
+    });
+
+    if (!activation) {
+      throw new NotFoundException('¡Activación no encontrada!');
+    }
+
+    await this.activacionRepository.update(activationId, { status: false });
+
+    if (activation.partida) {
+      await this.partidaRepository.update(activation.partida.id, { estatus: false });
     }
   }
 }

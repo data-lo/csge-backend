@@ -18,8 +18,8 @@ import {
   Sticker,
 } from './interfaces/firmamex-responde.interface';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
-import { TipoDeDocumento } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
-import { QROrden, QRCotejo } from './interfaces/qr.c';
+import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { QROrden, QRCotejo, QR_APPROVAL_CAMPAIGN } from './interfaces/qr.c';
 import { DocumentsService } from '../../documents/documents.service';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Firma } from './entities/firma.entity';
@@ -29,6 +29,7 @@ import {
   coordenadasCancelador,
   coordenadasCotejador,
   coordenadasOrden,
+  COORDINATES_IN_DOCUMENT_CAMPAIGN,
 } from './interfaces/stickers-coordenadas.objs';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Console } from 'console';
@@ -60,6 +61,7 @@ export class FirmaService {
   async create(createFirmaDto: CreateFirmaDto) {
     try {
       const { ordenOFacturaId, tipoDeDocumento } = createFirmaDto;
+
       const usuarios = await this.obtenerUsuariosFirmantes(
         ordenOFacturaId,
         tipoDeDocumento,
@@ -109,7 +111,7 @@ export class FirmaService {
           estaFirmado: false,
         })
         .andWhere('documento.tipo_de_documento = :tipoDocumento', {
-          tipoDocumento: TipoDeDocumento.ORDEN_DE_SERVICIO,
+          tipoDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         })
         .getMany();
 
@@ -147,7 +149,7 @@ export class FirmaService {
             estaFirmado: false,
           })
           .andWhere('documento.tipo_de_documento = :tipoDocumento', {
-            tipoDocumento: TipoDeDocumento.APROBACION_DE_FACTURA,
+            tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
           })
           .getMany();
 
@@ -187,7 +189,7 @@ export class FirmaService {
           estaFirmado: false,
         })
         .andWhere('documento.tipo_de_documento = :tipoDocumento', {
-          tipoDocumento: TipoDeDocumento.CAMPAÑA,
+          tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
         })
         .getMany();
 
@@ -199,13 +201,13 @@ export class FirmaService {
 
   async obtenerUsuariosFirmantes(
     documentoId: string,
-    tipoDeDocumento: TipoDeDocumento,
+    tipoDeDocumento: TIPO_DE_DOCUMENTO,
   ): Promise<Usuario[]> {
     try {
       let documentoDb: Orden | Factura = null;
       let usuarios: Usuario[] = [];
 
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         documentoDb = await this.ordenRepository.findOne({
           where: { id: documentoId },
         });
@@ -225,7 +227,7 @@ export class FirmaService {
             permiso: ValidPermises.FIRMA,
           })
           .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
-            tipoDocumento: TipoDeDocumento.ORDEN_DE_SERVICIO,
+            tipoDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
           })
           .andWhere(
             '(:tipoServicio = ANY(usuario.tipoOrdenDeServicio) OR :tipoTodos = ANY(usuario.tipoOrdenDeServicio))',
@@ -237,7 +239,7 @@ export class FirmaService {
           .getMany();
       }
 
-      if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         documentoDb = await this.facturaRepository.findOne({
           where: { id: documentoId },
         });
@@ -252,12 +254,12 @@ export class FirmaService {
             permiso: ValidPermises.FIRMA,
           })
           .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
-            tipoDocumento: TipoDeDocumento.APROBACION_DE_FACTURA,
+            tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
           })
           .getMany();
       }
 
-      if (tipoDeDocumento === TipoDeDocumento.CAMPAÑA) {
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         usuarios = await this.usuarioRepository
           .createQueryBuilder('usuario')
           .where('usuario.estatus = :estatus', { estatus: true })
@@ -265,7 +267,7 @@ export class FirmaService {
             permiso: ValidPermises.FIRMA,
           })
           .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
-            tipoDocumento: TipoDeDocumento.CAMPAÑA,
+            tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
           })
           .getMany();
       }
@@ -276,89 +278,92 @@ export class FirmaService {
     }
   }
 
-  async firmarDocumento(usuarioId: string, documentoId: string) {
+  async documentSigning(userId: string, documentId: string) {
     try {
-      const usuario = await this.usuarioRepository.findOneBy({ id: usuarioId });
-      const documento = await this.firmaRepository.findOne({
-        where: { id: documentoId },
-        relations: {
-          usuariosFirmadores: true,
-        },
+      // Buscar el usuario en la base de datos por su ID
+      const user = await this.usuarioRepository.findOneBy({ id: userId });
+
+      // Buscar el documento en la base de datos con sus relaciones (usuarios firmadores)
+      const document = await this.firmaRepository.findOne({
+        where: { id: documentId },
+        relations: { usuariosFirmadores: true },
       });
 
-      if (!usuario) throw new NotFoundException('No se encontró el usuario');
+      // Si el usuario no existe, lanzar una excepción
+      if (!user) throw new NotFoundException('¡No se encuentra el usuario!');
 
-      if (!documento) throw new NotFoundException('No se encontró el documento');
+      // Si el documento no existe, lanzar una excepción
+      if (!document) throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
 
-      const documentoEnPdf = await this.construir_pdf(
-        documento.ordenOFacturaId,
-        documento.tipoDeDocumento,
-      );
+      if (document.firmamexDocumentUrl === "sin_url") {
+        // Construir el documento en formato PDF a partir de su orden o factura
+        const documentInPdf = await this.construir_pdf(document.ordenOFacturaId, document.tipoDeDocumento);
 
-      const stickers = await this.crearStickers(
-        [usuario],
-        documento.tipoDeDocumento,
-        documento.usuariosFirmadores,
-      );
-      const documentoEnBase64 = await this.crearArchivoEnBase64(documentoEnPdf);
+        // Generar stickers para la firma digital del documento
+        const stickers = await this.createStickers([user], document.tipoDeDocumento, document.usuariosFirmadores);
 
-      const response = await this.enviarDocumentoAFirmamexSDK(
-        documentoEnBase64,
-        documentoEnPdf.info.Title,
-        stickers,
-        documento.tipoDeDocumento,
-      );
+        // Convertir el documento PDF a formato Base64
+        const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
 
-      documento.ticket = response.document_ticket;
+        // Enviar el documento al servicio de firma digital (Firmamex SDK)
+        const response = await this.submitDocumentToFirmamexSDK(
+          documentInBase64,
+          documentInPdf.info.Title,
+          stickers,
+          document.tipoDeDocumento,
+        );
 
-      documento.documentoUrlFirmamex = response.document_url;
+        // Guardar los datos de la firma en el documento
+        document.ticket = response.document_ticket;
 
-      await this.firmaRepository.save(documento);
+        document.firmamexDocumentUrl = response.document_url;
 
-      return documento.documentoUrlFirmamex;
+        // Guardar los cambios en la base de datos
+        await this.firmaRepository.save(document);
+      }
+
+      // Retornar la URL del documento generado en los servidor de Gobierno del Estado
+      return document.firmamexDocumentUrl;
+
     } catch (error) {
+      // Manejo de errores centralizado
       handleExceptions(error);
     }
   }
 
-  private async construir_pdf(
-    documentId,
-    documentType: TipoDeDocumento,
-  ): Promise<PDFKit.PDFDocument> {
+  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean): Promise<PDFKit.PDFDocument> {
     try {
-      let document = null;
-      if (documentType === TipoDeDocumento.ORDEN_DE_SERVICIO) {
-        document = await this.documentsService.construirOrdenDeServicio(documentId);
-        return document;
 
-      } else if (documentType === TipoDeDocumento.APROBACION_DE_FACTURA) {
-        document = await this.documentsService.construirAprobacionDeFactura(documentId);
-        return document;
+      let document = null;
+
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+        document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign);
+
+      } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+        document = await this.documentsService.buildInvoiceApprovalDocument(documentId);
 
       } else {
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
-        return document;
       }
+      console.log(document)
+      return document;
     } catch (error) {
       console.log('error en costruir pdf');
       handleExceptions(error);
     }
   }
 
-  private async crearStickers(
-    usuarios: Usuario[],
-    tipoDeDocumento: TipoDeDocumento,
-    usuariosFirmadores: Usuario[],
-  ): Promise<Sticker[]> {
+  private async createStickers(usuarios: Usuario[], documentType: TIPO_DE_DOCUMENTO, usuariosFirmadores: Usuario[],): Promise<Sticker[]> {
     try {
       let rect = {};
+
       const stickers = [];
 
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         rect = coordenadasOrden;
       }
 
-      if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+      if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         rect = coordenadasCotejador;
         const stickerAprobador = {
           authority: 'chihuahua',
@@ -370,6 +375,10 @@ export class FirmaService {
           rect: coordenadasAprobacionFactura,
         };
         stickers.push(stickerAprobador);
+      }
+
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        rect = COORDINATES_IN_DOCUMENT_CAMPAIGN;
       }
 
       for (const usuario of usuarios) {
@@ -385,107 +394,40 @@ export class FirmaService {
         };
         stickers.push(sticker);
       }
+
       return stickers;
-    } catch (error) {
-      console.log('error en crearStickers');
-      handleExceptions(error);
-    }
-  }
-
-  async firmarCampania(usuarioId: string, firmaId: string) {
-    try {
-
-      const firmamexService = await this.firmamexService.getServices();
-
-      const user = await this.usuarioRepository.findOneBy({ id: usuarioId });
-
-      if (!user) throw new NotFoundException('¡No se encuentra el usuario!');
-
-      const signatureCampaign = await this.firmaRepository.findOneBy({ id: firmaId });
-
-      if (!signatureCampaign) throw new NotFoundException('¡No se encuentra la campaña en el módulo de firma!');
-
-      const campaing = await this.campaniaRepository.findOneBy({ id: signatureCampaign.ordenOFacturaId });
-
-      if (!campaing) throw new NotFoundException('¡No se encuentra la campaña!');
-
-      const orders = await this.ordenRepository
-        .createQueryBuilder('orden')
-        .where('orden.campañaId = :campaniaId', { campaniaId: campaing.id })
-        .andWhere('orden.cotizada_en_campania = :esCampania', { esCampania: true })
-        .getMany();
-
-      const QR = QROrden;
-
-      if (!orders) throw new NotFoundException('¡No se encontraron órdenes de servicio!');
-
-      const dossier = await this.crearExpediente({ name: campaing.nombre });
-
-      signatureCampaign.ticket = dossier;
-
-      const response = await this.firmaRepository.save(signatureCampaign);
-
-      for (const order of orders) {
-        const orderPDF = await this.construir_pdf(order.id, TipoDeDocumento.ORDEN_DE_SERVICIO);
-
-        const stickers = await this.crearStickers([user], TipoDeDocumento.ORDEN_DE_SERVICIO, signatureCampaign.usuariosFirmadores);
-
-        const documentInBase64 = await this.crearArchivoEnBase64(orderPDF);
-
-        const response = await firmamexService.request({
-          b64_doc: {
-            data: documentInBase64,
-            name: order.folio
-          },
-          qr: [QR],
-          document_set: dossier,
-          stickers: stickers,
-        });
-
-      }
-
-      const file =
-
-        console.log("Si llega aquí");
-
-      // const documentSetData = await services.getDocumentSet(documentSet);
-
-
-      // const closeDossier = await firmamexService.closeDocumentSet({
-      //   documentSet: dossier,
-      //   workflow: {
-      //     remind_every: '1d',
-      //     language: 'es',
-      //     ordered: true
-      //   }
-      // });
-
-      // console.log(closeDossier);
-
-      return "Ok";
 
     } catch (error) {
       handleExceptions(error);
     }
   }
+
 
   // Servicios de Firmamex
 
-  async enviarDocumentoAFirmamexSDK(
+  async submitDocumentToFirmamexSDK(
     docBase64,
     docNombre: string,
     stickers: Sticker[],
-    tipoDeDocumento: TipoDeDocumento,
+    tipoDeDocumento: TIPO_DE_DOCUMENTO,
   ): Promise<FirmamexResponse> {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
+
       let QR = {};
-      if (tipoDeDocumento === TipoDeDocumento.ORDEN_DE_SERVICIO) {
+
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         QR = QROrden;
       }
-      if (tipoDeDocumento === TipoDeDocumento.APROBACION_DE_FACTURA) {
+
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         QR = QRCotejo;
       }
+
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        QR = QR_APPROVAL_CAMPAIGN;
+      }
+
       const response = await serviciosFirmamex.request({
         b64_doc: {
           data: docBase64,
@@ -494,6 +436,7 @@ export class FirmaService {
         qr: [QR],
         stickers: stickers,
       });
+
       return response;
     } catch (error) {
       console.log('error en firmamex');
@@ -537,7 +480,7 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumento(documentId: string, documentType: TipoDeDocumento,) {
+  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean) {
     try {
       let document: any;
 
@@ -546,18 +489,18 @@ export class FirmaService {
       });
 
       if (!documentForSignature) {
-        document = await this.construir_pdf(documentId, documentType);
+        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
         return document;
       }
 
       if (!documentForSignature.ticket) {
-        document = await this.construir_pdf(documentId, documentType);
+        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
         return document;
       }
 
       return {
         tipo: 'url',
-        url: documentForSignature.documentoUrlFirmamex
+        url: documentForSignature.firmamexDocumentUrl
       };
 
     } catch (error) {
