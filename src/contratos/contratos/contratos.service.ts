@@ -8,7 +8,7 @@ import {
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
-import { In, Repository } from 'typeorm';
+import { In, LessThanOrEqual, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
@@ -19,6 +19,7 @@ import { LoggerService } from 'src/logger/logger.service';
 import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { handlerAmounts } from './functions/handler-amounts';
+import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
 
 
 @Injectable()
@@ -68,6 +69,12 @@ export class ContratosService {
 
       if (!provider) {
         throw new NotFoundException('¡El proveedor especificado no existe!');
+      }
+
+      const hasDuplicateServices = await this.verifyServiceExistsOnce(provider.id, tipoDeServicios);
+
+      if (hasDuplicateServices) {
+        throw new ConflictException('¡Algunos servicios ya están asociados a un contrato vigente!');
       }
 
       const activeContractsCount = await this.countActiveContracts(provider.id);
@@ -187,7 +194,9 @@ export class ContratosService {
           contratosModificatorios: true,
         },
       });
-      if (!contrato) throw new NotFoundException('El contrato no se encuentra');
+      if (!contrato) {
+        throw new NotFoundException('El contrato no se encuentra');
+      }
       return contrato;
     } catch (error) {
       handleExceptions(error);
@@ -245,7 +254,7 @@ export class ContratosService {
       });
       contratoMaestroDb.estatusDeContrato = estatusDeContrato;
       await this.masterContractRepository.save(contratoMaestroDb);
-      // this.emitter(id, estatusDeContrato.toLowerCase());
+
       return {
         message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
       };
@@ -333,24 +342,40 @@ export class ContratosService {
     }
   }
 
-  async remove(id: string) {
+  async remove(masterContractId: string) {
     try {
 
-      const contratoMaestroDb = await this.masterContractRepository.findOne({
-        where: { id: id },
-        relations: { contratos: true },
+      const masterContract = await this.masterContractRepository.findOne({
+        where: { id: masterContractId },
+        relations: ["contratos", "proveedor"],
       });
 
-      if (contratoMaestroDb.estatusDeContrato !== ESTATUS_DE_CONTRATO.PENDIENTE) {
+      if (masterContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.PENDIENTE) {
         throw new BadRequestException(
-          'El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato',
+          "¡El contrato debe estar en estatus 'Pendiente' poder eliminarse!"
         );
-      } else {
-        for (const contrato of contratoMaestroDb.contratos) {
-          await this.contractRepository.remove(contrato);
-        }
-        await this.masterContractRepository.remove(contratoMaestroDb);
       }
+
+      if (masterContract) {
+        const serviceTypeContracted = masterContract.contratos.map(contract => contract.tipoDeServicio);
+
+        this.eventEmitter.emit("disable-stations", {
+          providerId: masterContract.proveedor.id,
+          typeServices: serviceTypeContracted,
+        });
+      }
+
+      for (const contract of masterContract.contratos) {
+        const contractEntity = await this.contractRepository.findOne({ where: { id: contract.id } });
+
+        await this.contractRepository.remove(contractEntity);
+      }
+
+      await this.masterContractRepository.remove(masterContract);
+
+      return {
+        message: "¡El contrato ha sido eliminado exitosamente!",
+      };
     } catch (error) {
       handleExceptions(error);
     }
@@ -362,14 +387,14 @@ export class ContratosService {
     try {
       const contract = await this.getContractStatus(masterContractId);
 
-      const validStatus = [
+      const validStates = [
         ESTATUS_DE_CONTRATO.LIBERADO,
         ESTATUS_DE_CONTRATO.ADJUDICADO,
       ];
 
-      if (!validStatus.includes(contract.estatus)) {
+      if (!validStates.includes(contract.estatus)) {
         throw new BadRequestException(
-          "¡El contrato debe estar en estado 'Liberado' o 'Adjudicado' para poder cancelarse!"
+          "¡El contrato debe estar en estatus 'Liberado' o 'Adjudicado' para poder cancelarse!"
         );
       }
 
@@ -395,7 +420,7 @@ export class ContratosService {
       }
 
       return {
-        message: "✅ ¡El contrato ha sido cancelado exitosamente!",
+        message: "¡El contrato ha sido cancelado exitosamente!",
       };
 
     } catch (error) {
@@ -464,7 +489,7 @@ export class ContratosService {
 
     // Obtener contratos que finalizan hoy con sus relaciones
     const masterContractsEndsToday = await this.masterContractRepository.find({
-      where: { fechaFinal: today },
+      where: { fechaFinal: LessThanOrEqual(today) },
       relations: ["contratos", "proveedor"]
     });
 
@@ -567,10 +592,26 @@ export class ContratosService {
     }
   }
 
+  async verifyServiceExistsOnce(providerId: string, typeServices: TIPO_DE_SERVICIO[]) {
+    const validStates = [
+      ESTATUS_DE_CONTRATO.PENDIENTE,
+      ESTATUS_DE_CONTRATO.ADJUDICADO,
+      ESTATUS_DE_CONTRATO.LIBERADO
+    ];
 
-  // async uploadReports() {
+    const masterContracts = await this.masterContractRepository.find({
+      where: {
+        proveedor: { id: providerId },
+        estatusDeContrato: In(validStates)
+      },
+      relations: ["contratos"]
+    });
 
-  // }
+    const servicesTypeActive: TIPO_DE_SERVICIO[] = masterContracts.flatMap(masterContract =>
+      masterContract.contratos.map(contract => contract.tipoDeServicio)
+    );
 
+    return typeServices.some(service => servicesTypeActive.includes(service));
+  }
 }
 
