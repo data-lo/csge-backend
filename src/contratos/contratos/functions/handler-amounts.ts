@@ -36,12 +36,12 @@ export function handlerAmounts(values: Props) {
             newValues.masterContract.activeAmount += Number(values.totalOrder);
             newValues.masterContract.availableAmount -= Number(values.totalOrder);
             newValues.masterContract.availableAmount -= Number(values.totalOrder);
+            newValues.masterContract.committedAmount -= Number(values.totalOrder);
             break;
 
         case TYPE_EVENT_ORDER.ORDER_CANCELLED:
             newValues.contractByServiceType.activeAmount -= Number(values.totalOrder);
             newValues.masterContract.activeAmount -= Number(values.totalOrder);
-            newValues.masterContract.committedAmount -= Number(values.totalOrder);
             break;
 
         case TYPE_EVENT_INVOICE.INVOICE_REVIEWED:

@@ -155,6 +155,7 @@ export class ContratosService {
           'contratoMaestro.montoEjercido',
           'contratoMaestro.montoPagado',
           'contratoMaestro.montoDisponible',
+          'contratoMaestro.committedAmount',
           'contratoMaestro.estatusDeContrato',
           'contratos.id',
           'contratos.tipoDeServicio',
@@ -178,6 +179,7 @@ export class ContratosService {
           contratos: true,
         },
       });
+
       return contratos;
     } catch (error) {
       handleExceptions(error);
