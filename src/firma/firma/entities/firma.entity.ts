@@ -3,6 +3,7 @@ import { Column, CreateDateColumn, Entity, Generated, JoinTable, ManyToMany, Pri
 import { ESTATUS_DE_FIRMA } from "../interfaces/estatus-de-firma.enum";
 import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 import { SignedBy } from "../interfaces/signed-by";
+import { SIGNATURE_ACTION_ENUM } from "../enums/signature-action-enum";
 
 @Entity('documentos_firma')
 export class Firma {
@@ -20,7 +21,7 @@ export class Firma {
     documentId: string;
 
     @Column({
-        name: 'tipo_de_documento',
+        name: 'document_type',
         type: 'enum',
         enum: TIPO_DE_DOCUMENTO
     })
@@ -70,9 +71,18 @@ export class Firma {
         name: 'activation_id',
         nullable: true,
         default: null,
-        unique: true
     })
     activationId: string;
+
+    @Column({
+        name: 'signature_action',
+        type: 'enum',
+        enum: SIGNATURE_ACTION_ENUM,
+        default: SIGNATURE_ACTION_ENUM.APPROVE,
+        nullable: false,
+    })
+    signatureAction: SIGNATURE_ACTION_ENUM;
+    
 
     @CreateDateColumn({
         name: 'created_at',

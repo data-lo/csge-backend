@@ -119,7 +119,7 @@ export class FirmaService {
         .andWhere('documento.esta_firmado = :estaFirmado', {
           estaFirmado: false,
         })
-        .andWhere('documento.tipo_de_documento = :tipoDocumento', {
+        .andWhere('documento.document_type = :tipoDocumento', {
           tipoDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         })
         .getMany();
@@ -170,7 +170,7 @@ export class FirmaService {
           .andWhere('documento.esta_firmado = :estaFirmado', {
             estaFirmado: false,
           })
-          .andWhere('documento.tipo_de_documento = :tipoDocumento', {
+          .andWhere('documento.document_type = :tipoDocumento', {
             tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
           })
           .andWhere('documento.estatusDeFirma = :statusSignature', {
@@ -178,7 +178,7 @@ export class FirmaService {
           })
           .getMany();
 
-          console.log(facturasConDocumentosPorFirmar)
+        console.log(facturasConDocumentosPorFirmar)
         return facturasConDocumentosPorFirmar;
       } catch (error) {
         handleExceptions(error);
@@ -219,7 +219,7 @@ export class FirmaService {
         .andWhere('documento.estatusDeFirma != :notCarriedOut', {
           notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT
         })
-        .andWhere('documento.tipo_de_documento = :tipoDocumento', {
+        .andWhere('documento.document_type = :tipoDocumento', {
           tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
         })
         .getMany();
@@ -391,7 +391,7 @@ export class FirmaService {
       } else {
         document = await this.documentsService.buildCampaignApprovalDocument(documentId);
       }
-      console.log(document)
+
       return document;
     } catch (error) {
       console.log('error en costruir pdf');
@@ -491,19 +491,6 @@ export class FirmaService {
     }
   }
 
-  async crearExpediente(nombreDeCampania: { name: string }) {
-    try {
-      const serviciosFirmamex = await this.firmamexService.getServices();
-
-      const { document_set } = await serviciosFirmamex.createDocumentSet(nombreDeCampania);
-
-      return document_set;
-    } catch (error) {
-      console.log('ERROR EN CREAR EXPEDIENTE', error.message);
-      console.log(error);
-      handleExceptions(error);
-    }
-  }
 
   async obtenerDocumentosDeFrimamex() {
     try {
@@ -587,6 +574,7 @@ export class FirmaService {
       const usuarioDb = await this.usuarioRepository.findOne({
         where: { id: usuarioId },
       });
+      
       if (!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
       const documentoEnFirmaDb = await this.firmaRepository.findOne({
         where: { documentId: documentId },
@@ -635,14 +623,6 @@ export class FirmaService {
     }
   }
 
-  update(id: number, updateFirmaDto: UpdateFirmaDto) {
-    return `This action updates a #${id} firma`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} firma`;
-  }
-
   async checkDocumentSentForSigning(id: string, activationId?: string) {
     try {
       const whereClause: any = { documentId: id };
@@ -655,11 +635,23 @@ export class FirmaService {
         where: whereClause,
       });
 
+      // let wasSignedDeAprovado: boolean: false
+      
+      if(document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA){
+
+      }
+
+      if (!document) {
+        throw new Error("La facura no se encuentra");
+      }
+
       return {
+        signatureAction: true,
         wasSentToSigning: !!document,
       };
+
     } catch (error) {
-      throw new Error("Error al buscar la factura");
+      handleExceptions(error);
     }
   }
 

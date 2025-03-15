@@ -1,0 +1,4 @@
+export enum SIGNATURE_ACTION_ENUM {
+    APPROVE = 'APROBACIÓN',
+    CANCEL = 'CANCELACÓN'
+}
