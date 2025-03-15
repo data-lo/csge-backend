@@ -355,7 +355,7 @@ export class CampañasService {
       const signatureObject = {
         estaFirmado: false,
         documentId: campaignId,
-        tipoDeDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
+        documentType: TIPO_DE_DOCUMENTO.CAMPAÑA,
         activationId: campaign.activaciones[0].id
       };
 

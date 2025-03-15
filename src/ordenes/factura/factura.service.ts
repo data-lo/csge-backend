@@ -327,7 +327,7 @@ export class FacturaService {
 
     const documentoFirmaDto: CreateFirmaDto = {
       documentId: facturaId,
-      tipoDeDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA ,
+      documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA ,
       estaFirmado: false,
     }
 

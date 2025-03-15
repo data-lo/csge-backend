@@ -25,7 +25,7 @@ export class Firma {
         type: 'enum',
         enum: TIPO_DE_DOCUMENTO
     })
-    tipoDeDocumento: TIPO_DE_DOCUMENTO
+    documentType: TIPO_DE_DOCUMENTO
 
     @Column({
         type: 'boolean',

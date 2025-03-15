@@ -140,17 +140,4 @@ export class Usuario {
 
   @ManyToMany(() => Firma, (firma) => firma.usuariosFirmadores)
   documentosParaFirmar: Firma[];
-
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-  }
-
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-  }
 }

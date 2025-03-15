@@ -34,6 +34,7 @@ import {
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Console } from 'console';
 import { ESTATUS_DE_FIRMA } from './interfaces/estatus-de-firma.enum';
+import { SIGNATURE_ACTION_ENUM } from './enums/signature-action-enum';
 
 
 @Injectable()
@@ -61,23 +62,23 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { documentId, tipoDeDocumento, activationId } = createFirmaDto;
+      const { documentId, documentType, activationId } = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         documentId,
-        tipoDeDocumento
+        documentType
       );
 
       console.log(usuarios)
 
       let documentoParaFirmar = this.firmaRepository.create({
-        tipoDeDocumento,
+        documentType,
         documentId,
         estaFirmado: false,
         usuariosFirmadores: usuarios,
       });
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         documentoParaFirmar.activationId = activationId;
       }
 
@@ -232,13 +233,13 @@ export class FirmaService {
 
   async obtenerUsuariosFirmantes(
     documentoId: string,
-    tipoDeDocumento: TIPO_DE_DOCUMENTO,
+    documentType: TIPO_DE_DOCUMENTO,
   ): Promise<Usuario[]> {
     try {
       let documentoDb: Orden | Factura = null;
       let usuarios: Usuario[] = [];
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         documentoDb = await this.ordenRepository.findOne({
           where: { id: documentoId },
         });
@@ -270,7 +271,7 @@ export class FirmaService {
           .getMany();
       }
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         documentoDb = await this.facturaRepository.findOne({
           where: { id: documentoId },
         });
@@ -305,7 +306,7 @@ export class FirmaService {
           .getMany();
       }
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         usuarios = await this.usuarioRepository
           .createQueryBuilder('usuario')
           .where('usuario.estatus = :estatus', { estatus: true })
@@ -325,6 +326,7 @@ export class FirmaService {
   }
 
   async documentSigning(userId: string, documentId: string) {
+    console.log(userId)
     try {
       // Buscar el usuario en la base de datos por su ID
       const user = await this.usuarioRepository.findOneBy({ id: userId });
@@ -343,10 +345,10 @@ export class FirmaService {
 
       if (document.firmamexDocumentUrl === "sin_url") {
         // Construir el documento en formato PDF a partir de su orden o factura
-        const documentInPdf = await this.construir_pdf(document.documentId, document.tipoDeDocumento);
+        const documentInPdf = await this.construir_pdf(document.documentId, document.documentType);
 
         // Generar stickers para la firma digital del documento
-        const stickers = await this.createStickers([user], document.tipoDeDocumento, document.usuariosFirmadores);
+        const stickers = await this.createStickers([user], document.documentType, document.usuariosFirmadores);
 
         // Convertir el documento PDF a formato Base64
         const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
@@ -356,7 +358,7 @@ export class FirmaService {
           documentInBase64,
           documentInPdf.info.Title,
           stickers,
-          document.tipoDeDocumento,
+          document.documentType,
         );
 
         // Guardar los datos de la firma en el documento
@@ -455,22 +457,22 @@ export class FirmaService {
     docBase64,
     docNombre: string,
     stickers: Sticker[],
-    tipoDeDocumento: TIPO_DE_DOCUMENTO,
+    documentType: TIPO_DE_DOCUMENTO,
   ): Promise<FirmamexResponse> {
     try {
       const serviciosFirmamex = await this.firmamexService.getServices();
 
       let QR = {};
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         QR = QROrden;
       }
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         QR = QRCotejo;
       }
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         QR = QR_APPROVAL_CAMPAIGN;
       }
 
@@ -574,7 +576,7 @@ export class FirmaService {
       const usuarioDb = await this.usuarioRepository.findOne({
         where: { id: usuarioId },
       });
-      
+
       if (!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
       const documentoEnFirmaDb = await this.firmaRepository.findOne({
         where: { documentId: documentId },
@@ -635,18 +637,13 @@ export class FirmaService {
         where: whereClause,
       });
 
-      // let wasSignedDeAprovado: boolean: false
-      
-      if(document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA){
-
-      }
-
       if (!document) {
         throw new Error("La facura no se encuentra");
       }
 
       return {
-        signatureAction: true,
+        signatureAction: document.signatureAction ?? undefined,
+        isSigned: document.estaFirmado ?? undefined,
         wasSentToSigning: !!document,
       };
 

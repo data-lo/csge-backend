@@ -56,15 +56,15 @@ export class WebhooksService {
 
       const documentId = document.documentId;
 
-      if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+      if (document.documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
         this.eventEmitter.emit('modify-contract-amounts', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
         this.eventEmitter.emit('modified-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
 
-      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      } else if (document.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
 
-      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      } else if (document.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
 
         this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
@@ -91,7 +91,7 @@ export class WebhooksService {
 
       const documentId = signatureDocument.documentId;
 
-      if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
         signatureDocument.estaFirmado = false;
 
@@ -105,7 +105,7 @@ export class WebhooksService {
 
         this.eventEmitter.emit('invoice-modify-contract-amounts', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED });
 
-      } else if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      } else if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
 
         const values = {
           signedAt: new Date().toISOString(),
@@ -133,9 +133,9 @@ export class WebhooksService {
 
       const documentoId = documentoDeFirma.documentId;
 
-      const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
+      const documentType = documentoDeFirma.documentType;
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
         documentoDeFirma.estaFirmado = true;
 
@@ -143,7 +143,7 @@ export class WebhooksService {
 
         this.emitter(documentoId, 'cancelacion.orden');
 
-      } else if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
         this.emitter(documentoId, 'cancelacion.factura');
       }

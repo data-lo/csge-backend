@@ -513,7 +513,7 @@ export class OrdenService {
 
       const documentoFirmaDto: CreateFirmaDto = {
         documentId: ordenId,
-        tipoDeDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
+        documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         estaFirmado: false,
       };
 

@@ -21,12 +21,14 @@ export class FirmaController {
     return this.signatureService.create(createFirmaDto);
   }
 
+  @Auth(...rolesFirma)
   @Get('sign-document/:documentId')
   signDocument(
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Query('signatureAction') signatureAction: SIGNATURE_ACTION_ENUM,
     @GetUser() user: Usuario
   ) {
+    console.log(signatureAction)
     return this.signatureService.documentSigning(user.id, documentId);
   }
   
@@ -59,9 +61,9 @@ export class FirmaController {
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
     @Param('id', ParseUUIDPipe) documentId: string,
-    @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) tipoDeDocumento: TIPO_DE_DOCUMENTO
+    @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) documentType: TIPO_DE_DOCUMENTO
   ) {
-    return this.signatureService.downloadFile(documentId, tipoDeDocumento);
+    return this.signatureService.downloadFile(documentId, documentType);
   }
 
   @Auth(...rolesFirma)
