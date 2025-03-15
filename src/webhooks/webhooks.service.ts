@@ -70,7 +70,7 @@ export class WebhooksService {
         this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
       }
 
-      document.estaFirmado = true;
+      document.isSigned = true;
 
       document.estatusDeFirma = ESTATUS_DE_FIRMA.APROBADA;
 
@@ -93,7 +93,7 @@ export class WebhooksService {
 
       if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
-        signatureDocument.estaFirmado = false;
+        signatureDocument.isSigned = false;
 
         signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
 
@@ -137,7 +137,7 @@ export class WebhooksService {
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
-        documentoDeFirma.estaFirmado = true;
+        documentoDeFirma.isSigned = true;
 
         documentoDeFirma.estatusDeFirma = ESTATUS_DE_FIRMA.CANCELADA;
 

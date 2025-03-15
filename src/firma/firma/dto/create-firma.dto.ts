@@ -8,7 +8,7 @@ export class CreateFirmaDto {
 
     @IsBoolean()
     @IsOptional()
-    estaFirmado: boolean;
+    isSigned: boolean;
 
     @IsEnum(TIPO_DE_DOCUMENTO)
     documentType: TIPO_DE_DOCUMENTO

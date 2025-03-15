@@ -58,7 +58,7 @@ export class DocumentsService {
         });
       
         if (documentSigned) {
-          if (documentSigned.estaFirmado && documentSigned.signedBy) {
+          if (documentSigned.isSigned && documentSigned.signedBy) {
             qrCode = await this.generatePdfWithQR({
               signedAt: new Date(documentSigned.signedBy.signedAt),
               signerRfc: documentSigned.signedBy.signerRfc,

@@ -328,7 +328,7 @@ export class FacturaService {
     const documentoFirmaDto: CreateFirmaDto = {
       documentId: facturaId,
       documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA ,
-      estaFirmado: false,
+      isSigned: false,
     }
 
     const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);

@@ -74,7 +74,7 @@ export class FirmaService {
       let documentoParaFirmar = this.firmaRepository.create({
         documentType,
         documentId,
-        estaFirmado: false,
+        isSigned: false,
         usuariosFirmadores: usuarios,
       });
 
@@ -117,8 +117,8 @@ export class FirmaService {
           'usuario_documento.documento_firma_id = documento.id',
         )
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
-        .andWhere('documento.esta_firmado = :estaFirmado', {
-          estaFirmado: false,
+        .andWhere('documento.esta_firmado = :isSigned', {
+          isSigned: false,
         })
         .andWhere('documento.document_type = :tipoDocumento', {
           tipoDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
@@ -168,8 +168,8 @@ export class FirmaService {
             'usuario_documento.documento_firma_id = documento.id',
           )
           .where('usuario_documento.usuario_id = :userId', { userId })
-          .andWhere('documento.esta_firmado = :estaFirmado', {
-            estaFirmado: false,
+          .andWhere('documento.esta_firmado = :isSigned', {
+            isSigned: false,
           })
           .andWhere('documento.document_type = :tipoDocumento', {
             tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
@@ -214,8 +214,8 @@ export class FirmaService {
           'usuario_documento.documento_firma_id = documento.id',
         )
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
-        .andWhere('documento.esta_firmado = :estaFirmado', {
-          estaFirmado: false,
+        .andWhere('documento.esta_firmado = :isSigned', {
+          isSigned: false,
         })
         .andWhere('documento.estatusDeFirma != :notCarriedOut', {
           notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT
@@ -584,7 +584,7 @@ export class FirmaService {
       });
       if (!documentoEnFirmaDb)
         throw new NotFoundException('NO SE ENCUENTRA EL DOCUMENTO EN FIRMA');
-      if (documentoEnFirmaDb.estaFirmado)
+      if (documentoEnFirmaDb.isSigned)
         throw new BadRequestException(
           'EL DOCUMENTO DEBE ENCONTRARSE FIRMADO PARA CANCELARC',
         );
@@ -643,7 +643,7 @@ export class FirmaService {
 
       return {
         signatureAction: document.signatureAction ?? undefined,
-        isSigned: document.estaFirmado ?? undefined,
+        isSigned: document.isSigned ?? undefined,
         wasSentToSigning: !!document,
       };
 

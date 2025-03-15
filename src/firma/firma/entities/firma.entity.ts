@@ -29,11 +29,11 @@ export class Firma {
 
     @Column({
         type: 'boolean',
-        name: 'esta_firmado',
+        name: 'is_signed',
         nullable: false,
         default: false
     })
-    estaFirmado: boolean;
+    isSigned: boolean;
 
     @Column({
         type: 'enum',
