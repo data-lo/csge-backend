@@ -73,9 +73,12 @@ export class CampañasController {
   }
 
   @Auth(...CAMPAIGN_ROLES)
-  @Get('close/:id')
-  close(@Param('id', ParseUUIDPipe) id: string) {
-    return this.campañasService.closeCampaign(id);
+  @Get('close/:campaignId/:activationId')
+  close(
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Param('activationId') activationId: string
+  ) {
+    return this.campañasService.closeCampaign(campaignId, activationId);
   }
 
   @Auth(...CAMPAIGN_ROLES)

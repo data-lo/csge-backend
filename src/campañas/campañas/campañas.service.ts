@@ -41,9 +41,10 @@ export class CampañasService {
 
     @InjectRepository(Dependencia)
     private dependencyRepository: Repository<Dependencia>,
+
     private readonly activationService: ActivacionService,
     private readonly matchService: PartidaService,
-    private readonly firmaService: FirmaService,
+    private readonly signatureService: FirmaService,
   ) { }
 
   async create(createCampañaDto: CreateCampañaDto) {
@@ -154,8 +155,9 @@ export class CampañasService {
         .where("campaign.id = :campaignId", { campaignId })
         .getOne();
 
-
-      if (!campaign) throw new NotFoundException('¡La campaña no ha sido encontrada!');
+      if (!campaign) {
+        throw new NotFoundException('¡La campaña no ha sido encontrada!');
+      }
 
       return campaign;
 
@@ -225,29 +227,28 @@ export class CampañasService {
     }
   }
 
-  async closeCampaign(campaignId: string) {
+  async closeCampaign(campaignId: string, activationId: string) {
     try {
 
       const campaign = await this.campaignRepository.findOne({
         where: { id: campaignId },
-        relations: {
-          activaciones: { partida: true },
-        },
       });
 
       if (!campaign) {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
+      if (campaign.estatus === CAMPAIGN_STATUS.PENDIENTE) {
+        await this.signatureService.updateDocumentByDocumentIdAndActivation(campaignId, activationId)
+      }
+
       campaign.estatus = CAMPAIGN_STATUS.INACTIVA;
 
       await this.campaignRepository.save(campaign);
 
-      for (const activation of campaign.activaciones) {
-        if (activation.status) {
-          await this.activationService.disableActivation(activation.id);
-        }
-      }
+      await this.activationService.disableActivation(activationId);
+
+
 
       return { success: true, message: "¡Campaña cerrada exitosamente!" };
 
@@ -330,33 +331,41 @@ export class CampañasService {
 
   async mandarCampañaAAprobar(campaignId: string) {
     try {
-      const campaniaDb = await this.campaignRepository.findOneBy({ id: campaignId });
+      const campaign = await this.campaignRepository
+        .createQueryBuilder("campaign")
+        .leftJoinAndSelect("campaign.activaciones", "activacion", "activacion.status = :status", { status: true })
+        .leftJoinAndSelect("activacion.partida", "partida")
+        .leftJoinAndSelect("campaign.dependencias", "dependencia")
+        .where("campaign.id = :campaignId", { campaignId })
+        .getOne();
 
-      if (!campaniaDb)
+      if (!campaign)
         throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA');
 
-      const estatusValidos = [
+      const validStates = [
         CAMPAIGN_STATUS.CREADA,
         CAMPAIGN_STATUS.COTIZANDO,
         CAMPAIGN_STATUS.REACTIVADA,
       ];
 
-      if (!estatusValidos.includes(campaniaDb.estatus)) {
+      if (!validStates.includes(campaign.estatus)) {
         throw new BadRequestException('LA CAMPAÑA NO CUENTA CON ESTATUS PARA SER APROBADA',);
       }
 
-
       const signatureObject = {
         estaFirmado: false,
-        ordenOFacturaId: campaignId,
+        documentId: campaignId,
         tipoDeDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
+        activationId: campaign.activaciones[0].id
       };
 
-      await this.firmaService.create(signatureObject);
+      console.log(signatureObject)
 
-      campaniaDb.estatus = CAMPAIGN_STATUS.PENDIENTE;
+      await this.signatureService.create(signatureObject);
 
-      await this.campaignRepository.save(campaniaDb);
+      campaign.estatus = CAMPAIGN_STATUS.PENDIENTE;
+
+      await this.campaignRepository.save(campaign);
 
       return { message: 'CAMPAÑA ESPERANDO APROBACIÓN' };
 
@@ -366,7 +375,7 @@ export class CampañasService {
   }
 
   async getApprovalCampaignDocument(id: string) {
-    const document = await this.firmaService.descargarDocumento(id, TIPO_DE_DOCUMENTO.CAMPAÑA);
+    const document = await this.signatureService.downloadFile(id, TIPO_DE_DOCUMENTO.CAMPAÑA);
 
     return document;
   }

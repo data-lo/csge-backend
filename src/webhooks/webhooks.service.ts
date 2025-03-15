@@ -54,20 +54,20 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      const documentoId = document.ordenOFacturaId;
+      const documentId = document.documentId;
 
       if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        this.eventEmitter.emit('modify-contract-amounts', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
+        this.eventEmitter.emit('modify-contract-amounts', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
-        this.eventEmitter.emit('modified-order-status', { orderId: documentoId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
+        this.eventEmitter.emit('modified-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
 
       } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
-        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentoId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+        this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
 
       } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
-        this.eventEmitter.emit('modified-campaign-status', { campaignId: documentoId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
+        this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
 
-        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentoId });
+        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
       }
 
       document.estaFirmado = true;
@@ -89,19 +89,21 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      const documentId = signatureDocument.ordenOFacturaId;
+      const documentId = signatureDocument.documentId;
 
       if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
         signatureDocument.estaFirmado = false;
 
-        signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA;
+        signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
 
         await this.signatureRepository.save(signatureDocument);
 
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
 
-        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+        console.log("Documento Firmado Cotejado");
+
+        this.eventEmitter.emit('invoice-modify-contract-amounts', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED });
 
       } else if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
 
@@ -124,11 +126,13 @@ export class WebhooksService {
   private async handleDocumentRejected(webhook: DocumentRejected) {
     try {
       const { firmamex_id } = webhook;
+
       const documentoDeFirma = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
       });
 
-      const documentoId = documentoDeFirma.ordenOFacturaId;
+      const documentoId = documentoDeFirma.documentId;
+
       const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
 
       if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {

@@ -315,7 +315,7 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const documento = await this.firmaService.descargarDocumento(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
+      const documento = await this.firmaService.downloadFile(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
       handleExceptions(error);
@@ -326,8 +326,8 @@ export class FacturaService {
   async cotejarFactura(facturaId: string, usuario: Usuario) {
 
     const documentoFirmaDto: CreateFirmaDto = {
-      ordenOFacturaId: facturaId,
-      tipoDeDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+      documentId: facturaId,
+      tipoDeDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA ,
       estaFirmado: false,
     }
 

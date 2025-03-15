@@ -437,28 +437,7 @@ export class OrdenService {
       throw new Error('No se pudo generar el folio de orden');
     }
   }
-
-  // async actualizarEstatusOrden(
-  //   id: string,
-  //   nuevoEstatus: ESTATUS_ORDEN_DE_SERVICIO,
-  // ) {
-  //   try {
-  //     const orden = await this.findOne(id);
-  //     if (orden) {
-  //       await this.orderRepository.update(id, {
-  //         estatus: nuevoEstatus,
-  //       });
-  //     }
-  //     return {
-  //       id: orden.id,
-  //       estatus: nuevoEstatus,
-  //       message: 'Estatus actualizado correctamente',
-  //     };
-  //   } catch (error) {
-  //     handleExceptions(error);
-  //   }
-  // }
-
+  
   async obtenerEstatusOrden(id: string) {
     try {
       const orden = await this.findOne(id);
@@ -531,8 +510,9 @@ export class OrdenService {
     try {
       const ordenDb = await this.orderRepository.findOneBy({ id: ordenId });
       if (!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
+
       const documentoFirmaDto: CreateFirmaDto = {
-        ordenOFacturaId: ordenId,
+        documentId: ordenId,
         tipoDeDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         estaFirmado: false,
       };
@@ -569,7 +549,7 @@ export class OrdenService {
 
     const isFromCampaing = false;
 
-    return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing);
+    return await this.firmaService.downloadFile(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing);
   }
 
   async generateCampaignOrdersInPDF(campaignId: string) {
@@ -593,7 +573,7 @@ export class OrdenService {
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        const pdfBytes = await this.firmaService.descargarDocumento(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
+        const pdfBytes = await this.firmaService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
 
         const pdfLibDoc = await PDFDocument.load(pdfBytes);
 

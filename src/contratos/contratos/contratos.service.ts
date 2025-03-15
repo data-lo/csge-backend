@@ -446,7 +446,8 @@ export class ContratosService {
         availableAmount: masterContract.montoDisponible,
         paidAmount: masterContract.montoPagado,
         executedAmount: masterContract.montoEjercido,
-        activeAmount: masterContract.montoActivo
+        activeAmount: masterContract.montoActivo,
+        committedAmount: masterContract.committedAmount
       },
       contractByServiceType: {
         paidAmount: contractByServiceType.montoPagado,
@@ -470,7 +471,7 @@ export class ContratosService {
         montoActivo: updatedValues.masterContract.activeAmount
       });
 
-    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_APPROVED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
 
       await this.contractRepository.update(contractByServiceType.id, {
         montoActivo: updatedValues.contractByServiceType.activeAmount,

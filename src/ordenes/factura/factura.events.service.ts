@@ -4,6 +4,7 @@ import { FacturaService } from "./factura.service";
 import { ContratosService } from "src/contratos/contratos/contratos.service";
 import { OrdenService } from "../orden/orden.service";
 import { INVOICE_STATUS } from "./interfaces/estatus-factura";
+import { ESTATUS_ORDEN_DE_SERVICIO } from "../orden/interfaces/estatus-orden-de-servicio";
 
 @Injectable()
 export class FacturaEventosService {
@@ -13,20 +14,33 @@ export class FacturaEventosService {
         private readonly contractService: ContratosService
     ) { }
 
-    @OnEvent('invoice-approval-or-cancellation', { async: true })
+    @OnEvent('invoice-modify-contract-amounts', { async: true })
     async applyDiscountsToContract(payload: { invoiceId: string, eventType: TYPE_EVENT_INVOICE }) {
         try {
-            console.log(`Iniciando evento "invoice-approval-or-cancellation" para la factura: ${payload.invoiceId}`);
+            console.log(`Iniciando evento "invoice-modify-contract-amounts" para la factura: ${payload.invoiceId}`);
+            
             const invoice = await this.invoiceService.findOne(payload.invoiceId);
+
             for (const orderFromInvoice of invoice.ordenesDeServicio) {
                 const order = await this.orderService.findOne(orderFromInvoice.id);
+
+                let orderStatus: ESTATUS_ORDEN_DE_SERVICIO;
+
+                if (payload.eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED) {
+                    orderStatus = ESTATUS_ORDEN_DE_SERVICIO.COTEJADA
+                } else if (payload.eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+                    orderStatus = ESTATUS_ORDEN_DE_SERVICIO.CANCELADA
+                }
+
+                await this.orderService.updateOrderStatus(order.id, orderStatus);
+
                 await this.contractService.updateContractAmountByOrder(
                     order.id,
                     order.contratoMaestro.id,
                     payload.eventType
                 );
             }
-            console.log(`Evento "invoice-approval-or-cancellation" completado exitosamente. Montos del contrato actualizados.`);
+            console.log(`Evento "invoice-modify-contract-amounts" completado exitosamente. Montos del contrato actualizados.`);
         } catch (error) {
             console.error(`Error al procesar el evento "${payload.eventType}" para la factura: ${payload.invoiceId}.`, error);
         }

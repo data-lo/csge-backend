@@ -10,7 +10,7 @@ import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { createWriteStream } from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Factura } from 'src/ordenes/factura/entities/factura.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import {
@@ -33,6 +33,7 @@ import {
 } from './interfaces/stickers-coordenadas.objs';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Console } from 'console';
+import { ESTATUS_DE_FIRMA } from './interfaces/estatus-de-firma.enum';
 
 
 @Injectable()
@@ -60,25 +61,33 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { ordenOFacturaId, tipoDeDocumento } = createFirmaDto;
+      const { documentId, tipoDeDocumento, activationId } = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
-        ordenOFacturaId,
-        tipoDeDocumento,
+        documentId,
+        tipoDeDocumento
       );
 
-      const documentoParaFirmar = this.firmaRepository.create({
-        tipoDeDocumento: tipoDeDocumento,
-        ordenOFacturaId: ordenOFacturaId,
+      console.log(usuarios)
+
+      let documentoParaFirmar = this.firmaRepository.create({
+        tipoDeDocumento,
+        documentId,
         estaFirmado: false,
         usuariosFirmadores: usuarios,
       });
 
+      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        documentoParaFirmar.activationId = activationId;
+      }
+
       await this.firmaRepository.save(documentoParaFirmar);
+
       return {
-        message: 'Documento en espera de ser firmado',
+        message: "📄 Documento en espera de ser firmado.",
         documentoAFirmar: documentoParaFirmar,
       };
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -99,7 +108,7 @@ export class FirmaService {
           'orden.documento',
           Firma,
           'documento',
-          'documento.orden_o_factura_id = orden.id',
+          'documento.document_id = orden.id',
         )
         .innerJoin(
           'usuarios_documentos_firma',
@@ -121,15 +130,28 @@ export class FirmaService {
     }
   }
 
-  async findAllFacturas(usuarioId: string) {
+  async getPendingSignatureDocuments(userId: string) {
     try {
       try {
-        const usuario = await this.usuarioRepository.findOne({
-          where: { id: usuarioId },
+        const user = await this.usuarioRepository.findOne({
+          where: { id: userId },
           relations: ['documentosParaFirmar'],
         });
 
-        if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
+        let signatureStatus: ESTATUS_DE_FIRMA;
+
+        const requiredPermissionToReview: TIPO_DE_DOCUMENTO = TIPO_DE_DOCUMENTO.COTEJAR_FACTURA;
+
+        const requiredPermissionToApprove: TIPO_DE_DOCUMENTO = TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA;
+
+        if (user.documentosDeFirma.includes(requiredPermissionToReview)) {
+          signatureStatus = ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA;
+
+        } else if (user.documentosDeFirma.includes(requiredPermissionToApprove)) {
+          signatureStatus = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
+        }
+
+        if (!user) throw new NotFoundException('¡Usuario no encontrado!');
 
         const facturasConDocumentosPorFirmar = await this.facturaRepository
           .createQueryBuilder('factura')
@@ -137,22 +159,26 @@ export class FirmaService {
             'factura.documento',
             Firma,
             'documento',
-            'documento.orden_o_factura_id = factura.id',
+            'documento.document_id = factura.id',
           )
           .innerJoin(
             'usuarios_documentos_firma',
             'usuario_documento',
             'usuario_documento.documento_firma_id = documento.id',
           )
-          .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
+          .where('usuario_documento.usuario_id = :userId', { userId })
           .andWhere('documento.esta_firmado = :estaFirmado', {
             estaFirmado: false,
           })
           .andWhere('documento.tipo_de_documento = :tipoDocumento', {
             tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
           })
+          .andWhere('documento.estatusDeFirma = :statusSignature', {
+            statusSignature: signatureStatus
+          })
           .getMany();
 
+          console.log(facturasConDocumentosPorFirmar)
         return facturasConDocumentosPorFirmar;
       } catch (error) {
         handleExceptions(error);
@@ -169,7 +195,9 @@ export class FirmaService {
         relations: ['documentosParaFirmar'],
       });
 
-      if (!usuario) throw new NotFoundException('¡Usuario no encontrado!');
+      if (!usuario) {
+        throw new NotFoundException('¡Usuario no encontrado!');
+      }
 
       const campaniaConDocumentosPorFirmar = await this.campaniaRepository
         .createQueryBuilder('campania')
@@ -177,7 +205,7 @@ export class FirmaService {
           'campania.documento',
           Firma,
           'documento',
-          'documento.orden_o_factura_id = campania.id',
+          'documento.document_id = campania.id',
         )
         .innerJoin(
           'usuarios_documentos_firma',
@@ -187,6 +215,9 @@ export class FirmaService {
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
         .andWhere('documento.esta_firmado = :estaFirmado', {
           estaFirmado: false,
+        })
+        .andWhere('documento.estatusDeFirma != :notCarriedOut', {
+          notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT
         })
         .andWhere('documento.tipo_de_documento = :tipoDocumento', {
           tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
@@ -247,15 +278,30 @@ export class FirmaService {
         if (!documentoDb)
           throw new NotFoundException('No se encuentra la factura');
 
+        // usuarios = await this.usuarioRepository
+        //   .createQueryBuilder('usuario')
+        //   .where('usuario.estatus = :estatus', { estatus: true })
+        //   .andWhere(':permiso = ANY(usuario.permisos)', {
+        //     permiso: ValidPermises.FIRMA,
+        //   })
+        //   .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
+        //     tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+        //   })
+        //   .getMany();
+
         usuarios = await this.usuarioRepository
           .createQueryBuilder('usuario')
           .where('usuario.estatus = :estatus', { estatus: true })
-          .andWhere(':permiso = ANY(usuario.permisos)', {
-            permiso: ValidPermises.FIRMA,
-          })
-          .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
-            tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
-          })
+          .andWhere(
+            new Brackets(qb => {
+              qb.where(':tipoDocumento1 = ANY(usuario.documentosDeFirma)', {
+                tipoDocumento1: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+              })
+                .orWhere(':tipoDocumento2 = ANY(usuario.documentosDeFirma)', {
+                  tipoDocumento2: TIPO_DE_DOCUMENTO.COTEJAR_FACTURA,
+                });
+            })
+          )
           .getMany();
       }
 
@@ -297,7 +343,7 @@ export class FirmaService {
 
       if (document.firmamexDocumentUrl === "sin_url") {
         // Construir el documento en formato PDF a partir de su orden o factura
-        const documentInPdf = await this.construir_pdf(document.ordenOFacturaId, document.tipoDeDocumento);
+        const documentInPdf = await this.construir_pdf(document.documentId, document.tipoDeDocumento);
 
         // Generar stickers para la firma digital del documento
         const stickers = await this.createStickers([user], document.tipoDeDocumento, document.usuariosFirmadores);
@@ -480,12 +526,12 @@ export class FirmaService {
     return response;
   }
 
-  async descargarDocumento(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean) {
+  async downloadFile(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean) {
     try {
       let document: any;
 
       const documentForSignature = await this.firmaRepository.findOne({
-        where: { ordenOFacturaId: documentId },
+        where: { documentId: documentId },
       });
 
       if (!documentForSignature) {
@@ -536,14 +582,14 @@ export class FirmaService {
     });
   }
 
-  async cancelarDocumento(usuarioId: string, ordenOFacturaId: string) {
+  async cancelarDocumento(usuarioId: string, documentId: string) {
     try {
       const usuarioDb = await this.usuarioRepository.findOne({
         where: { id: usuarioId },
       });
       if (!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
       const documentoEnFirmaDb = await this.firmaRepository.findOne({
-        where: { ordenOFacturaId: ordenOFacturaId },
+        where: { documentId: documentId },
         relations: { usuariosFirmadores: true },
       });
       if (!documentoEnFirmaDb)
@@ -573,10 +619,10 @@ export class FirmaService {
     }
   }
 
-  async findOne(ordenOFacturaId: string) {
+  async findOne(documentId: string) {
     try {
       const documentoDb = await this.firmaRepository.findOneBy({
-        ordenOFacturaId: ordenOFacturaId,
+        documentId: documentId,
       });
       if (!documentoDb)
         throw new BadRequestException({
@@ -597,21 +643,43 @@ export class FirmaService {
     return `This action removes a #${id} firma`;
   }
 
-  async checkOrderOrInvoiceSentForSigning(id: string) {
+  async checkDocumentSentForSigning(id: string, activationId?: string) {
     try {
-      const invoice = await this.firmaRepository.findOne({
-        where: { ordenOFacturaId: id },
+      const whereClause: any = { documentId: id };
+
+      if (activationId) {
+        whereClause.activationId = activationId;
+      }
+
+      const document = await this.firmaRepository.findOne({
+        where: whereClause,
       });
 
       return {
-        wasSentToSigning: invoice ? true : false,
+        wasSentToSigning: !!document,
       };
-
     } catch (error) {
       throw new Error("Error al buscar la factura");
     }
   }
 
+  async updateDocumentByDocumentIdAndActivation(documentId: string, activationId: string) {
+    const document = await this.firmaRepository.findOne({
+      where: {
+        documentId: documentId,
+        activationId: activationId,
+      },
+    });
 
+    if (!document) {
+      throw new NotFoundException("¡Documento no encontrado!");
+    }
+
+    if (document.estatusDeFirma !== ESTATUS_DE_FIRMA.APROBADA && document.estatusDeFirma !== ESTATUS_DE_FIRMA.CANCELADA) {
+      document.estatusDeFirma = ESTATUS_DE_FIRMA.NOT_CARRIED_OUT;
+    }
+
+    await this.firmaRepository.save(document);
+  }
 }
 

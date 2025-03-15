@@ -1,5 +1,5 @@
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
-import { Column, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { ESTATUS_DE_FIRMA } from "../interfaces/estatus-de-firma.enum";
 import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 import { SignedBy } from "../interfaces/signed-by";
@@ -14,11 +14,10 @@ export class Firma {
 
     @Column({
         type: 'uuid',
-        name: 'orden_o_factura_id',
+        name: 'document_id',
         nullable: false,
-        unique: true
     })
-    ordenOFacturaId: string;
+    documentId: string;
 
     @Column({
         name: 'tipo_de_documento',
@@ -66,6 +65,24 @@ export class Firma {
         type: 'jsonb'
     })
     signedBy: SignedBy;
+
+    @Column({
+        name: 'activation_id',
+        nullable: true,
+        default: null,
+        unique: true
+    })
+    activationId: string;
+
+    @CreateDateColumn({
+        name: 'created_at',
+    })
+    createdAt: Date;
+
+    @UpdateDateColumn({
+        name: 'update_at',
+    })
+    updateAt: Date;
 
     @ManyToMany(
         () => Usuario,

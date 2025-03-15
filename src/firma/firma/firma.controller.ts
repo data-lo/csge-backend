@@ -49,16 +49,16 @@ export class FirmaController {
   verifyIfOrderOrInvoiceWasSentForSigning(
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.firmaService.checkOrderOrInvoiceSentForSigning(id);
+    return this.firmaService.checkDocumentSentForSigning(id);
   }
 
   @Auth(...rolesFirma)
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
-    @Param('id', ParseUUIDPipe) ordenOFacturaId: string,
+    @Param('id', ParseUUIDPipe) documentId: string,
     @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) tipoDeDocumento: TIPO_DE_DOCUMENTO
   ) {
-    return this.firmaService.descargarDocumento(ordenOFacturaId, tipoDeDocumento);
+    return this.firmaService.downloadFile(documentId, tipoDeDocumento);
   }
 
   @Auth(...rolesFirma)
@@ -71,10 +71,8 @@ export class FirmaController {
 
   @Auth(...rolesFirma)
   @Get('facturas')
-  findAllFacturas(
-    @GetUser() usuario: Usuario
-  ) {
-    return this.firmaService.findAllFacturas(usuario.id);
+  findAllInvoices(@GetUser() user: Usuario) {
+    return this.firmaService.getPendingSignatureDocuments(user.id);
   }
 
   @Auth(...rolesFirma)

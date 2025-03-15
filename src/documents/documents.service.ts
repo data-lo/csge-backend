@@ -37,7 +37,7 @@ export class DocumentsService {
 
 
   async buildOrderDocument(orderId: string, isCampaign?: boolean, isFromCampaign?: boolean) {
-    console.log(isFromCampaign)
+
     try {
       const order = await this.ordenDeServicioRepository.findOne({
         where: { id: orderId },
@@ -54,7 +54,7 @@ export class DocumentsService {
 
       if (isCampaign) {
         const documentSigned = await this.signatureRepository.findOne({
-          where: { ordenOFacturaId: order.campaña.id }
+          where: { documentId: order.campaña.id }
         });
       
         if (documentSigned) {

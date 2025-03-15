@@ -132,7 +132,7 @@ export class ProveedorService {
         .andWhere('servicio.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
         .andWhere('renovaciones.estatus = :estatus', { estatus })
         .getMany();
-      console.log(proveedores[0].estaciones)
+      // console.log(proveedores[0].estaciones)
       return proveedores;
 
 

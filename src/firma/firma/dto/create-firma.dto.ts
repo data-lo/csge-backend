@@ -4,12 +4,16 @@ import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuari
 export class CreateFirmaDto {
 
     @IsUUID()
-    ordenOFacturaId:string;
+    documentId: string;
 
     @IsBoolean()
     @IsOptional()
-    estaFirmado:boolean;
+    estaFirmado: boolean;
 
     @IsEnum(TIPO_DE_DOCUMENTO)
-    tipoDeDocumento:TIPO_DE_DOCUMENTO
+    tipoDeDocumento: TIPO_DE_DOCUMENTO
+
+    @IsOptional()
+    @IsUUID()
+    activationId?: string;
 }
