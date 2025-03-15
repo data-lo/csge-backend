@@ -31,17 +31,6 @@ export class FirmaController {
     console.log(signatureAction)
     return this.signatureService.documentSigning(user.id, documentId);
   }
-  
-  
-
-  // @Auth(...rolesFirma)
-  // @Get('firmar-campania/:campaniaId')
-  // firmarCampania(
-  //   @Param('campaniaId', ParseUUIDPipe) campaniaId: string,
-  //   @GetUser() usuario: Usuario
-  // ) {
-  //   return this.signatureService.firmarCampania(usuario.id, campaniaId);
-  // }
 
   @Auth(...rolesFirma)
   @Get('documentos-firmamex')
@@ -53,8 +42,10 @@ export class FirmaController {
   @Get('verify-sent-for-signing/:id')
   verifyIfOrderOrInvoiceWasSentForSigning(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('activationId') activationId?: string,
+
   ) {
-    return this.signatureService.checkDocumentSentForSigning(id);
+    return this.signatureService.checkDocumentSentForSigning(id, activationId);
   }
 
   @Auth(...rolesFirma)
@@ -77,7 +68,7 @@ export class FirmaController {
   @Auth(...rolesFirma)
   @Get('facturas')
   findAllInvoices(@GetUser() user: Usuario) {
-    return this.signatureService.getPendingSignatureDocuments(user.id);
+    return this.signatureService.getPendingSignedInvoiceDocuments(user.id);
   }
 
   @Auth(...rolesFirma)

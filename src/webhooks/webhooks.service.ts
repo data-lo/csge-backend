@@ -72,7 +72,7 @@ export class WebhooksService {
 
       document.isSigned = true;
 
-      document.estatusDeFirma = ESTATUS_DE_FIRMA.APROBADA;
+      document.signatureStatus = ESTATUS_DE_FIRMA.APROBADA;
 
       await this.signatureRepository.save(document);
 
@@ -95,7 +95,7 @@ export class WebhooksService {
 
         signatureDocument.isSigned = false;
 
-        signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
+        signatureDocument.signatureStatus = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
 
         await this.signatureRepository.save(signatureDocument);
 
@@ -139,7 +139,7 @@ export class WebhooksService {
 
         documentoDeFirma.isSigned = true;
 
-        documentoDeFirma.estatusDeFirma = ESTATUS_DE_FIRMA.CANCELADA;
+        documentoDeFirma.signatureStatus = ESTATUS_DE_FIRMA.CANCELADA;
 
         this.emitter(documentoId, 'cancelacion.orden');
 

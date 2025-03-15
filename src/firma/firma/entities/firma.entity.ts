@@ -37,11 +37,12 @@ export class Firma {
 
     @Column({
         type: 'enum',
+        name: 'signature_status',
         enum: ESTATUS_DE_FIRMA,
         nullable: false,
         default: ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA
     })
-    estatusDeFirma: ESTATUS_DE_FIRMA;
+    signatureStatus: ESTATUS_DE_FIRMA;
 
     @Column({
         name: 'url_documento_firmamex',

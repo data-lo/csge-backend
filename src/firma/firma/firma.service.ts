@@ -117,7 +117,7 @@ export class FirmaService {
           'usuario_documento.documento_firma_id = documento.id',
         )
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
-        .andWhere('documento.esta_firmado = :isSigned', {
+        .andWhere('documento.is_signed = :isSigned', {
           isSigned: false,
         })
         .andWhere('documento.document_type = :tipoDocumento', {
@@ -131,7 +131,7 @@ export class FirmaService {
     }
   }
 
-  async getPendingSignatureDocuments(userId: string) {
+  async getPendingSignedInvoiceDocuments(userId: string) {
     try {
       try {
         const user = await this.usuarioRepository.findOne({
@@ -168,13 +168,13 @@ export class FirmaService {
             'usuario_documento.documento_firma_id = documento.id',
           )
           .where('usuario_documento.usuario_id = :userId', { userId })
-          .andWhere('documento.esta_firmado = :isSigned', {
+          .andWhere('documento.is_signed = :isSigned', {
             isSigned: false,
           })
-          .andWhere('documento.document_type = :tipoDocumento', {
-            tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+          .andWhere('documento.document_type = :documentType', {
+            documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
           })
-          .andWhere('documento.estatusDeFirma = :statusSignature', {
+          .andWhere('documento.signatureStatus = :statusSignature', {
             statusSignature: signatureStatus
           })
           .getMany();
@@ -214,10 +214,10 @@ export class FirmaService {
           'usuario_documento.documento_firma_id = documento.id',
         )
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
-        .andWhere('documento.esta_firmado = :isSigned', {
+        .andWhere('documento.is_signed = :isSigned', {
           isSigned: false,
         })
-        .andWhere('documento.estatusDeFirma != :notCarriedOut', {
+        .andWhere('documento.signatureStatus != :notCarriedOut', {
           notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT
         })
         .andWhere('documento.document_type = :tipoDocumento', {
@@ -637,13 +637,9 @@ export class FirmaService {
         where: whereClause,
       });
 
-      if (!document) {
-        throw new Error("La facura no se encuentra");
-      }
-
       return {
-        signatureAction: document.signatureAction ?? undefined,
-        isSigned: document.isSigned ?? undefined,
+        signatureAction: document ? document.signatureAction : undefined ,
+        isSigned: document ? document.isSigned : undefined,
         wasSentToSigning: !!document,
       };
 
@@ -664,8 +660,8 @@ export class FirmaService {
       throw new NotFoundException("¡Documento no encontrado!");
     }
 
-    if (document.estatusDeFirma !== ESTATUS_DE_FIRMA.APROBADA && document.estatusDeFirma !== ESTATUS_DE_FIRMA.CANCELADA) {
-      document.estatusDeFirma = ESTATUS_DE_FIRMA.NOT_CARRIED_OUT;
+    if (document.signatureStatus !== ESTATUS_DE_FIRMA.APROBADA && document.signatureStatus !== ESTATUS_DE_FIRMA.CANCELADA) {
+      document.signatureStatus = ESTATUS_DE_FIRMA.NOT_CARRIED_OUT;
     }
 
     await this.firmaRepository.save(document);

@@ -23,6 +23,7 @@ import { FirmaService } from 'src/firma/firma/firma.service';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { Partida } from '../partida/entities/partida.entity';
 import { Activacion } from '../activacion/entities/activacion.entity';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Injectable()
 export class CampañasService {
@@ -167,27 +168,27 @@ export class CampañasService {
     }
   }
 
-  async cancelarCampaña(campañaId: string) {
-    try {
-      const campañaDb = await this.campaignRepository.findOneBy({
-        id: campañaId,
-      });
-      if (!campañaDb) throw new NotFoundException('No se encuentra la campaña');
-      if (
-        campañaDb.estatus ===
-        (CAMPAIGN_STATUS.CREADA || CAMPAIGN_STATUS.COTIZANDO)
-      ) {
-        throw new BadRequestException(
-          'La campaña no puede ser cancelada bajo este estatus, eliminar o modificar campaña',
-        );
-      }
-      campañaDb.estatus = CAMPAIGN_STATUS.CANCELADA;
-      await this.campaignRepository.save(campañaDb);
-      return { message: 'Campaña cancelada exitosamente' };
-    } catch (error) {
-      handleExceptions(error);
-    }
-  }
+  // async cancelarCampaña(campañaId: string) {
+  //   try {
+  //     const campañaDb = await this.campaignRepository.findOneBy({
+  //       id: campañaId,
+  //     });
+  //     if (!campañaDb) throw new NotFoundException('No se encuentra la campaña');
+  //     if (
+  //       campañaDb.estatus ===
+  //       (CAMPAIGN_STATUS.CREADA || CAMPAIGN_STATUS.COTIZANDO)
+  //     ) {
+  //       throw new BadRequestException(
+  //         'La campaña no puede ser cancelada bajo este estatus, eliminar o modificar campaña',
+  //       );
+  //     }
+  //     campañaDb.estatus = CAMPAIGN_STATUS.CANCELADA;
+  //     await this.campaignRepository.save(campañaDb);
+  //     return { message: 'Campaña cancelada exitosamente' };
+  //   } catch (error) {
+  //     handleExceptions(error);
+  //   }
+  // }
 
   async update(campañaId: string, updateCampañaDto: UpdateCampañaDto) {
 
@@ -329,18 +330,17 @@ export class CampañasService {
     }
   }
 
-  async mandarCampañaAAprobar(campaignId: string) {
+  async sendToSigningCampaign(campaignId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
     try {
-      const campaign = await this.campaignRepository
-        .createQueryBuilder("campaign")
-        .leftJoinAndSelect("campaign.activaciones", "activacion", "activacion.status = :status", { status: true })
-        .leftJoinAndSelect("activacion.partida", "partida")
-        .leftJoinAndSelect("campaign.dependencias", "dependencia")
-        .where("campaign.id = :campaignId", { campaignId })
-        .getOne();
+      const campaign = await this.campaignRepository.findOne({
+        where: { id: campaignId }
+      });
 
-      if (!campaign)
-        throw new NotFoundException('NO SE ENCUENTRA LA CAMPAÑA');
+      if (!campaign) {
+        throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
+      }
+
+      const activation = await this.getLastActivation(campaignId);
 
       const validStates = [
         CAMPAIGN_STATUS.CREADA,
@@ -356,10 +356,9 @@ export class CampañasService {
         isSigned: false,
         documentId: campaignId,
         documentType: TIPO_DE_DOCUMENTO.CAMPAÑA,
-        activationId: campaign.activaciones[0].id
+        activationId: activation.id,
+        signatureAction: signatureAction
       };
-
-      console.log(signatureObject)
 
       await this.signatureService.create(signatureObject);
 
@@ -380,20 +379,16 @@ export class CampañasService {
     return document;
   }
 
-  async getActiveMatch(campaignId: string) {
-    try {
-      const lastMatch = await this.matchRepository.findOne({
-        where: {
-          estatus: true
-        }
-      })
+  async getLastActivation(campaignId: string) {
+    const lastActivation = await this.activationRepository.findOne({
+      where: {
+        status: true
+      }
+    });
 
-      return lastMatch
-    } catch (error) {
-      handleExceptions(error);
-    }
+    return lastActivation
   }
-
+  ;
   async updateCampaignStatus(campaignId: string, status: CAMPAIGN_STATUS) {
     try {
 
