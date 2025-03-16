@@ -26,7 +26,7 @@ export const campaignApprovalStructure = async (data: Props) => {
             creationDate: new Date(),
             author:
                 'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
-            title: `APROBACIÓN DE CAMPAÑA: ${data}`,
+            title: `APROBACIÓN DE CAMPAÑA: ${data.campaing.nombre}`,
         },
         pageSize: 'LETTER',
         pageMargins: [30, 120, 30, 60],

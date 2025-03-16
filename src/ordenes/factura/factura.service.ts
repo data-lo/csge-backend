@@ -21,6 +21,7 @@ import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuari
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Injectable()
 export class FacturaService {
@@ -329,6 +330,7 @@ export class FacturaService {
       documentId: facturaId,
       documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA ,
       isSigned: false,
+      signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
     }
 
     const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);

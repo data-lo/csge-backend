@@ -59,6 +59,7 @@ export class Activacion {
     name: 'number_of_activation',
     type: 'int',
     nullable: false,
+    default: 0
   })
   numberOfActivation: number;
 

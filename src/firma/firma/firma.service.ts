@@ -42,7 +42,7 @@ export class FirmaService {
   constructor(
 
     @InjectRepository(Firma)
-    private firmaRepository: Repository<Firma>,
+    private signatureRepository: Repository<Firma>,
 
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
@@ -62,19 +62,18 @@ export class FirmaService {
 
   async create(createFirmaDto: CreateFirmaDto) {
     try {
-      const { documentId, documentType, activationId } = createFirmaDto;
+      const { documentId, documentType, activationId, signatureAction } = createFirmaDto;
 
       const usuarios = await this.obtenerUsuariosFirmantes(
         documentId,
         documentType
       );
 
-      console.log(usuarios)
-
-      let documentoParaFirmar = this.firmaRepository.create({
+      let documentoParaFirmar = this.signatureRepository.create({
         documentType,
         documentId,
         isSigned: false,
+        signatureAction,
         usuariosFirmadores: usuarios,
       });
 
@@ -82,10 +81,10 @@ export class FirmaService {
         documentoParaFirmar.activationId = activationId;
       }
 
-      await this.firmaRepository.save(documentoParaFirmar);
+      await this.signatureRepository.save(documentoParaFirmar);
 
       return {
-        message: "📄 Documento en espera de ser firmado.",
+        message: "Documento en espera de ser firmado.",
         documentoAFirmar: documentoParaFirmar,
       };
 
@@ -129,6 +128,19 @@ export class FirmaService {
     } catch (error) {
       handleExceptions(error);
     }
+  }
+
+  async checkIfCampaignSigned(campaignId: string, activationId: string, signatureAction: SIGNATURE_ACTION_ENUM): Promise<boolean> {
+
+    const isSigned = await this.signatureRepository.findOne({
+      where: {
+        documentId: campaignId,
+        activationId: activationId,
+        signatureAction: signatureAction
+      }
+    });
+
+    return !!isSigned;
   }
 
   async getPendingSignedInvoiceDocuments(userId: string) {
@@ -326,26 +338,31 @@ export class FirmaService {
   }
 
   async documentSigning(userId: string, documentId: string) {
-    console.log(userId)
+
     try {
       // Buscar el usuario en la base de datos por su ID
       const user = await this.usuarioRepository.findOneBy({ id: userId });
 
       // Buscar el documento en la base de datos con sus relaciones (usuarios firmadores)
-      const document = await this.firmaRepository.findOne({
+      const document = await this.signatureRepository.findOne({
         where: { id: documentId },
         relations: { usuariosFirmadores: true },
       });
 
       // Si el usuario no existe, lanzar una excepción
-      if (!user) throw new NotFoundException('¡No se encuentra el usuario!');
+      if (!user) {
+        throw new NotFoundException('¡No se encuentra el usuario!');
+      }
 
       // Si el documento no existe, lanzar una excepción
-      if (!document) throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
+      if (!document) {
+        throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
+      }
 
       if (document.firmamexDocumentUrl === "sin_url") {
         // Construir el documento en formato PDF a partir de su orden o factura
         const documentInPdf = await this.construir_pdf(document.documentId, document.documentType);
+        console.log(documentInPdf)
 
         // Generar stickers para la firma digital del documento
         const stickers = await this.createStickers([user], document.documentType, document.usuariosFirmadores);
@@ -367,7 +384,7 @@ export class FirmaService {
         document.firmamexDocumentUrl = response.document_url;
 
         // Guardar los cambios en la base de datos
-        await this.firmaRepository.save(document);
+        await this.signatureRepository.save(document);
       }
 
       // Retornar la URL del documento generado en los servidor de Gobierno del Estado
@@ -434,7 +451,6 @@ export class FirmaService {
           authority: 'chihuahua',
           stickerType: 'rect',
           dataType: 'rfc',
-          email: 'bmsaenz@chihuahua.gob.mx',
           data: usuario.rfc,
           imageType: 'hash',
           page: 0,
@@ -519,7 +535,7 @@ export class FirmaService {
     try {
       let document: any;
 
-      const documentForSignature = await this.firmaRepository.findOne({
+      const documentForSignature = await this.signatureRepository.findOne({
         where: { documentId: documentId },
       });
 
@@ -578,7 +594,7 @@ export class FirmaService {
       });
 
       if (!usuarioDb) throw new NotFoundException('USUARIO NO ENCONTRADO');
-      const documentoEnFirmaDb = await this.firmaRepository.findOne({
+      const documentoEnFirmaDb = await this.signatureRepository.findOne({
         where: { documentId: documentId },
         relations: { usuariosFirmadores: true },
       });
@@ -611,7 +627,7 @@ export class FirmaService {
 
   async findOne(documentId: string) {
     try {
-      const documentoDb = await this.firmaRepository.findOneBy({
+      const documentoDb = await this.signatureRepository.findOneBy({
         documentId: documentId,
       });
       if (!documentoDb)
@@ -633,12 +649,18 @@ export class FirmaService {
         whereClause.activationId = activationId;
       }
 
-      const document = await this.firmaRepository.findOne({
-        where: whereClause,
+      let document = await this.signatureRepository.findOne({
+        where: { ...whereClause, signatureAction: SIGNATURE_ACTION_ENUM.CANCEL },
       });
 
+      if (!document) {
+        document = await this.signatureRepository.findOne({
+          where: { ...whereClause, signatureAction: SIGNATURE_ACTION_ENUM.APPROVE },
+        });
+      }
+
       return {
-        signatureAction: document ? document.signatureAction : undefined ,
+        signatureAction: document ? document.signatureAction : undefined,
         isSigned: document ? document.isSigned : undefined,
         wasSentToSigning: !!document,
       };
@@ -648,8 +670,9 @@ export class FirmaService {
     }
   }
 
+
   async updateDocumentByDocumentIdAndActivation(documentId: string, activationId: string) {
-    const document = await this.firmaRepository.findOne({
+    const document = await this.signatureRepository.findOne({
       where: {
         documentId: documentId,
         activationId: activationId,
@@ -661,10 +684,11 @@ export class FirmaService {
     }
 
     if (document.signatureStatus !== ESTATUS_DE_FIRMA.APROBADA && document.signatureStatus !== ESTATUS_DE_FIRMA.CANCELADA) {
+
       document.signatureStatus = ESTATUS_DE_FIRMA.NOT_CARRIED_OUT;
     }
 
-    await this.firmaRepository.save(document);
+    await this.signatureRepository.save(document);
   }
 }
 

@@ -48,6 +48,7 @@ import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveed
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { number } from 'joi';
 import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 /**
  * Servicio para la gestión de órdenes de servicio.
@@ -515,6 +516,7 @@ export class OrdenService {
         documentId: ordenId,
         documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
         isSigned: false,
+        signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
       };
 
       try {

@@ -15,7 +15,6 @@ import { CAMPAIGN_STATUS } from '../interfaces/estatus-campaña.enum';
 import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.entity';
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { TipoCampaña } from '../interfaces/tipo-campaña.enum';
-import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('campanias')
 export class Campaña {
@@ -30,13 +29,13 @@ export class Campaña {
   nombre: string;
 
   @Column({
-    name: 'estatus',
+    name: 'campaign_status',
     nullable: false,
     default: CAMPAIGN_STATUS.CREADA,
     type: 'enum',
     enum: CAMPAIGN_STATUS,
   })
-  estatus: CAMPAIGN_STATUS;
+  campaignStatus: CAMPAIGN_STATUS;
 
   @Column({
     name: 'tipo_de_campania',
@@ -65,17 +64,4 @@ export class Campaña {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  //@BeforeInsert()
-  //localeTimeZoneInsert() {
-  //  const value = new Date();
-  //  this.creadoEn = formatToLocalTime(value);
-  //  this.actualizadoEn = formatToLocalTime(value);
-  //}
-
-  //@BeforeUpdate()
-  //localeTimeZoneUpdate() {
-  //  const value = new Date();
-  //  this.actualizadoEn = formatToLocalTime(value);
-  //}
 }
