@@ -154,20 +154,4 @@ export class Orden {
     }
   )
   serviciosContratados: ServicioContratado[];
-
-  // @BeforeInsert()
-  // localeTimeZoneInsert() {
-  //   const value = new Date();
-  //   this.creadoEn = formatToLocalTime(value);
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeEmision = formatToLocalTime(value);
-  // }
-
-  // @BeforeUpdate()
-  // localeTimeZoneUpdate(){
-  //   const value = new Date();
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeAprobacion = formatToLocalTime(this.fechaDeAprobacion);
-  // }
-  
 }

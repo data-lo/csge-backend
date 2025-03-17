@@ -35,6 +35,7 @@ import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
 import { Console } from 'console';
 import { ESTATUS_DE_FIRMA } from './interfaces/estatus-de-firma.enum';
 import { SIGNATURE_ACTION_ENUM } from './enums/signature-action-enum';
+import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 
 
 @Injectable()
@@ -57,6 +58,9 @@ export class FirmaService {
     private campaniaRepository: Repository<Campaña>,
 
     private readonly firmamexService: FirmamexService,
+
+    private readonly activationService: ActivacionService,
+
     private readonly documentsService: DocumentsService,
   ) { }
 
@@ -337,6 +341,8 @@ export class FirmaService {
     }
   }
 
+  // Este servicio devuelve la URL donde se almacena en los servicios de Firmamex. 
+  // Si es la primera vez, se crea la entidad en los servidores del gobierno.
   async documentSigning(userId: string, documentId: string) {
 
     try {
@@ -360,9 +366,9 @@ export class FirmaService {
       }
 
       if (document.firmamexDocumentUrl === "sin_url") {
-        // Construir el documento en formato PDF a partir de su orden o factura
-        const documentInPdf = await this.construir_pdf(document.documentId, document.documentType);
-        console.log(documentInPdf)
+
+        // Construir el documento en formato PDF a partir de su orden, factura o campaña
+        const documentInPdf = await this.buildPDF(document.documentId, document.documentType, document.signatureAction);
 
         // Generar stickers para la firma digital del documento
         const stickers = await this.createStickers([user], document.documentType, document.usuariosFirmadores);
@@ -387,7 +393,7 @@ export class FirmaService {
         await this.signatureRepository.save(document);
       }
 
-      // Retornar la URL del documento generado en los servidor de Gobierno del Estado
+      // Retornar la URL del documento generado en los servidores de Firmamex
       return document.firmamexDocumentUrl;
 
     } catch (error) {
@@ -396,7 +402,7 @@ export class FirmaService {
     }
   }
 
-  private async construir_pdf(documentId, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean): Promise<PDFKit.PDFDocument> {
+  private async buildPDF(documentId, documentType: TIPO_DE_DOCUMENTO, signatureAction: SIGNATURE_ACTION_ENUM | null, isCampaign?: boolean, isFromCampaign?: boolean): Promise<PDFKit.PDFDocument> {
     try {
 
       let document = null;
@@ -407,13 +413,12 @@ export class FirmaService {
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         document = await this.documentsService.buildInvoiceApprovalDocument(documentId);
 
-      } else {
-        document = await this.documentsService.buildCampaignApprovalDocument(documentId);
+      } else if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        document = await this.documentsService.buildCampaignDocument(documentId, signatureAction);
       }
 
       return document;
     } catch (error) {
-      console.log('error en costruir pdf');
       handleExceptions(error);
     }
   }
@@ -468,10 +473,9 @@ export class FirmaService {
 
 
   // Servicios de Firmamex
-
   async submitDocumentToFirmamexSDK(
-    docBase64,
-    docNombre: string,
+    documentInBase64,
+    documentName: string,
     stickers: Sticker[],
     documentType: TIPO_DE_DOCUMENTO,
   ): Promise<FirmamexResponse> {
@@ -494,8 +498,8 @@ export class FirmaService {
 
       const response = await serviciosFirmamex.request({
         b64_doc: {
-          data: docBase64,
-          name: docNombre,
+          data: documentInBase64,
+          name: documentName,
         },
         qr: [QR],
         stickers: stickers,
@@ -503,8 +507,6 @@ export class FirmaService {
 
       return response;
     } catch (error) {
-      console.log('error en firmamex');
-      console.log(error.response.data || error.message);
       handleExceptions(error);
     }
   }
@@ -535,17 +537,30 @@ export class FirmaService {
     try {
       let document: any;
 
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        const activation = await this.activationService.getLastActivation(documentId);
+        const document = await this.checkDocumentSentForSigning(documentId, activation.id)
+
+        return  {
+          tipo: 'url',
+          url: document.document.firmamexDocumentUrl
+        };
+
+      }
+
       const documentForSignature = await this.signatureRepository.findOne({
         where: { documentId: documentId },
       });
-
+      
+      const signatureAction = documentForSignature ? documentForSignature.signatureAction : null;
+      
       if (!documentForSignature) {
-        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
+        document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign);
         return document;
       }
 
       if (!documentForSignature.ticket) {
-        document = await this.construir_pdf(documentId, documentType, isCampaign, isFromCampaign);
+        document = await this.buildPDF(documentId, documentType, documentForSignature.signatureAction, isCampaign, isFromCampaign);
         return document;
       }
 
@@ -660,6 +675,7 @@ export class FirmaService {
       }
 
       return {
+        document: document,
         signatureAction: document ? document.signatureAction : undefined,
         isSigned: document ? document.isSigned : undefined,
         wasSentToSigning: !!document,

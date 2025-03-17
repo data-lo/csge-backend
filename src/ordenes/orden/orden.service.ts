@@ -103,12 +103,11 @@ export class OrdenService {
 
       const availableFunds = masterContract.montoDisponible - masterContract.committedAmount;
 
-      console.log(availableFunds);
-
       if (availableFunds > totalAmount) {
-        console.log("Se hizo la actualización.");
+        const newCommitedAmount = Number(totalAmount) + Number(masterContract.committedAmount);
+
         await this.masterContract.update(masterContract.id, {
-          committedAmount: totalAmount
+          committedAmount: newCommitedAmount
         });
       } else {
 
@@ -129,8 +128,6 @@ export class OrdenService {
           }
         };
       }
-
-
 
       // Validar si el proveedor puede agregarse sin contrato
       if (!masterContract && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {

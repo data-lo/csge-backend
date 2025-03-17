@@ -7,16 +7,31 @@ import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-
 import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
 import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
 import { Campaña } from "src/campañas/campañas/entities/campaña.entity";
+import { SIGNATURE_ACTION_ENUM } from "src/firma/firma/enums/signature-action-enum";
 
 
 interface Props {
     campaing: Campaña
     header: string,
     footer: string,
+    signatureAction: SIGNATURE_ACTION_ENUM
 }
 
-export const campaignApprovalStructure = async (data: Props) => {
-    const description = `ESTE DOCUMENTO CERTIFICA LA AUTORIZACIÓN Y APROBACIÓN DE LA CAMPAÑA, PERMITIENDO EL USO DE LOS RECURSOS ASOCIADOS.`;
+export const campaignDocumentStructure = async (data: Props) => {
+
+    let description: string = "";
+    
+    let title: string = "";
+
+    if (data.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+        description = `ESTE DOCUMENTO CERTIFICA LA AUTORIZACIÓN Y APROBACIÓN DE LA CAMPAÑA, PERMITIENDO EL USO DE LOS RECURSOS ASOCIADOS.`;
+        title = "APROBACIÓN DE CAMPAÑA:";
+
+    } else if (data.signatureAction === SIGNATURE_ACTION_ENUM.CANCEL) {
+        description = `ESTE DOCUMENTO CERTIFICA LA CANCELACIÓN DE LA CAMPAÑA, DESCARTANDO EL USO DE LOS RECURSOS ASOCIADOS.`;
+        title = "CANCELACIÓN DE CAMPAÑA:";
+    }
+
     const budget = 'PRESUPUESTO 2025';
 
     const { footerTextPieDePaginaC, presupuestoTextC } = footerSection({ textoPieDePagina: data.footer, presupuestoText: budget });
@@ -26,7 +41,7 @@ export const campaignApprovalStructure = async (data: Props) => {
             creationDate: new Date(),
             author:
                 'COORDINACIÓN DE COMUNICACIÓN DE GOBIERNO DEL ESTADO DE CHIHUAHUA',
-            title: `APROBACIÓN DE CAMPAÑA: ${data.campaing.nombre}`,
+            title: `${title} ${data.campaing.nombre}`,
         },
         pageSize: 'LETTER',
         pageMargins: [30, 120, 30, 60],
@@ -69,3 +84,4 @@ export const campaignApprovalStructure = async (data: Props) => {
     };
     return documentDefinition;
 }
+

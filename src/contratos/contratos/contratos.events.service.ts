@@ -38,7 +38,7 @@ export class ContractEventsService {
   }
 
   @OnEvent('approval-campaign-orders', { async: true })
-  async applyDiscountsToMultiplyContracts(payload: { campaignId: string }) {
+  async approveDiscountsForMultipleContracts(payload: { campaignId: string }) {
     this.logger.log(`🔄 Iniciando evento "approval-campaign-orders" para la Campaña: ${payload.campaignId}`);
 
     try {
@@ -52,14 +52,40 @@ export class ContractEventsService {
           TYPE_EVENT_ORDER.ORDER_APPROVED
         );
 
-        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA)
-        
+        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) 
       }
 
       this.logger.log(`✅ Evento "approval-campaign-orders" completado con éxito.`);
     } catch (error) {
       this.logger.error(
         `❌ Error en el evento "approval-campaign-orders" para la Campaña ${payload.campaignId}: ${error.message}`,
+        error.stack
+      );
+    }
+  }
+
+  @OnEvent('cancelled-campaign-orders', { async: true })
+  async cancelDiscountsForMultipleContracts(payload: { campaignId: string }) {
+    this.logger.log(`🔄 Iniciando evento "cancelled-campaign-orders" para la Campaña: ${payload.campaignId}`);
+
+    try {
+
+      const orders = await this.orderService.getOrdersCreatedByCampaignModule(payload.campaignId);
+
+      for (const order of orders) {
+        await this.contractService.updateContractAmountByOrder(
+          order.id,
+          order.contratoMaestro.id,
+          TYPE_EVENT_ORDER.ORDER_CANCELLED
+        );
+
+        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.CANCELADA) 
+      }
+
+      this.logger.log(`✅ Evento "cancelled-campaign-orders" completado con éxito.`);
+    } catch (error) {
+      this.logger.error(
+        `❌ Error en el evento "cancelled-campaign-orders" para la Campaña ${payload.campaignId}: ${error.message}`,
         error.stack
       );
     }

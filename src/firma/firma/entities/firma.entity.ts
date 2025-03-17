@@ -45,7 +45,7 @@ export class Firma {
     signatureStatus: ESTATUS_DE_FIRMA;
 
     @Column({
-        name: 'url_documento_firmamex',
+        name: 'firmamex_document_url',
         nullable: false,
         default: 'sin_url'
     })

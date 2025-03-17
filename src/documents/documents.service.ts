@@ -9,12 +9,10 @@ import { TextosService } from 'src/configuracion/textos/textos.service';
 import { aprobacionDeFacturaPdf } from './reports/aprobacion-factura.report';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
-import { campaignApprovalStructure } from './reports/campaign-approval-report';
+import { campaignDocumentStructure } from './reports/campaign-approval-report';
 import * as QRCode from 'qrcode';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
-import { url } from 'inspector';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Injectable()
 export class DocumentsService {
@@ -56,7 +54,7 @@ export class DocumentsService {
         const documentSigned = await this.signatureRepository.findOne({
           where: { documentId: order.campaña.id }
         });
-      
+
         if (documentSigned) {
           if (documentSigned.isSigned && documentSigned.signedBy) {
             qrCode = await this.generatePdfWithQR({
@@ -101,7 +99,6 @@ export class DocumentsService {
   }
 
   async buildInvoiceApprovalDocument(invoiceId: string) {
-
     try {
       const facturaDb = await this.facturRepository.findOne({
         where: { id: invoiceId },
@@ -129,7 +126,7 @@ export class DocumentsService {
     }
   }
 
-  async buildCampaignApprovalDocument(campaignId: string) {
+  async buildCampaignDocument(campaignId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
 
     try {
       const campaing = await this.campaignRepository.findOne({
@@ -140,13 +137,14 @@ export class DocumentsService {
 
       const footer = await this.textosService.obtenerPieDePagina();
 
-      const definicionDeFactura = await campaignApprovalStructure({
+      const campaignStructure = await campaignDocumentStructure({
         campaing: campaing,
         header: header.texto,
         footer: footer.texto,
+        signatureAction
       });
 
-      const document = this.printerService.createPdf(definicionDeFactura);
+      const document = this.printerService.createPdf(campaignStructure);
 
       return document;
     } catch (error) {

@@ -14,7 +14,7 @@ export class ActivacionService {
 
   constructor(
     @InjectRepository(Activacion)
-    private activacionRepository: Repository<Activacion>,
+    private activationRepository: Repository<Activacion>,
     @InjectRepository(Partida)
     private partidaRepository: Repository<Partida>,
     @InjectRepository(Campaña)
@@ -32,7 +32,7 @@ export class ActivacionService {
 
       const fechaDeCreacion = new Date();
 
-      const activacion = this.activacionRepository.create({
+      const activacion = this.activationRepository.create({
         partida: partidaDb,
         campaña: campañaDb,
         fechaDeCreacion: fechaDeCreacion,
@@ -40,17 +40,28 @@ export class ActivacionService {
         ...rest
       });
 
-      await this.activacionRepository.save(activacion);
+      await this.activationRepository.save(activacion);
       return activacion;
     } catch (error) {
       handleExceptions(error);
     }
   }
 
+  async getLastActivation(campaignId: string) {
+      const lastActivation = await this.activationRepository.findOne({
+        where: {
+          campaña: { id: campaignId },
+          status: true,
+        }
+      });
+  
+      return lastActivation
+    }
+
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter()
-      const activaciones = await this.activacionRepository.find({
+      const activaciones = await this.activationRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina)
       });
@@ -62,7 +73,7 @@ export class ActivacionService {
 
   async findOne(id: string) {
     try {
-      const activacion = await this.activacionRepository.findOneBy({
+      const activacion = await this.activationRepository.findOneBy({
         id: id
       });
       if (!activacion) throw new NotFoundException('No se encuentra la activacion');
@@ -78,7 +89,7 @@ export class ActivacionService {
       if (!activation) {
         throw new NotFoundException("¡Activación no encontrada!");
       }
-      await this.activacionRepository.update(activationId, updateActivacionDto);
+      await this.activationRepository.update(activationId, updateActivacionDto);
 
       return
 
@@ -92,7 +103,7 @@ export class ActivacionService {
   async remove(id: string) {
     try {
       const activacion = await this.findOne(id);
-      await this.activacionRepository.remove(activacion);
+      await this.activationRepository.remove(activacion);
       return { message: 'Activacion eliminada correctamente' };
     } catch (error) {
       handleExceptions(error);
@@ -109,7 +120,7 @@ export class ActivacionService {
   }
 
   async disableActivation(activationId: string) {
-    const activation = await this.activacionRepository.findOne({
+    const activation = await this.activationRepository.findOne({
       where: { id: activationId },
       relations: { partida: true }
     });
@@ -118,7 +129,7 @@ export class ActivacionService {
       throw new NotFoundException('¡Activación no encontrada!');
     }
 
-    await this.activacionRepository.update(activationId, { status: false });
+    await this.activationRepository.update(activationId, { status: false });
 
     if (activation.partida) {
       await this.partidaRepository.update(activation.partida.id, { estatus: false });

@@ -442,7 +442,7 @@ export class ContratosService {
     });
 
     const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === order.tipoDeServicio);
-
+    
     const values = {
       masterContract: {
         availableAmount: masterContract.montoDisponible,
@@ -470,7 +470,8 @@ export class ContratosService {
 
       await this.masterContractRepository.update(masterContract.id, {
         montoDisponible: updatedValues.masterContract.availableAmount,
-        montoActivo: updatedValues.masterContract.activeAmount
+        montoActivo: updatedValues.masterContract.activeAmount,
+        committedAmount: updatedValues.masterContract.committedAmount
       });
 
     } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {

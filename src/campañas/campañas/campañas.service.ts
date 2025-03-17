@@ -16,8 +16,6 @@ import { ActivacionService } from '../activacion/activacion.service';
 import { PartidaService } from '../partida/partida.service';
 import { CAMPAIGN_STATUS } from './interfaces/estatus-campaña.enum';
 import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CampaniaEvent } from './interfaces/campaña-evento';
 import { LoggerService } from 'src/logger/logger.service';
 import { FirmaService } from 'src/firma/firma/firma.service';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
@@ -196,7 +194,7 @@ export class CampañasService {
         return { message: '¡Campaña actualizada exitosamente!' };
       }
 
-      throw new BadRequestException('¡El estatus de la campaña no permite actualizaciones ni cancelaciones!');
+      throw new BadRequestException('¡El estatus de la campaña no permite actualizaciones!');
 
     } catch (error) {
       handleExceptions(error);
@@ -269,7 +267,7 @@ export class CampañasService {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
-      if (campaign.campaignStatus !== CAMPAIGN_STATUS.INACTIVA) {
+      if (!(campaign.campaignStatus === CAMPAIGN_STATUS.INACTIVA || campaign.campaignStatus === CAMPAIGN_STATUS.CANCELADA)) {
         throw new BadRequestException('El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser INACTIVA.');
       }
 
@@ -313,11 +311,7 @@ export class CampañasService {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
-      const activation = await this.getLastActivation(campaignId);
-
-      // checkIfCampaignSigned
-
-      const isSigned = await
+      const activation = await this.activationService.getLastActivation(campaignId);
 
       await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
 
@@ -342,21 +336,12 @@ export class CampañasService {
     }
   }
 
-  async getApprovalCampaignDocument(id: string) {
+  async getCampaignDocument(id: string) {
     const document = await this.signatureService.downloadFile(id, TIPO_DE_DOCUMENTO.CAMPAÑA);
+
     return document;
   }
 
-  async getLastActivation(campaignId: string) {
-    const lastActivation = await this.activationRepository.findOne({
-      where: {
-        campaña: { id: campaignId },
-        status: true,
-      }
-    });
-
-    return lastActivation
-  }
 
   private async validateCampaignStatusForSignatureAction(campaignStatus: CAMPAIGN_STATUS, signatureAction: SIGNATURE_ACTION_ENUM) {
     // Estatus válidos para aprobación
@@ -398,17 +383,13 @@ export class CampañasService {
         throw new Error(`La Campaña con ID: ${campaignId} no se encontró.`);
       }
 
-      const campaignWithActiveActivation = await this.campaignRepository
-        .createQueryBuilder('campaña')
-        .innerJoinAndSelect('campaña.activaciones', 'activacion')
-        .where('campaña.id = :campaignId', { campaignId })
-        .andWhere('activacion.status = :status', { status: true })
-        .getOne();
-
-      const currentlyActivation = campaignWithActiveActivation.activaciones[0];
+      const lastActivation = await this.activationService.getLastActivation(campaignId);
 
       if (campaignStatus == CAMPAIGN_STATUS.APROBADA) {
-        await this.activationRepository.update(currentlyActivation.id, { fechaDeAprobacion: new Date() });
+        await this.activationRepository.update(lastActivation.id, { fechaDeAprobacion: new Date() });
+
+      } else if (campaignStatus == CAMPAIGN_STATUS.CANCELADA) {
+        await this.closeCampaign(campaignId, lastActivation.id);
       }
 
       await this.campaignRepository.update(campaignId, { campaignStatus: campaignStatus });

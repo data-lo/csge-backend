@@ -14,6 +14,7 @@ import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
 import { INVOICE_STATUS } from 'src/ordenes/factura/interfaces/estatus-factura';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Injectable()
 export class WebhooksService {
@@ -65,9 +66,17 @@ export class WebhooksService {
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
 
       } else if (document.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
-        this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
 
-        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
+        if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+          this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
+
+          this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
+
+        } else if (document.signatureAction === SIGNATURE_ACTION_ENUM.CANCEL) {
+          this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.CANCELADA });
+
+          this.eventEmitter.emit('cancelled-campaign-orders', { campaignId: documentId });
+        }
       }
 
       document.isSigned = true;

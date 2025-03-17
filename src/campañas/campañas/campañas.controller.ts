@@ -61,7 +61,7 @@ export class CampañasController {
     @Res() response: Response,
     @Param('id', ParseUUIDPipe) id: string
   ) {
-    const pdfDoc = await this.campañasService.getApprovalCampaignDocument(id);
+    const pdfDoc = await this.campañasService.getCampaignDocument(id);
 
     if (pdfDoc.tipo === 'url') {
       response.send(pdfDoc.url);
