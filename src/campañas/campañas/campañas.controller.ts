@@ -83,12 +83,6 @@ export class CampañasController {
     return this.campañasService.closeCampaign(campaignId, activationId);
   }
 
-  // @Auth(...CAMPAIGN_ROLES)
-  // @Patch('cancelar')
-  // cancelar(@Body('campañaId', ParseUUIDPipe) id: string) {
-  //   return this.campañasService.cancelarCampaña(id);
-  // }
-
   @Auth(...CAMPAIGN_ROLES)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateCampañaDto: UpdateCampañaDto) {

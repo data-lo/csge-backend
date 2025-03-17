@@ -402,13 +402,13 @@ export class FirmaService {
     }
   }
 
-  private async buildPDF(documentId, documentType: TIPO_DE_DOCUMENTO, signatureAction: SIGNATURE_ACTION_ENUM | null, isCampaign?: boolean, isFromCampaign?: boolean): Promise<PDFKit.PDFDocument> {
+  private async buildPDF(documentId, documentType: TIPO_DE_DOCUMENTO, signatureAction: SIGNATURE_ACTION_ENUM | null, isCampaign?: boolean, isFromCampaign?: boolean, activationId?: string): Promise<PDFKit.PDFDocument> {
     try {
 
       let document = null;
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign);
+        document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign, activationId);
 
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         document = await this.documentsService.buildInvoiceApprovalDocument(documentId);
@@ -533,14 +533,14 @@ export class FirmaService {
     return response;
   }
 
-  async downloadFile(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean) {
+  async downloadFile(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean, activationId? : string) {
     try {
       let document: any;
 
       if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
         const activation = await this.activationService.getLastActivation(documentId);
-        const document = await this.checkDocumentSentForSigning(documentId, activation.id)
 
+        const document = await this.checkDocumentSentForSigning(documentId, activation.id)
         return  {
           tipo: 'url',
           url: document.document.firmamexDocumentUrl
@@ -555,7 +555,7 @@ export class FirmaService {
       const signatureAction = documentForSignature ? documentForSignature.signatureAction : null;
       
       if (!documentForSignature) {
-        document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign);
+        document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign, activationId);
         return document;
       }
 

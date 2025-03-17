@@ -13,6 +13,7 @@ import { campaignDocumentStructure } from './reports/campaign-approval-report';
 import * as QRCode from 'qrcode';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { FirmaService } from 'src/firma/firma/firma.service';
 
 @Injectable()
 export class DocumentsService {
@@ -30,11 +31,12 @@ export class DocumentsService {
     private signatureRepository: Repository<Firma>,
 
     private readonly printerService: PrinterService,
+
     private textosService: TextosService,
   ) { }
 
 
-  async buildOrderDocument(orderId: string, isCampaign?: boolean, isFromCampaign?: boolean) {
+  async buildOrderDocument(orderId: string, isCampaign?: boolean, isFromCampaign?: boolean, activationId?: string) {
 
     try {
       const order = await this.ordenDeServicioRepository.findOne({
@@ -51,13 +53,12 @@ export class DocumentsService {
       let qrCode: any;
 
       if (isCampaign) {
-        const documentSigned = await this.signatureRepository.findOne({
-          where: { documentId: order.campaña.id }
-        });
+        const documentSigned = await this.checkDocumentSentForSigning(order.campaña.id, activationId);
 
         if (documentSigned) {
           if (documentSigned.isSigned && documentSigned.signedBy) {
             qrCode = await this.generatePdfWithQR({
+              signatureAction: documentSigned.signatureAction,
               signedAt: new Date(documentSigned.signedBy.signedAt),
               signerRfc: documentSigned.signedBy.signerRfc,
               signerEmail: documentSigned.signedBy.signerEmail,
@@ -153,12 +154,20 @@ export class DocumentsService {
   }
 
 
-  async generatePdfWithQR(values: { signedAt: Date, signerRfc: string, signerEmail: string, url: string }) {
+  async generatePdfWithQR(values: { signedAt: Date, signerRfc: string, signerEmail: string, url: string, signatureAction: SIGNATURE_ACTION_ENUM }) {
 
-    const qrText = `Orden aprobada junto con la campaña.\nAprobado por: ${values.signerRfc} (${values.signerEmail})\nFecha y hora: ${values.signedAt} Documento de aprobación: ${values.url}`;
+    let action: string = "ACCIÓN NO VÁLIDA"
+
+    if (values.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+      action = "APROBADA";
+    } else {
+      action = "CANCELADA";
+    }
+
+    const qrText = `LA ORDEN HA SIDO ${action} .\n USUARIO: ${values.signerRfc} (${values.signerEmail})\n FECHA Y HORA: ${values.signedAt} DOCUMENTO: ${values.url}`;
 
     try {
-      const qrBase64 = await QRCode.toDataURL(qrText);
+      const qrBase64 = await QRCode.toDataURL(qrText)
 
       return qrBase64;
 
@@ -169,6 +178,30 @@ export class DocumentsService {
 
 
 
+  async checkDocumentSentForSigning(id: string, activationId?: string) {
+    try {
+      const whereClause: any = { documentId: id };
+
+      if (activationId) {
+        whereClause.activationId = activationId;
+      }
+
+      let document = await this.signatureRepository.findOne({
+        where: { ...whereClause, signatureAction: SIGNATURE_ACTION_ENUM.CANCEL },
+      });
+
+      if (!document) {
+        document = await this.signatureRepository.findOne({
+          where: { ...whereClause, signatureAction: SIGNATURE_ACTION_ENUM.APPROVE },
+        });
+      }
+
+      return document;
+
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
 
 
 }

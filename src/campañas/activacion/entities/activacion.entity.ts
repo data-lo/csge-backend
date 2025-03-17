@@ -86,19 +86,4 @@ export class Activacion {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  // @BeforeInsert()
-  // localeTimeZoneInsert() {
-  //   const value = new Date();
-  //   this.creadoEn = formatToLocalTime(value);
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeCreacion = formatToLocalTime(this.fechaDeCreacion);
-  // }
-
-  // @BeforeUpdate()
-  // localeTimeZoneUpdate() {
-  //   const value = new Date();
-  //   this.actualizadoEn = formatToLocalTime(value);
-  // }
-
 }

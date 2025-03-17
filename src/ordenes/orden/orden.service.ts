@@ -49,6 +49,8 @@ import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maest
 import { number } from 'joi';
 import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { ActivacionService } from 'src/campañas/activacion/activacion.service';
+import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
 
 /**
  * Servicio para la gestión de órdenes de servicio.
@@ -64,9 +66,12 @@ export class OrdenService {
 
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
-    private readonly firmaService: FirmaService,
+
+    private readonly signatureService: FirmaService,
 
     private readonly campaignService: CampañasService,
+
+    private readonly activationService: ActivacionService,
 
     private readonly proveedorService: ProveedorService,
 
@@ -112,7 +117,6 @@ export class OrdenService {
       } else {
 
         const formattedServices = categorizedServices.map((contractedService: { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
-          // total: contractedService.cantidad * (contractedService.servicio.tarifaUnitaria + contractedService.servicio.iva),
           quantity: contractedService.cantidad,
           serviceName: contractedService.servicio.nombreDeServicio,
           uniqueId: contractedService.uniqueId
@@ -535,7 +539,7 @@ export class OrdenService {
       };
 
       try {
-        const documentoEnFirma = await this.firmaService.findOne(ordenId);
+        const documentoEnFirma = await this.signatureService.findOne(ordenId);
         if (documentoEnFirma)
           throw new BadRequestException({
             status: '406',
@@ -543,7 +547,7 @@ export class OrdenService {
           });
       } catch (error) {
         if (error.response.status === '404') {
-          return await this.firmaService.create(documentoFirmaDto);
+          return await this.signatureService.create(documentoFirmaDto);
         }
         throw error;
       }
@@ -555,7 +559,8 @@ export class OrdenService {
   async getOrderInPDF(orderId: string) {
 
     const order = await this.orderRepository.findOne({
-      where: { id: orderId }
+      where: { id: orderId },
+      relations: ["campaña"]
     });
 
     if (!order) {
@@ -566,7 +571,15 @@ export class OrdenService {
 
     const isFromCampaing = false;
 
-    return await this.firmaService.downloadFile(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing);
+    let activationId: string = "";
+
+    if (isCampaign) {
+      let lastActivation = await this.activationService.getLastActivation(order.campaña.id, orderId);
+
+      activationId = lastActivation.id;
+    }
+
+    return await this.signatureService.downloadFile(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing, activationId);
   }
 
   async generateCampaignOrdersInPDF(campaignId: string) {
@@ -590,7 +603,7 @@ export class OrdenService {
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        const pdfBytes = await this.firmaService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
+        const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
 
         const pdfLibDoc = await PDFDocument.load(pdfBytes);
 
@@ -641,10 +654,14 @@ export class OrdenService {
   }
 
   async getOrdersCreatedByCampaignModule(campaignId: string) {
+    const activation = await this.activationService.getLastActivation(campaignId);
+
+
     const orders = await this.orderRepository.find({
       where: {
         campaña: { id: campaignId },
-        esCampania: true
+        esCampania: true,
+        partida: { id: activation.partida.id }
       },
       relations: ['contratoMaestro']
     });

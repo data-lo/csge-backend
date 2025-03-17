@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Partida } from '../partida/entities/partida.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
+import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 
 @Injectable()
 export class ActivacionService {
@@ -18,7 +19,10 @@ export class ActivacionService {
     @InjectRepository(Partida)
     private partidaRepository: Repository<Partida>,
     @InjectRepository(Campaña)
-    private campañaRepository: Repository<Campaña>
+    private campañaRepository: Repository<Campaña>,
+
+    @InjectRepository(Orden)
+    private orderRepository: Repository<Orden>
 
   ) { }
 
@@ -47,16 +51,31 @@ export class ActivacionService {
     }
   }
 
-  async getLastActivation(campaignId: string) {
-      const lastActivation = await this.activationRepository.findOne({
-        where: {
-          campaña: { id: campaignId },
-          status: true,
-        }
+  async getLastActivation(campaignId: string, orderId?: string) {
+
+    let whereCondition: any = { campaña: { id: campaignId } };
+  
+    if (orderId) {
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['partida'],
       });
   
-      return lastActivation
+      if (!order || !order.partida) {
+        throw new NotFoundException(`No se encontró una orden con ID ${orderId} o no tiene partida asociada.`);
+      }
+  
+      whereCondition = { partida: { id: order.partida.id } };
     }
+  
+    const lastActivation = await this.activationRepository.findOne({
+      where: whereCondition,
+      order: { creadoEn: 'DESC' },
+      relations: ['partida'],
+    });
+  
+    return lastActivation;
+  }
 
   async findAll(pagina: number) {
     try {
