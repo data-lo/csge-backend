@@ -69,8 +69,10 @@ export class OrdenService {
     private readonly campaignService: CampañasService,
 
     private readonly proveedorService: ProveedorService,
-    private readonly contratoService: ContratosService,
-    private readonly servicioContratadoService: ServicioContratadoService,
+
+    private readonly contractService: ContratosService,
+
+    private readonly contractedServiceService: ServicioContratadoService,
   ) { }
 
 
@@ -83,7 +85,7 @@ export class OrdenService {
       // Buscar proveedor, contrato y campaña en paralelo
       const [provider, masterContract, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
-        this.contratoService.findOne(contratoId),
+        this.contractService.findOne(contratoId),
         this.campaignService.findOne(campaniaId),
       ]);
 
@@ -159,7 +161,7 @@ export class OrdenService {
         await Promise.all(
           serviciosContratados.map(async (servicioContratado) => {
             const { cantidad, carteleraId, ...rest } = servicioContratado;
-            await this.servicioContratadoService.create({
+            await this.contractedServiceService.create({
               ...rest,
               cantidad,
               ordenId: order.id,
@@ -310,21 +312,21 @@ export class OrdenService {
         currentlyOrder.proveedor = await this.proveedorService.findOne(proveedorId);
       }
       if (contratoId) {
-        currentlyOrder.contratoMaestro = await this.contratoService.findOne(contratoId);
+        currentlyOrder.contratoMaestro = await this.contractService.findOne(contratoId);
       }
 
       Object.assign(currentlyOrder, { ...rest },);
 
       if (currentlyOrder.serviciosContratados) {
         for (const servicioContratado of currentlyOrder.serviciosContratados) {
-          await this.servicioContratadoService.remove(servicioContratado.id);
+          await this.contractedServiceService.remove(servicioContratado.id);
         }
       }
 
       if (serviciosContratados) {
         newServices = await Promise.all(
           serviciosContratados.map(async (updateService) => {
-            return await this.servicioContratadoService.create({
+            return await this.contractedServiceService.create({
               ...updateService,
               ordenId: currentlyOrder.id,
             });
@@ -344,20 +346,36 @@ export class OrdenService {
     }
   }
 
-  async remove(id: string) {
+  async remove(orderId: string) {
     try {
-      const orden = await this.findOne(id);
-      const estatus = orden.estatus;
-      if (estatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
-        for (const servicioContratado of orden.serviciosContratados) {
-          await this.servicioContratadoService.remove(servicioContratado.id);
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['contratoMaestro', 'serviciosContratados']
+      });
+
+      const orderStatus = order.estatus;
+
+      if (orderStatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
+
+        for (const servicioContratado of order.serviciosContratados) {
+          await this.contractedServiceService.remove(servicioContratado.id);
+
         }
-        await this.orderRepository.remove(orden);
-        return { message: 'Orden eliminada exitosamente' };
+        const masterContract = await this.contractService.findOne(order.contratoMaestro.id);
+
+        const newCommittedAmount = masterContract.committedAmount - order.total;
+
+        await this.masterContract.update(masterContract.id, {
+          committedAmount: newCommittedAmount
+        })
+
+        await this.orderRepository.remove(order);
+
+        return { message: '¡La orden ha sido eliminada con éxito!' };
       }
-      throw new BadRequestException(
-        'No es posible eliminar la orden debido a su estatus, cancelar orden',
-      );
+
+      throw new BadRequestException('¡No es posible eliminar la orden debido a su estatus!');
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -438,7 +456,7 @@ export class OrdenService {
       throw new Error('No se pudo generar el folio de orden');
     }
   }
-  
+
   async obtenerEstatusOrden(id: string) {
     try {
       const orden = await this.findOne(id);
