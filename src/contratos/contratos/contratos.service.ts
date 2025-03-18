@@ -485,6 +485,17 @@ export class ContratosService {
         montoEjercido: updatedValues.masterContract.executedAmount,
         montoActivo: updatedValues.masterContract.activeAmount
       });
+    } else if(eventType === TYPE_EVENT_INVOICE.INVOICE_PAID){
+
+      await this.contractRepository.update(contractByServiceType.id, {
+        montoPagado: updatedValues.contractByServiceType.paidAmount,
+        montoEjercido: updatedValues.contractByServiceType.executedAmount
+      });
+
+      await this.masterContractRepository.update(masterContract.id, {
+        montoPagado: updatedValues.masterContract.paidAmount,
+        montoEjercido: updatedValues.masterContract.executedAmount
+      });
     }
   }
 

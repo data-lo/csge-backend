@@ -28,7 +28,6 @@ export class FirmaController {
     @Query('signatureAction') signatureAction: SIGNATURE_ACTION_ENUM,
     @GetUser() user: Usuario
   ) {
-    console.log(signatureAction)
     return this.signatureService.documentSigning(user.id, documentId);
   }
 

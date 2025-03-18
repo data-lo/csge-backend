@@ -4,13 +4,15 @@ import { ContratosService } from './contratos.service';
 import { OrdenService } from 'src/ordenes/orden/orden.service';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 
+
 @Injectable()
 export class ContractEventsService {
   private readonly logger = new Logger(ContractEventsService.name);
 
   constructor(
     private readonly orderService: OrdenService,
-    private readonly contractService: ContratosService
+
+    private readonly contractService: ContratosService,
 
   ) { }
 
@@ -52,7 +54,7 @@ export class ContractEventsService {
           TYPE_EVENT_ORDER.ORDER_APPROVED
         );
 
-        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) 
+        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA)
       }
 
       this.logger.log(`✅ Evento "approval-campaign-orders" completado con éxito.`);
@@ -79,7 +81,7 @@ export class ContractEventsService {
           TYPE_EVENT_ORDER.ORDER_CANCELLED
         );
 
-        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.CANCELADA) 
+        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.CANCELADA)
       }
 
       this.logger.log(`✅ Evento "cancelled-campaign-orders" completado con éxito.`);
@@ -90,4 +92,6 @@ export class ContractEventsService {
       );
     }
   }
+
+  
 }

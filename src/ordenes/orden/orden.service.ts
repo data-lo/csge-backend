@@ -12,10 +12,9 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { PDFDocument } from 'pdf-lib';
@@ -46,11 +45,11 @@ import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servici
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { number } from 'joi';
-import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
-import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
+import { Factura } from '../factura/entities/factura.entity';
+// import { Factura } from '../factura/entities/factura.entity';
+
 
 /**
  * Servicio para la gestión de órdenes de servicio.
@@ -62,7 +61,7 @@ export class OrdenService {
     private orderRepository: Repository<Orden>,
 
     @InjectRepository(ContratoMaestro)
-    private masterContract: Repository<ContratoMaestro>,
+    private masterContractRepository: Repository<ContratoMaestro>,
 
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
@@ -88,7 +87,7 @@ export class OrdenService {
       const currentDate = new Date();
 
       // Buscar proveedor, contrato y campaña en paralelo
-      const [provider, masterContract, campaign] = await Promise.all([
+      const [provider, masterContractRepository, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
         this.contractService.findOne(contratoId),
         this.campaignService.findOne(campaniaId),
@@ -106,12 +105,12 @@ export class OrdenService {
         categorizedServices.push(contractedService);
       }
 
-      const availableFunds = masterContract.montoDisponible - masterContract.committedAmount;
+      const availableFunds = masterContractRepository.montoDisponible - masterContractRepository.committedAmount;
 
       if (availableFunds > totalAmount) {
-        const newCommitedAmount = Number(totalAmount) + Number(masterContract.committedAmount);
+        const newCommitedAmount = Number(totalAmount) + Number(masterContractRepository.committedAmount);
 
-        await this.masterContract.update(masterContract.id, {
+        await this.masterContractRepository.update(masterContractRepository.id, {
           committedAmount: newCommitedAmount
         });
       } else {
@@ -134,7 +133,7 @@ export class OrdenService {
       }
 
       // Validar si el proveedor puede agregarse sin contrato
-      if (!masterContract && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
+      if (!masterContractRepository && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
         throw new BadRequestException('¡Solo los proveedores de servicios pueden agregarse sin contrato!');
       }
 
@@ -148,7 +147,7 @@ export class OrdenService {
       const order = this.orderRepository.create({
         campaña: campaign,
         proveedor: provider,
-        contratoMaestro: masterContract,
+        contratoMaestro: masterContractRepository,
         partida: match,
         folio: folio,
         tipoDeServicio,
@@ -362,11 +361,11 @@ export class OrdenService {
           await this.contractedServiceService.remove(servicioContratado.id);
 
         }
-        const masterContract = await this.contractService.findOne(order.contratoMaestro.id);
+        const masterContractRepository = await this.contractService.findOne(order.contratoMaestro.id);
 
-        const newCommittedAmount = masterContract.committedAmount - order.total;
+        const newCommittedAmount = masterContractRepository.committedAmount - order.total;
 
-        await this.masterContract.update(masterContract.id, {
+        await this.masterContractRepository.update(masterContractRepository.id, {
           committedAmount: newCommittedAmount
         })
 
@@ -656,7 +655,6 @@ export class OrdenService {
   async getOrdersCreatedByCampaignModule(campaignId: string) {
     const activation = await this.activationService.getLastActivation(campaignId);
 
-
     const orders = await this.orderRepository.find({
       where: {
         campaña: { id: campaignId },
@@ -668,5 +666,4 @@ export class OrdenService {
 
     return orders;
   }
-
 }

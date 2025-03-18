@@ -110,8 +110,6 @@ export class WebhooksService {
 
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
 
-        console.log("Documento Firmado Cotejado");
-
         this.eventEmitter.emit('invoice-modify-contract-amounts', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED });
 
       } else if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {

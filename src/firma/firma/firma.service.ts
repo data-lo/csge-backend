@@ -195,7 +195,6 @@ export class FirmaService {
           })
           .getMany();
 
-        console.log(facturasConDocumentosPorFirmar)
         return facturasConDocumentosPorFirmar;
       } catch (error) {
         handleExceptions(error);

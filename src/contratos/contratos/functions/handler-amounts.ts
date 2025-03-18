@@ -56,6 +56,14 @@ export function handlerAmounts(values: Props) {
             newValues.masterContract.activeAmount += Number(values.totalOrder);
             newValues.masterContract.executedAmount -= Number(values.totalOrder);
             break;
+
+        case TYPE_EVENT_INVOICE.INVOICE_PAID:
+            newValues.contractByServiceType.executedAmount -= Number(values.totalOrder);
+            newValues.contractByServiceType.paidAmount += Number(values.totalOrder);
+            
+            newValues.masterContract.executedAmount -= Number(values.totalOrder);
+            newValues.masterContract.paidAmount += Number(values.totalOrder);
+            break;
     }
 
     return newValues;
