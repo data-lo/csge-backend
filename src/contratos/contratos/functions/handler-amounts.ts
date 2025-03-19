@@ -6,7 +6,7 @@ interface Props {
         paidAmount: number;
         executedAmount: number;
         activeAmount: number;
-        committedAmount: number;
+        committedAmount: string;
     };
     contractByServiceType: {
         paidAmount: number;
@@ -14,7 +14,7 @@ interface Props {
         activeAmount: number;
     };
     eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE;
-    totalOrder: number;
+    totalOrder: string;
 }
 
 export function handlerAmounts(values: Props) {
@@ -76,7 +76,7 @@ export function handlerAmounts(values: Props) {
             paidAmount: newValues.masterContract.paidAmount.toDecimalPlaces(4).toNumber(),
             executedAmount: newValues.masterContract.executedAmount.toDecimalPlaces(4).toNumber(),
             activeAmount: newValues.masterContract.activeAmount.toDecimalPlaces(4).toNumber(),
-            committedAmount: newValues.masterContract.committedAmount.toDecimalPlaces(4).toNumber()
+            committedAmount: newValues.masterContract.committedAmount.toString()
         },
         contractByServiceType: {
             paidAmount: newValues.contractByServiceType.paidAmount.toDecimalPlaces(4).toNumber(),

@@ -9,7 +9,8 @@ export class IvaGetter {
         private readonly ivaService: IvaService,
     ) { }
 
-    async obtenerIva(tarifa: string | Decimal, esIvaFrontera: boolean) {
+    async obtenerIva(value: string | Decimal, esIvaFrontera: boolean) {
+
         let ivaPorcentaje = new Decimal(0);
 
         if (esIvaFrontera) {
@@ -18,7 +19,8 @@ export class IvaGetter {
             ivaPorcentaje = new Decimal(await this.obtenerIvaNacional());
         }
 
-        const tarifaDecimal = new Decimal(tarifa);
+        const tarifaDecimal = new Decimal(value);
+
         const iva = tarifaDecimal.times(ivaPorcentaje);
 
         return iva.toDecimalPlaces(4).toString();
@@ -46,6 +48,7 @@ export class IvaGetter {
 
     async obtenerIvaNacional() {
         const ivaNacional = await this.ivaService.obtenerIvaNacional();
+        console.log()
         return new Decimal(ivaNacional.porcentaje).dividedBy(100).toString();
     }
 

@@ -153,27 +153,27 @@ export class PartidaService {
       // monto ejercido, cuando se coteja,
       // monto pagado, cuando se paga
 
-      switch (evento) {
-        case 'orden.aprobada':
-          partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
-          break;
-        case 'orden.canelada':
-          partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-          break;
+      // switch (evento) {
+      //   case 'orden.aprobada':
+      //     partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
+      //     break;
+      //   case 'orden.canelada':
+      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
+      //     break;
 
-        case 'orden.cotejada':
-          partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-          partidaDb.montoEjercido = (partidaDb.montoEjercido + ordenDb.total);
-          break;
+      //   case 'orden.cotejada':
+      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
+      //     partidaDb.montoEjercido = (partidaDb.montoEjercido + ordenDb.total);
+      //     break;
 
-        case 'factura.pagada':
-          partidaDb.montoPagado = (partidaDb.montoPagado = ordenDb.total);
-          break;
+      //   case 'factura.pagada':
+      //     partidaDb.montoPagado = (partidaDb.montoPagado = ordenDb.total);
+      //     break;
 
-        case 'factura.cancelada':
-          partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
-          partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
-      }
+      //   case 'factura.cancelada':
+      //     partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
+      //     partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
+      // }
       await this.matchRepository.save(partidaDb);
       return;
 

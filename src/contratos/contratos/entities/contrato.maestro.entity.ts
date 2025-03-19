@@ -15,7 +15,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Contrato } from './contrato.entity';
-import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity({ name: 'contrato_maestro' })
 export class ContratoMaestro {
@@ -53,16 +52,15 @@ export class ContratoMaestro {
     name: 'monto_minimo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMinimoContratado: number;
 
   @Column({
     name: 'iva_monto_minimo_contratado',
-    type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   ivaMontoMinimoContratado: number;
@@ -71,19 +69,17 @@ export class ContratoMaestro {
     name: 'monto_maximo_contratado',
     type: 'decimal',
     default: null,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMaximoContratado: number;
 
   @Column({
     name: 'monto_reservado',
-    type: 'decimal',
-    scale: 2,
-    default: 0.0,
+    default: "0",
     nullable: false,
   })
-  committedAmount: number;
+  committedAmount: string;
 
   @Column({
     name: 'iva_monto_maximo_contratado',

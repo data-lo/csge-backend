@@ -134,7 +134,12 @@ export const ordenDeServicioPdf = async (orden: Props) => {
             },
             {
               width: 'auto',
-              stack: [montosTotalesOrdenSection({ subtotal, iva, total })],
+              stack: [montosTotalesOrdenSection({ 
+                subtotal: Number(subtotal), 
+                iva: Number(iva), 
+                total: Number(total) 
+            })]
+            
             },
           ],
         },

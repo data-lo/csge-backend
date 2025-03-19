@@ -93,28 +93,29 @@ export class OrdenService {
         this.campaignService.findOne(campaniaId),
       ]);
 
-
-      let totalAmount: number = 0;
+      let totalAmount = new Decimal(0);
 
       let categorizedServices: any[] = [];
 
       for (const contractedService of serviciosContratados) {
-        const serviceTotal = contractedService.cantidad * (Number(contractedService.servicio.tarifaUnitaria) + Number(contractedService.servicio.iva));
+        const serviceTotal = new Decimal(contractedService.cantidad)
+          .times(new Decimal(contractedService.servicio.tarifaUnitaria).plus(new Decimal(contractedService.servicio.iva)));
 
-        totalAmount += serviceTotal;
+        totalAmount = totalAmount.plus(serviceTotal);
         categorizedServices.push(contractedService);
       }
 
-      const availableFunds = masterContractRepository.montoDisponible - masterContractRepository.committedAmount;
+      // Convertir valores de la BD a Decimal
+      const availableFunds = new Decimal(masterContractRepository.montoDisponible).minus(new Decimal(masterContractRepository.committedAmount));
 
-      if (availableFunds > totalAmount) {
-        const newCommitedAmount = Number(totalAmount) + Number(masterContractRepository.committedAmount);
+      if (availableFunds.greaterThanOrEqualTo(totalAmount)) {
+        const newCommitedAmount = new Decimal(masterContractRepository.committedAmount).plus(totalAmount);
 
         await this.masterContractRepository.update(masterContractRepository.id, {
-          committedAmount: newCommitedAmount
+          committedAmount: newCommitedAmount.toString()
         });
-      } else {
 
+      } else {
         const formattedServices = categorizedServices.map((contractedService:
           { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
             quantity: contractedService.cantidad,
@@ -125,7 +126,7 @@ export class OrdenService {
         return {
           status: "NOT_CREATED",
           data: {
-            amount: totalAmount,
+            amount: totalAmount.toDecimalPlaces(4).toNumber(),
             providerName: provider.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
@@ -356,18 +357,22 @@ export class OrdenService {
 
       const orderStatus = order.estatus;
 
+      console.log(order.total)
+
       if (orderStatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
 
         for (const servicioContratado of order.serviciosContratados) {
           await this.contractedServiceService.remove(servicioContratado.id);
-
         }
+
         const masterContractRepository = await this.contractService.findOne(order.contratoMaestro.id);
 
-        const newCommittedAmount = masterContractRepository.committedAmount - order.total;
+        const newCommittedAmount = new Decimal(masterContractRepository.committedAmount)
+          .minus(new Decimal(order.total))
+          .toDecimalPlaces(4);
 
         await this.masterContractRepository.update(masterContractRepository.id, {
-          committedAmount: newCommittedAmount
+          committedAmount: newCommittedAmount.toString()
         })
 
         await this.orderRepository.remove(order);
@@ -489,31 +494,42 @@ export class OrdenService {
       const orden = await this.findOne(ordenId);
       const { serviciosContratados } = orden;
 
-      let iva = new Decimal(0);
+      let tax = new Decimal(0);
+
       let subtotal = new Decimal(0);
+
       let total = new Decimal(0);
-      let ivaFrontera = false;
 
-      serviciosContratados.forEach((servicioContratado) => {
-        const service = plainToClass(ServicioObjectDto, servicioContratado.servicio);
-        const quantity = new Decimal(servicioContratado.cantidad);
-        const tarifaUnitaria = new Decimal(service.tarifaUnitaria);
-        ivaFrontera = service.ivaFrontera;
+      let borderTax = false;
 
-        if (quantity.isNaN() || tarifaUnitaria.isNaN()) {
-          throw new Error('Cantidad o Tarifa Unitaria no son números válidos');
+      serviciosContratados.forEach((contractedService) => {
+
+        const service = plainToClass(ServicioObjectDto, contractedService.servicio);
+
+        const quantity = new Decimal(contractedService.cantidad);
+
+        const unitPrice = new Decimal(service.tarifaUnitaria);
+
+        console.log(service.tarifaUnitaria)
+
+        borderTax = service.ivaFrontera;
+
+        if (quantity.isNaN() || unitPrice.isNaN()) {
+          throw new Error('¡Error! La cantidad o la tarifa unitaria no son números válidos.');
         }
 
-        const subtotalServicio = tarifaUnitaria.times(quantity);
-        subtotal = subtotal.plus(subtotalServicio);
+        const serviceSubtotal = unitPrice.times(quantity);
+
+        subtotal = subtotal.plus(serviceSubtotal);
       });
 
-      iva = new Decimal(await this.ivaGetter.obtenerIva(subtotal.toString(), ivaFrontera));
-      total = subtotal.plus(iva);
+      tax = new Decimal(await this.ivaGetter.obtenerIva(subtotal, borderTax));
 
-      orden.subtotal = subtotal.toDecimalPlaces(4).toNumber();
-      orden.iva = iva.toDecimalPlaces(2).toNumber();
-      orden.total = total.toDecimalPlaces(2).toNumber();
+      total = subtotal.plus(tax);
+
+      orden.subtotal = subtotal.toString();
+      orden.iva = tax.toString();
+      orden.total = total.toString();
 
       await this.orderRepository.save(orden);
       return {
@@ -524,7 +540,7 @@ export class OrdenService {
     } catch (error) {
       handleExceptions(error);
     }
-}
+  }
 
   async mandarOrdenAFirmar(ordenId: string) {
     try {
