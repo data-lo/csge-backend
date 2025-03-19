@@ -1,40 +1,40 @@
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 
-export class ServicioDto {
-    
-    @IsOptional()
-    @IsString()
-    nombreDeServicio:string;
-    
-    @IsOptional()
-    @IsString()
-    TIPO_DE_SERVICIO:string;
-    
-    @IsOptional()
-    @IsString()
-    descripcionDelServicio:string;
-    
-    @IsOptional()
-    @IsString()
-    nombreFormato:string;
+export class ServicioObjectDto {
 
     @IsOptional()
     @IsString()
-    tipoFormato:string;
+    nombreDeServicio: string;
 
     @IsOptional()
     @IsString()
-    tarifaUnitaria:string;
+    TIPO_DE_SERVICIO: string;
 
     @IsOptional()
     @IsString()
-    iva:string;
-    
+    descripcionDelServicio: string;
+
     @IsOptional()
-    @IsBoolean()
-    ivaIncluido:boolean;
+    @IsString()
+    nombreFormato: string;
+
+    @IsOptional()
+    @IsString()
+    tipoFormato: string;
+
+    @IsOptional()
+    @IsString()
+    tarifaUnitaria: string;
+
+    @IsOptional()
+    @IsString()
+    iva: string;
 
     @IsOptional()
     @IsBoolean()
-    ivaFrontera:boolean
+    ivaIncluido: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    ivaFrontera: boolean
 }

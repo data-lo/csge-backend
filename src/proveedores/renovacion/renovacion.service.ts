@@ -6,7 +6,7 @@ import { Renovacion } from './entities/renovacion.entity';
 import { Repository } from 'typeorm';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
-import { Console, error } from 'console';
+import Decimal from 'decimal.js';
 
 @Injectable()
 export class RenovacionService {
@@ -22,49 +22,46 @@ export class RenovacionService {
 
   async create(createRenovacionDto: CreateRenovacionDto) {
     try {
+        let { tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest } = createRenovacionDto;
 
-      let { tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest } = createRenovacionDto;
+        if (!servicioId) throw new BadRequestException('¡El ID del servicio es obligatorio!');
 
-      if (!servicioId) throw new BadRequestException('¡El ID del servicio es obligatorio!');
+        const service = await this.servicioRepository.findOne({ where: { id: servicioId } });
 
-      const service = await this.servicioRepository.findOne({ where: { id: servicioId }, });
+        if (!service) throw new NotFoundException('¡Servicio no encontrado!');
 
-      if (!service) throw new NotFoundException('¡Servicio no encontrado!');
+        if (createRenovacionDto.ivaIncluido) {
+            const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria.toString(), ivaFrontera);
 
-      if (createRenovacionDto.ivaIncluido) {
-        const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria, ivaFrontera);
-        tarifaUnitaria = ivaDesglosado.tarifa,
-          iva = ivaDesglosado.iva
-      }
+            tarifaUnitaria = parseFloat(ivaDesglosado.tarifa);
+            iva = parseFloat(ivaDesglosado.iva);
+        } else {
+            iva = parseFloat(await this.ivaGetter.obtenerIva(tarifaUnitaria.toString(), ivaFrontera));
+        }
 
-      if (!createRenovacionDto.ivaIncluido) {
-        iva = await this.ivaGetter.obtenerIva(tarifaUnitaria, ivaFrontera);
-      }
+        if (!(await this.esPrimerRenovacion(servicioId))) {
+            await this.hayNuevaRenovacion(servicioId);
+        }
 
-      if (!(await this.esPrimerRenovacion(servicioId))) {
-        await this.hayNuevaRenovacion(servicioId);
-      }
+        const renovacion = this.renovacionRepository.create({
+            servicio: service,
+            tarifaUnitaria, 
+            fechaDeCreacion: new Date(),
+            iva,
+            esUltimaRenovacion: true,
+            ...rest
+        });
 
+        await this.renovacionRepository.save(renovacion);
 
-      const renovacion = this.renovacionRepository.create({
-        servicio: service,
-        tarifaUnitaria: tarifaUnitaria,
-        fechaDeCreacion: new Date(),
-        iva: iva,
-        esUltimaRenovacion: true,
-        ...rest
-      });
+        delete renovacion.servicio;
 
-      await this.renovacionRepository.save(renovacion);
-      
-      delete renovacion.servicio;
-
-      return renovacion;
+        return renovacion;
 
     } catch (error: any) {
-      handleExceptions(error)
+        handleExceptions(error);
     }
-  }
+}
 
   async findOne(id: string) {
     try {

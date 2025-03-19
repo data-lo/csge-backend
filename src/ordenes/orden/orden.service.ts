@@ -14,17 +14,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { PDFDocument } from 'pdf-lib';
+import Decimal from 'decimal.js';
+
 
 // Entidades y DTOs
 import { Orden } from './entities/orden.entity';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
-import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 
 // Servicios relacionados
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
@@ -47,7 +48,7 @@ import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveed
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
-import { Factura } from '../factura/entities/factura.entity';
+import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
 // import { Factura } from '../factura/entities/factura.entity';
 
 
@@ -83,7 +84,6 @@ export class OrdenService {
   async create(createOrderDto: CreateOrdenDto) {
     try {
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
-      console.log(serviciosContratados)
       const currentDate = new Date();
 
       // Buscar proveedor, contrato y campaña en paralelo
@@ -95,11 +95,11 @@ export class OrdenService {
 
 
       let totalAmount: number = 0;
+
       let categorizedServices: any[] = [];
 
       for (const contractedService of serviciosContratados) {
-        const serviceTotal = contractedService.cantidad *
-          (Number(contractedService.servicio.tarifaUnitaria) + Number(contractedService.servicio.iva));
+        const serviceTotal = contractedService.cantidad * (Number(contractedService.servicio.tarifaUnitaria) + Number(contractedService.servicio.iva));
 
         totalAmount += serviceTotal;
         categorizedServices.push(contractedService);
@@ -115,11 +115,12 @@ export class OrdenService {
         });
       } else {
 
-        const formattedServices = categorizedServices.map((contractedService: { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
-          quantity: contractedService.cantidad,
-          serviceName: contractedService.servicio.nombreDeServicio,
-          uniqueId: contractedService.uniqueId
-        }));
+        const formattedServices = categorizedServices.map((contractedService:
+          { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
+            quantity: contractedService.cantidad,
+            serviceName: contractedService.servicio.nombreDeServicio,
+            uniqueId: contractedService.uniqueId
+          }));
 
         return {
           status: "NOT_CREATED",
@@ -488,31 +489,31 @@ export class OrdenService {
       const orden = await this.findOne(ordenId);
       const { serviciosContratados } = orden;
 
-      let iva = 0;
-      let subtotal = 0;
-      let total = 0.0;
+      let iva = new Decimal(0);
+      let subtotal = new Decimal(0);
+      let total = new Decimal(0);
       let ivaFrontera = false;
 
       serviciosContratados.forEach((servicioContratado) => {
-        const servicio = plainToClass(ServicioDto, servicioContratado.servicio);
-        const cantidad = servicioContratado.cantidad;
-        const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
-        ivaFrontera = servicio.ivaFrontera;
+        const service = plainToClass(ServicioObjectDto, servicioContratado.servicio);
+        const quantity = new Decimal(servicioContratado.cantidad);
+        const tarifaUnitaria = new Decimal(service.tarifaUnitaria);
+        ivaFrontera = service.ivaFrontera;
 
-        if (isNaN(cantidad) || isNaN(tarifaUnitaria)) {
-          throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
+        if (quantity.isNaN() || tarifaUnitaria.isNaN()) {
+          throw new Error('Cantidad o Tarifa Unitaria no son números válidos');
         }
 
-        const subtotalServicio = tarifaUnitaria * cantidad;
-        subtotal += subtotalServicio;
+        const subtotalServicio = tarifaUnitaria.times(quantity);
+        subtotal = subtotal.plus(subtotalServicio);
       });
 
-      iva = await this.ivaGetter.obtenerIva(subtotal, ivaFrontera);
-      total = subtotal + iva;
+      iva = new Decimal(await this.ivaGetter.obtenerIva(subtotal.toString(), ivaFrontera));
+      total = subtotal.plus(iva);
 
-      orden.subtotal = parseFloat(subtotal.toFixed(2));
-      orden.iva = parseFloat(iva.toFixed(2));
-      orden.total = parseFloat(total.toFixed(2));
+      orden.subtotal = subtotal.toDecimalPlaces(4).toNumber();
+      orden.iva = iva.toDecimalPlaces(2).toNumber();
+      orden.total = total.toDecimalPlaces(2).toNumber();
 
       await this.orderRepository.save(orden);
       return {
@@ -523,7 +524,7 @@ export class OrdenService {
     } catch (error) {
       handleExceptions(error);
     }
-  }
+}
 
   async mandarOrdenAFirmar(ordenId: string) {
     try {

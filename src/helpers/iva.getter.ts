@@ -1,53 +1,56 @@
 import { Global, Injectable } from "@nestjs/common";
 import { IvaService } from "src/configuracion/iva/iva.service";
+import { Decimal } from "decimal.js";
 
 @Injectable()
 @Global()
 export class IvaGetter {
     constructor(
-        private readonly ivaService:IvaService,
-    ){}
+        private readonly ivaService: IvaService,
+    ) { }
 
-    async obtenerIva(tarifa:number,esIvaFrontera:boolean){
+    async obtenerIva(tarifa: string | Decimal, esIvaFrontera: boolean) {
+        let ivaPorcentaje = new Decimal(0);
 
-        let ivaPorcentaje:number = 0.0000;
-        if(esIvaFrontera){
-            ivaPorcentaje =  await this.obtenerIvaFrontera();
-        }else{
-            ivaPorcentaje = await this.obtenerIvaNacional();
+        if (esIvaFrontera) {
+            ivaPorcentaje = new Decimal(await this.obtenerIvaFrontera());
+        } else {
+            ivaPorcentaje = new Decimal(await this.obtenerIvaNacional());
         }
-        
-        const iva = tarifa * ivaPorcentaje;
-        return parseFloat(iva.toFixed(4))
+
+        const tarifaDecimal = new Decimal(tarifa);
+        const iva = tarifaDecimal.times(ivaPorcentaje);
+
+        return iva.toDecimalPlaces(4).toString();
     }
 
-    async desglosarIva(tarifa:number,esIvaFrontera:boolean){
-        
-        let ivaPorcentaje:number = 0.0000;
+    async desglosarIva(tarifa: string | Decimal, esIvaFrontera: boolean) {
+        let ivaPorcentaje = new Decimal(0);
 
-        if(esIvaFrontera){
-            ivaPorcentaje =  await this.obtenerIvaFrontera();
-        }else{
-            ivaPorcentaje = await this.obtenerIvaNacional();
+        if (esIvaFrontera) {
+            ivaPorcentaje = new Decimal(await this.obtenerIvaFrontera());
+        } else {
+            ivaPorcentaje = new Decimal(await this.obtenerIvaNacional());
         }
-        
-        const razonDeIva = 1.0000 + ivaPorcentaje;
-        const tarifaUnitariaSinIva = ( tarifa / razonDeIva);
-        const ivaDesglosado = (tarifa - tarifaUnitariaSinIva);
+
+        const tarifaDecimal = new Decimal(tarifa);
+        const razonDeIva = new Decimal(1).plus(ivaPorcentaje);
+        const tarifaUnitariaSinIva = tarifaDecimal.dividedBy(razonDeIva);
+        const ivaDesglosado = tarifaDecimal.minus(tarifaUnitariaSinIva);
+
         return {
-            tarifa:parseFloat(tarifaUnitariaSinIva.toFixed(4)),
-            iva:parseFloat(ivaDesglosado.toFixed(4))
-        }   
+            tarifa: tarifaUnitariaSinIva.toDecimalPlaces(4).toString(),
+            iva: ivaDesglosado.toDecimalPlaces(4).toString()
+        };
     }
 
-    async obtenerIvaNacional(){
-        const ivaNacional = await this.ivaService.obtenerIvaNacional()
-        return (ivaNacional.porcentaje/100);
+    async obtenerIvaNacional() {
+        const ivaNacional = await this.ivaService.obtenerIvaNacional();
+        return new Decimal(ivaNacional.porcentaje).dividedBy(100).toString();
     }
 
-    async obtenerIvaFrontera(){
-        const ivaFrontera = await this.ivaService.obtenerIvaFrontera()
-        return (ivaFrontera.porcentaje/100);
+    async obtenerIvaFrontera() {
+        const ivaFrontera = await this.ivaService.obtenerIvaFrontera();
+        return new Decimal(ivaFrontera.porcentaje).dividedBy(100).toString();
     }
-
 };
