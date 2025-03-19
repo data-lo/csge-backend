@@ -40,6 +40,7 @@
     "cache-manager": "^5.7.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "decimal.js": "^10.5.0",
     "form-data": "^4.0.1",
     "joi": "^17.13.3",
     "minio": "^8.0.3",

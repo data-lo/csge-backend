@@ -407,6 +407,7 @@ export class FirmaService {
       let document = null;
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+        console.log("Ok")
         document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign, activationId);
 
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
@@ -554,6 +555,7 @@ export class FirmaService {
       const signatureAction = documentForSignature ? documentForSignature.signatureAction : null;
       
       if (!documentForSignature) {
+        "Si entra aquí!"
         document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign, activationId);
         return document;
       }
