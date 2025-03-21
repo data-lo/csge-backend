@@ -62,7 +62,7 @@ export class EstacionService {
       handleExceptions(error);
     }
   }
-  
+
   async findAllBusqueda() {
     try {
       const estaciones = await this.stationRepository.find({
@@ -122,6 +122,7 @@ export class EstacionService {
           }
         }
       });
+      
       estacion.servicios.forEach(servicio => {
         const ultimaRenovacion = servicio.renovaciones.filter(renovacion => {
           if (renovacion.esUltimaRenovacion) {
@@ -130,6 +131,7 @@ export class EstacionService {
         });
 
         if (!ultimaRenovacion[0]) throw new NotFoundException('No se encuentra la renovacion');
+
         delete ultimaRenovacion[0].fechaDeCreacion;
         delete servicio.renovaciones;
         servicio.renovaciones = ultimaRenovacion;
@@ -142,6 +144,26 @@ export class EstacionService {
       handleExceptions(error);
     }
   }
+
+
+  async getStation(stationId: string) {
+    try {
+      const station = await this.stationRepository.findOne({
+        where: { id: stationId }
+      });
+
+      if(!station){
+        throw new NotFoundException('¡No se encontró ninguna estación con el ID especificado!');
+      }
+
+      return station;
+
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+
 
   async update(stationId: string, updateEstacionDto: UpdateEstacionDto) {
     try {
@@ -217,29 +239,29 @@ export class EstacionService {
   async getStationsByServiceType(providerId: string, serviceTypes: string[], typeEvent: TYPE_EVENT_STATION) {
     try {
       const activating = typeEvent === TYPE_EVENT_STATION.ACTIVATE_STATION;
-  
+
       const provider = await this.providerRepository.findOne({
         where: { id: providerId },
         relations: ["estaciones", "estaciones.servicios"],
       });
-  
+
       if (!provider) {
         throw new NotFoundException(`El proveedor con ID ${providerId} no fue encontrado.`);
       }
-  
+
       const servicesToModify: string[] = [];
-  
+
       for (const station of provider.estaciones) {
         // Filtrar servicios cuyo tipo coincide y que necesitan cambiar su estado
-        const servicesMatchingCriteria = station.servicios.filter(service => 
+        const servicesMatchingCriteria = station.servicios.filter(service =>
           serviceTypes.includes(service.tipoDeServicio) && service.estatus !== activating
         );
-  
+
         // Agregar los IDs de los servicios a la lista de modificaciones
         servicesMatchingCriteria.forEach(service => {
           servicesToModify.push(service.id);
         });
-  
+
         // Se cuente cuántos servicios *actualmente* están activos en la estación
         const currentActiveCount = station.servicios.filter(s => s.estatus === true).length;
         // Se calcula cuántos servicios quedarán activos después de aplicar los cambios
@@ -249,7 +271,7 @@ export class EstacionService {
           activeCountAfterUpdate += servicesMatchingCriteria.length;
         } else {
           // Se desactivab los servicios activos encontrados
-          activeCountAfterUpdate -= servicesMatchingCriteria.length; 
+          activeCountAfterUpdate -= servicesMatchingCriteria.length;
         }
 
         // Se activa la estación si pasa de 0 a tener al menos 1 servicio activo
@@ -257,28 +279,28 @@ export class EstacionService {
           console.log(`🚀 Activando estación: ${station.id}`);
           await this.enableStation(station.id);
         }
-  
+
         // Se desactiva la estación si pasa de tener servicios activos a 0 activos 
         if (!activating && currentActiveCount > 0 && activeCountAfterUpdate === 0) {
           console.log(`🚨 Desactivando estación: ${station.id}`);
           await this.disableStation(station.id);
         }
-  
+
         // Si la estación ya tenía servicios activos y no se desactivan todos, permanece activa (no se desactiva).
         // Si la estación ya estaba inactiva y no se activa ningún servicio, permanece inactiva (no se activa).
       }
-  
+
       // Emitir evento para activar/desactivar múltiples servicios si hay cambios
       if (servicesToModify.length > 0) {
         const eventName = activating ? "enable-multiple-services" : "disable-multiple-services";
         this.eventEmitter.emit(eventName, { typeServicesId: servicesToModify });
       }
-  
+
     } catch (error) {
       throw handleExceptions(error);
     }
   }
-  
+
   async getStatus(stationId: string) {
     try {
       const station = await this.stationRepository.findOneBy({ id: stationId });

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ServicioContratadoService } from './servicio_contratado.service';
-import { CreateServicioContratadoDto } from './dto/create-servicio_contratado.dto';
+import { CreateContractedServiceDto } from './dto/create-servicio_contratado.dto';
 import { UpdateServicioContratadoDto } from './dto/update-servicio_contratado.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesServicioContratado } from './valid-servicio-contratado-roles.ob';
@@ -13,7 +13,7 @@ export class ServicioContratadoController {
 
   @Auth(...rolesServicioContratado)
   @Post()
-  create(@Body() createServicioContratadoDto: CreateServicioContratadoDto) {
+  create(@Body() createServicioContratadoDto: CreateContractedServiceDto) {
     return this.servicioContratadoService.create(createServicioContratadoDto);
   }
 

@@ -9,51 +9,55 @@ export class IvaGetter {
         private readonly ivaService: IvaService,
     ) { }
 
-    async obtenerIva(value: string | Decimal, esIvaFrontera: boolean) {
+    async getTax(value: string, esIvaFrontera: boolean) {
 
-        let ivaPorcentaje = new Decimal(0);
+        let taxPercentage = new Decimal("0");
 
         if (esIvaFrontera) {
-            ivaPorcentaje = new Decimal(await this.obtenerIvaFrontera());
+            taxPercentage = new Decimal(await this.getBorderTax());
         } else {
-            ivaPorcentaje = new Decimal(await this.obtenerIvaNacional());
+            taxPercentage = new Decimal(await this.getNationalTax());
+        }
+
+        const rateDecimal = new Decimal(value);
+
+        const tax = rateDecimal.times(taxPercentage);
+
+        return tax.toDecimalPlaces(4, Decimal.ROUND_DOWN);
+    }
+
+    async calculateTaxBreakdown(value: string, isBorderTax: boolean) {
+
+        let taxPercentage = new Decimal(0);
+
+        if (isBorderTax) {
+            taxPercentage = new Decimal(await this.getBorderTax());
+        } else {
+            taxPercentage = new Decimal(await this.getNationalTax());
         }
 
         const tarifaDecimal = new Decimal(value);
 
-        const iva = tarifaDecimal.times(ivaPorcentaje);
+        const razonDeIva = new Decimal(1).plus(taxPercentage);
 
-        return iva.toDecimalPlaces(4).toString();
-    }
-
-    async desglosarIva(tarifa: string | Decimal, esIvaFrontera: boolean) {
-        let ivaPorcentaje = new Decimal(0);
-
-        if (esIvaFrontera) {
-            ivaPorcentaje = new Decimal(await this.obtenerIvaFrontera());
-        } else {
-            ivaPorcentaje = new Decimal(await this.obtenerIvaNacional());
-        }
-
-        const tarifaDecimal = new Decimal(tarifa);
-        const razonDeIva = new Decimal(1).plus(ivaPorcentaje);
         const tarifaUnitariaSinIva = tarifaDecimal.dividedBy(razonDeIva);
+
         const ivaDesglosado = tarifaDecimal.minus(tarifaUnitariaSinIva);
 
         return {
-            tarifa: tarifaUnitariaSinIva.toDecimalPlaces(4).toString(),
-            iva: ivaDesglosado.toDecimalPlaces(4).toString()
+            unitPrice: tarifaUnitariaSinIva.toDecimalPlaces(4).toString(),
+            tax: ivaDesglosado.toDecimalPlaces(4).toString()
         };
     }
 
-    async obtenerIvaNacional() {
-        const ivaNacional = await this.ivaService.obtenerIvaNacional();
-        console.log()
-        return new Decimal(ivaNacional.porcentaje).dividedBy(100).toString();
+    async getNationalTax() {
+        const nationalTax = await this.ivaService.obtenerIvaNacional();
+
+        return new Decimal(nationalTax.porcentaje).dividedBy(100).toString();
     }
 
-    async obtenerIvaFrontera() {
-        const ivaFrontera = await this.ivaService.obtenerIvaFrontera();
-        return new Decimal(ivaFrontera.porcentaje).dividedBy(100).toString();
+    async getBorderTax() {
+        const borderTax = await this.ivaService.obtenerIvaFrontera();
+        return new Decimal(borderTax.porcentaje).dividedBy(100).toString();
     }
 };

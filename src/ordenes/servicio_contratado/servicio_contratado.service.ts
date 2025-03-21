@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateServicioContratadoDto } from './dto/create-servicio_contratado.dto';
+import { CreateContractedServiceDto } from './dto/create-servicio_contratado.dto';
 import { UpdateServicioContratadoDto } from './dto/update-servicio_contratado.dto';
 import { Repository } from 'typeorm';
 import { ServicioContratado } from './entities/servicio_contratado.entity';
@@ -23,7 +23,7 @@ export class ServicioContratadoService {
     private ordenRepository: Repository<Orden>
   ) { }
 
-  async create(createServicioContratadoDto: CreateServicioContratadoDto) {
+  async create(createServicioContratadoDto: CreateContractedServiceDto) {
     try {
 
       let cartelera = null;

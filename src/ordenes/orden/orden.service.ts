@@ -49,6 +49,7 @@ import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maest
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
+import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
 // import { Factura } from '../factura/entities/factura.entity';
 
 
@@ -84,49 +85,36 @@ export class OrdenService {
   async create(createOrderDto: CreateOrdenDto) {
     try {
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
+
       const currentDate = new Date();
 
       // Buscar proveedor, contrato y campaña en paralelo
-      const [provider, masterContractRepository, campaign] = await Promise.all([
+      const [provider, masterContract, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
         this.contractService.findOne(contratoId),
         this.campaignService.findOne(campaniaId),
       ]);
 
-      let totalAmount = new Decimal(0);
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
-      let categorizedServices: any[] = [];
+      const availableFunds = new Decimal(masterContract.montoDisponible).minus(new Decimal(masterContract.committedAmount));
 
-      for (const contractedService of serviciosContratados) {
-        const serviceTotal = new Decimal(contractedService.cantidad)
-          .times(new Decimal(contractedService.servicio.tarifaUnitaria).plus(new Decimal(contractedService.servicio.iva)));
-
-        totalAmount = totalAmount.plus(serviceTotal);
-        categorizedServices.push(contractedService);
-      }
-
-      // Convertir valores de la BD a Decimal
-      const availableFunds = new Decimal(masterContractRepository.montoDisponible).minus(new Decimal(masterContractRepository.committedAmount));
-
-      if (availableFunds.greaterThanOrEqualTo(totalAmount)) {
-        const newCommitedAmount = new Decimal(masterContractRepository.committedAmount).plus(totalAmount);
-
-        await this.masterContractRepository.update(masterContractRepository.id, {
-          committedAmount: newCommitedAmount.toString()
+      if (amountDetails.total.lessThan(availableFunds)) {
+        await this.masterContractRepository.update(masterContract.id, {
+          committedAmount: amountDetails.total.toString()
         });
-
       } else {
-        const formattedServices = categorizedServices.map((contractedService:
-          { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
-            quantity: contractedService.cantidad,
-            serviceName: contractedService.servicio.nombreDeServicio,
-            uniqueId: contractedService.uniqueId
-          }));
+
+        const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
+          quantity: cantidad,
+          serviceName: servicio.nombreDeServicio,
+          uniqueId: uniqueId
+        }));
 
         return {
           status: "NOT_CREATED",
           data: {
-            amount: totalAmount.toDecimalPlaces(4).toNumber(),
+            amount: amountDetails.subtotal.toString(),
             providerName: provider.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
@@ -135,7 +123,7 @@ export class OrdenService {
       }
 
       // Validar si el proveedor puede agregarse sin contrato
-      if (!masterContractRepository && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
+      if (!masterContract && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
         throw new BadRequestException('¡Solo los proveedores de servicios pueden agregarse sin contrato!');
       }
 
@@ -149,11 +137,14 @@ export class OrdenService {
       const order = this.orderRepository.create({
         campaña: campaign,
         proveedor: provider,
-        contratoMaestro: masterContractRepository,
+        contratoMaestro: masterContract,
         partida: match,
         folio: folio,
         tipoDeServicio,
         fechaDeEmision: currentDate,
+        iva: amountDetails.tax.toString(),
+        total: amountDetails.total.toString(),
+        subtotal: amountDetails.total.toString(),
         ...rest,
       });
 
@@ -172,13 +163,9 @@ export class OrdenService {
           })
         );
 
-        // Calcular montos de la orden
-        await this.calcularMontosDeOrden(order.id);
+        const orderId = order.id;
 
-        // Eliminar campos innecesarios antes de devolver la orden
-        const camposAEliminar = ["contratoMaestro", "campaña.activaciones", "campaña.dependencias", "campaña.creadoEn", "campaña.actualizadoEn", "partida", "proveedor"];
-        camposAEliminar.forEach((campo) => delete order[campo]);
-        return order;
+        return orderId;
 
       } catch (error) {
         await this.remove(order.id);
@@ -272,7 +259,9 @@ export class OrdenService {
         },
       });
 
-      if (!orden) throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+      if (!orden) {
+        throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+      }
 
       return orden;
 
@@ -337,10 +326,15 @@ export class OrdenService {
 
         currentlyOrder.serviciosContratados = newServices;
       }
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
+      currentlyOrder.iva = amountDetails.tax.toString();
+
+      currentlyOrder.total = amountDetails.total.toString();
+
+      currentlyOrder.subtotal = amountDetails.subtotal.toString();
 
       await this.orderRepository.save(currentlyOrder);
-      await this.calcularMontosDeOrden(currentlyOrder.id);
 
       return { message: 'ORDEN ACTUALIZADA CON EXITO' };
     } catch (error) {
@@ -357,8 +351,6 @@ export class OrdenService {
 
       const orderStatus = order.estatus;
 
-      console.log(order.total)
-
       if (orderStatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
 
         for (const servicioContratado of order.serviciosContratados) {
@@ -367,9 +359,7 @@ export class OrdenService {
 
         const masterContractRepository = await this.contractService.findOne(order.contratoMaestro.id);
 
-        const newCommittedAmount = new Decimal(masterContractRepository.committedAmount)
-          .minus(new Decimal(order.total))
-          .toDecimalPlaces(4);
+        const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
 
         await this.masterContractRepository.update(masterContractRepository.id, {
           committedAmount: newCommittedAmount.toString()
@@ -489,10 +479,8 @@ export class OrdenService {
     }
   }
 
-  async calcularMontosDeOrden(ordenId: string) {
+  async calculateOrderAmounts(contractedServicesList: CreateContractedServiceDto[]) {
     try {
-      const orden = await this.findOne(ordenId);
-      const { serviciosContratados } = orden;
 
       let tax = new Decimal(0);
 
@@ -502,15 +490,13 @@ export class OrdenService {
 
       let borderTax = false;
 
-      serviciosContratados.forEach((contractedService) => {
+      contractedServicesList.forEach((contractedService) => {
 
         const service = plainToClass(ServicioObjectDto, contractedService.servicio);
 
         const quantity = new Decimal(contractedService.cantidad);
 
         const unitPrice = new Decimal(service.tarifaUnitaria);
-
-        console.log(service.tarifaUnitaria)
 
         borderTax = service.ivaFrontera;
 
@@ -523,19 +509,14 @@ export class OrdenService {
         subtotal = subtotal.plus(serviceSubtotal);
       });
 
-      tax = new Decimal(await this.ivaGetter.obtenerIva(subtotal, borderTax));
+      tax = new Decimal(await this.ivaGetter.getTax(subtotal.toString(), borderTax));
 
       total = subtotal.plus(tax);
 
-      orden.subtotal = subtotal.toString();
-      orden.iva = tax.toString();
-      orden.total = total.toString();
-
-      await this.orderRepository.save(orden);
       return {
-        subtotal: orden.subtotal,
-        iva: orden.iva,
-        total: orden.total,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
       };
     } catch (error) {
       handleExceptions(error);

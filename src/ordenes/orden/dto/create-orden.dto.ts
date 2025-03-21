@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 import { TIPO_DE_SERVICIO } from "src/contratos/interfaces/tipo-de-servicio";
-import { CreateServicioContratadoDto } from "src/ordenes/servicio_contratado/dto/create-servicio_contratado.dto";
+import { CreateContractedServiceDto } from "src/ordenes/servicio_contratado/dto/create-servicio_contratado.dto";
 
 export class CreateOrdenDto {
 
@@ -38,8 +38,8 @@ export class CreateOrdenDto {
 
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => CreateServicioContratadoDto)
-    serviciosContratados: CreateServicioContratadoDto[]
+    @Type(() => CreateContractedServiceDto)
+    serviciosContratados: CreateContractedServiceDto[]
 
     @IsString()
     @IsOptional()

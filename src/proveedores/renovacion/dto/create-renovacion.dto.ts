@@ -5,27 +5,26 @@ import { CaracteristicasDelServicioDto } from "./caracteristicas-del-servicio.dt
 export class CreateRenovacionDto {
 
     @IsString()
-    descripcionDelServicio: string;
+    description: string;
 
-    @IsNumber({ maxDecimalPlaces: 4 })
-    tarifaUnitaria: number;
+    @IsString()
+    unitPrice: string;
 
-    @IsNumber({ maxDecimalPlaces: 4 })
     @IsOptional()
-    iva: number;
+    tax: string;
 
     @IsBoolean()
-    ivaIncluido: boolean;
+    isTaxIncluded: boolean;
 
     @IsBoolean()
-    ivaFrontera: boolean;
+    isBorderTax: boolean;
 
     @IsObject()
     @ValidateNested()
     @Type(() => CaracteristicasDelServicioDto)
-    caracteristicasDelServicio: CaracteristicasDelServicioDto;
+    characteristicOfService: CaracteristicasDelServicioDto;
 
     @IsUUID()
     @IsString()
-    servicioId: string;
+    serviceId: string;
 }

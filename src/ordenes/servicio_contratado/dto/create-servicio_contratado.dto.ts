@@ -2,7 +2,7 @@ import { IsArray, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, I
 import { ServicioObjectDto } from "./servicio-object.dto";
 import { Type } from "class-transformer";
 
-export class CreateServicioContratadoDto {
+export class CreateContractedServiceDto {
 
     @IsOptional()
     @IsObject()
