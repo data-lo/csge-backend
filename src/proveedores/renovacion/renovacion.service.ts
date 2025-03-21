@@ -33,7 +33,7 @@ export class RenovacionService {
       });
 
       if (!service) {
-        throw new NotFoundException('¡Servicio no encontrado!');
+        throw new NotFoundException(`¡El servicio con ID: ${serviceId} no fue encontrado!`);
       }
 
       // Calcular IVA
@@ -51,9 +51,6 @@ export class RenovacionService {
       if (!isFirstTime) {
         await this.newRenovation(serviceId);
       }
-
-      console.log(tax);
-      console.log(unitPrice);
 
       const renovacion = {
         servicio: service,
@@ -77,7 +74,6 @@ export class RenovacionService {
     } catch (error: any) {
       handleExceptions(error);
     }
-
   }
 
   async findOne(id: string) {

@@ -19,10 +19,10 @@ export class FacturaEventosService {
         private readonly contractService: ContratosService
     ) { }
 
-    @OnEvent('invoice-modify-contract-amounts', { async: true })
+    @OnEvent('invoice-update-contract-amounts-from-order', { async: true })
     async applyDiscountsToContract(payload: { invoiceId: string, eventType: TYPE_EVENT_INVOICE }) {
         try {
-            console.log(`Iniciando evento "invoice-modify-contract-amounts" para la factura: ${payload.invoiceId}`);
+            console.log(`Iniciando evento "invoice-update-contract-amounts-from-order" para la factura: ${payload.invoiceId}`);
 
             const invoice = await this.invoiceService.findOne(payload.invoiceId);
 
@@ -45,7 +45,7 @@ export class FacturaEventosService {
                     payload.eventType
                 );
             }
-            console.log(`Evento "invoice-modify-contract-amounts" completado exitosamente. Montos del contrato actualizados.`);
+            console.log(`Evento "invoice-update-contract-amounts-from-order" completado exitosamente. Montos del contrato actualizados.`);
         } catch (error) {
             console.error(`Error al procesar el evento "${payload.eventType}" para la factura: ${payload.invoiceId}.`, error);
         }

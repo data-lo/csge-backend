@@ -16,11 +16,13 @@ export class ContractEventsService {
 
   ) { }
 
-  // 📌 Evento que se ejecuta al aprobar o cancelar una orden,
-  // modificando los montos de los contratos correspondientes.
-  @OnEvent('modify-contract-amounts', { async: true })
-  async applyDiscountsToContract(payload: { orderId: string; eventType: TYPE_EVENT_ORDER }) {
-    this.logger.log(`🔄 Iniciando evento "modify-contract-amounts" para la Orden: ${payload.orderId}`);
+  /**
+ * Escucha el evento 'update-contract-amounts-from-order' para actualizar los montos del contrato maestro
+ * en función de los cambios realizados a través de una orden de servicio.
+ */
+  @OnEvent('update-contract-amounts-from-order', { async: true })
+  async updateContractAmountsFromOrder(payload: { orderId: string; eventType: TYPE_EVENT_ORDER }) {
+    this.logger.log(`🔄 Iniciando evento "update-contract-amounts-from-order" para la Orden: ${payload.orderId}`);
 
     try {
       const order = await this.orderService.findOne(payload.orderId);
@@ -30,14 +32,47 @@ export class ContractEventsService {
         order.contratoMaestro.id,
         payload.eventType
       );
-      this.logger.log(`✅ Evento "modify-contract-amounts" completado. Montos del contrato actualizados.`);
+
+      this.logger.log(`✅ Evento "update-contract-amounts-from-order" completado. Montos del contrato actualizados.`);
     } catch (error) {
       this.logger.error(
-        `❌ Error en el evento "modify-contract-amounts" para la Orden ${payload.orderId}: ${error.message}`,
+        `❌ Error en el evento "update-contract-amounts-from-order" para la Orden ${payload.orderId}: ${error.message}`,
         error.stack
       );
     }
   }
+
+
+  /**
+   * Escucha el evento 'update-contract-amounts-from-campaign-orders' para actualizar
+   * los montos de los contratos maestro en función de las órdenes generadas por una campaña.
+   */
+  @OnEvent('update-contract-amounts-from-campaign-orders', { async: true })
+  async updateContractAmountsFromCampaignOrders(payload: { campaignId: string }) {
+    this.logger.log(`🔄 Iniciando evento "update-contract-amounts-from-campaign-orders" para la Campaña: ${payload.campaignId}`);
+
+    try {
+      const orders = await this.orderService.getOrdersCreatedByCampaignModule(payload.campaignId);
+
+      for (const order of orders) {
+        await this.contractService.updateContractAmountByOrder(
+          order.id,
+          order.contratoMaestro.id,
+          TYPE_EVENT_ORDER.ORDER_APPROVED
+        );
+
+        await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA);
+      }
+
+      this.logger.log(`✅ Evento "update-contract-amounts-from-campaign-orders" completado con éxito.`);
+    } catch (error) {
+      this.logger.error(
+        `❌ Error en el evento "update-contract-amounts-from-campaign-orders" para la Campaña ${payload.campaignId}: ${error.message}`,
+        error.stack
+      );
+    }
+  }
+
 
   @OnEvent('approval-campaign-orders', { async: true })
   async approveDiscountsForMultipleContracts(payload: { campaignId: string }) {
@@ -66,8 +101,10 @@ export class ContractEventsService {
     }
   }
 
+
+
   @OnEvent('cancelled-campaign-orders', { async: true })
-  async cancelDiscountsForMultipleContracts(payload: { campaignId: string }) {
+  async cancelDiscountsForMultipleContracts(payload: { campaignId: string}) {
     this.logger.log(`🔄 Iniciando evento "cancelled-campaign-orders" para la Campaña: ${payload.campaignId}`);
 
     try {
@@ -93,5 +130,5 @@ export class ContractEventsService {
     }
   }
 
-  
+
 }

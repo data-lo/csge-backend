@@ -165,6 +165,12 @@ export class CampañasService {
 
   async update(campañaId: string, updateCampañaDto: UpdateCampañaDto) {
 
+    const validStatus = [
+      CAMPAIGN_STATUS.CREADA,
+      CAMPAIGN_STATUS.COTIZANDO,
+      CAMPAIGN_STATUS.REACTIVADA
+    ];
+
     const { dependenciasIds } = updateCampañaDto;
 
     try {
@@ -177,7 +183,7 @@ export class CampañasService {
         throw new NotFoundException('¡No se ha encontrado la campaña solicitada!');
       }
 
-      if (campaign.campaignStatus === CAMPAIGN_STATUS.CREADA || campaign.campaignStatus === CAMPAIGN_STATUS.COTIZANDO) {
+      if (validStatus.includes(campaign.campaignStatus)) {
 
         const campaignUpdateData = await this.campaignRepository.merge(campaign, updateCampañaDto);
 
@@ -202,8 +208,16 @@ export class CampañasService {
   }
 
   async closeCampaign(campaignId: string, activationId: string) {
-    try {
 
+    const validStatus = [
+      CAMPAIGN_STATUS.APROBADA,
+      CAMPAIGN_STATUS.CANCELADA,
+      CAMPAIGN_STATUS.REACTIVADA,
+      CAMPAIGN_STATUS.CREADA,
+      CAMPAIGN_STATUS.COTIZANDO
+    ];
+
+    try {
       const campaign = await this.campaignRepository.findOne({
         where: { id: campaignId },
       });
@@ -212,8 +226,9 @@ export class CampañasService {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
-      if (campaign.campaignStatus === CAMPAIGN_STATUS.PENDIENTE) {
-        await this.signatureService.updateDocumentByDocumentIdAndActivation(campaignId, activationId)
+      if (!validStatus.includes(campaign.campaignStatus)) {
+        throw new Error('¡No es posible cerrar la campaña debido a un estatus no válido!');
+        // await this.signatureService.updateDocumentByDocumentIdAndActivation(campaignId, activationId)
       }
 
       campaign.campaignStatus = CAMPAIGN_STATUS.INACTIVA;
@@ -225,8 +240,7 @@ export class CampañasService {
       return { success: true, message: "¡Campaña cerrada exitosamente!" };
 
     } catch (error) {
-      console.error(`Error al cerrar la campaña (ID: ${campaignId}):`, error);
-      throw new InternalServerErrorException("Hubo un problema al cerrar la campaña. Inténtalo de nuevo.");
+      handleExceptions(error);
     }
   }
 
@@ -268,7 +282,7 @@ export class CampañasService {
       }
 
       if (!(campaign.campaignStatus === CAMPAIGN_STATUS.INACTIVA || campaign.campaignStatus === CAMPAIGN_STATUS.CANCELADA)) {
-        throw new BadRequestException('El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser INACTIVA.');
+        throw new BadRequestException(`El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser 'Inactiva'.`);
       }
 
       const newMatchObject = { montoActivo: 0, montoEjercido: 0, montoPagado: 0, };

@@ -74,6 +74,14 @@ export class Orden {
   subtotal: string;
 
   @Column({
+    name: 'number_of_activation',
+    type: 'int',
+    nullable: false,
+    default: 1
+  })
+  numberOfActivation: number;
+
+  @Column({
     name: 'iva_orden_de_servicio',
     nullable: false,
     default: "0"

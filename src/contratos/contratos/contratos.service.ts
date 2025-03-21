@@ -500,11 +500,11 @@ export class ContratosService {
   }
 
   async checkContractExpiration() {
-    const today = new Date();
+    const currentlyDate = new Date();
 
     // Obtener contratos que finalizan hoy con sus relaciones
     const masterContractsEndsToday = await this.masterContractRepository.find({
-      where: { fechaFinal: LessThanOrEqual(today) },
+      where: { fechaFinal: LessThanOrEqual(currentlyDate) },
       relations: ["contratos", "proveedor"]
     });
 

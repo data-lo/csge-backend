@@ -9,6 +9,7 @@
 // Importaciones necesarias
 import {
   BadRequestException,
+  ExceptionFilter,
   Inject,
   Injectable,
   NotFoundException,
@@ -130,6 +131,8 @@ export class OrdenService {
       // Obtener la última partida de la campaña (si existe)
       const match = campaign?.activaciones.at(-1)?.partida ?? null;
 
+      const numberOfActivation = campaign?.activaciones.at(-1)?.numberOfActivation ?? null
+
       // Generar el folio de la orden basado en el tipo de servicio
       const folio = await this.getCurrentFolio(tipoDeServicio);
 
@@ -142,6 +145,7 @@ export class OrdenService {
         folio: folio,
         tipoDeServicio,
         fechaDeEmision: currentDate,
+        numberOfActivation: numberOfActivation,
         iva: amountDetails.tax.toString(),
         total: amountDetails.total.toString(),
         subtotal: amountDetails.total.toString(),
@@ -525,8 +529,13 @@ export class OrdenService {
 
   async mandarOrdenAFirmar(ordenId: string) {
     try {
-      const ordenDb = await this.orderRepository.findOneBy({ id: ordenId });
-      if (!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
+      const order = await this.orderRepository.findOneBy({
+        id: ordenId
+      });
+
+      if (!order) {
+        throw new BadRequestException(`¡No se encontró la orden con ID: ${ordenId}!`);
+      }
 
       const documentoFirmaDto: CreateFirmaDto = {
         documentId: ordenId,
@@ -536,16 +545,18 @@ export class OrdenService {
       };
 
       try {
-        const documentoEnFirma = await this.signatureService.findOne(ordenId);
-        if (documentoEnFirma)
-          throw new BadRequestException({
-            status: '406',
-            message: 'EL DOCUMENTO YA SE ENCUENTRA EN ESPERA DE FIRMA',
-          });
+        const document = await this.signatureService.findOne(ordenId);
+
+        if (document) {
+          throw new BadRequestException('¡El documento ya se encuentra en espera de firma!',)
+        }
+
       } catch (error) {
+
         if (error.response.status === '404') {
           return await this.signatureService.create(documentoFirmaDto);
         }
+
         throw error;
       }
     } catch (error) {
@@ -579,54 +590,98 @@ export class OrdenService {
     return await this.signatureService.downloadFile(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing, activationId);
   }
 
-  async generateCampaignOrdersInPDF(campaignId: string) {
+
+  /**
+ * Genera un documento PDF que contiene todas las órdenes de servicio asociadas a una campaña específica.
+ * 
+ * @async
+ * @param {string} campaignId - El identificador único de la campaña para la cual se generará el PDF de órdenes.
+ * @returns {Promise<Uint8Array | ExceptionFilter>} - Un `Uint8Array` que representa los bytes del PDF generado o `void` en caso de error.
+ * 
+ * @throws {BadRequestException} - Lanza una excepción si la campaña no existe o si no hay órdenes asociadas a la campaña.
+ * @throws {Error} - Propaga cualquier error inesperado que ocurra durante la generación del PDF.
+ * 
+ * @description
+ * 1. Busca la campaña en la base de datos utilizando el `campaignId`.
+ * 2. Verifica que la campaña exista, de lo contrario, lanza una excepción.
+ * 3. Obtiene las órdenes de servicio asociadas a la campaña y su partida.
+ * 4. Si no hay órdenes encontradas, lanza una excepción.
+ * 5. Crea un nuevo documento PDF.
+ * 6. Itera sobre cada orden de servicio:
+ *    - Descarga el archivo PDF de la orden de servicio.
+ *    - Carga el PDF descargado y extrae sus páginas.
+ *    - Agrega las páginas extraídas al documento PDF principal.
+ * 7. Guarda y retorna los bytes del PDF combinado.
+ * 8. Maneja posibles errores utilizando la función `handleExceptions`.
+ */
+
+  async generateCampaignOrdersInPDF(campaignId: string): Promise<Uint8Array> {
     try {
+
+      // Buscar la campaña en la base de datos
       const campaign = await this.campaignService.findOne(campaignId);
 
       if (!campaign) {
         throw new BadRequestException(`¡No se encontró la campaña con ID: ${campaignId}!`);
       }
 
+      // Buscar órdenes asociadas a la campaña y su activación a través de su partida
       const orders = await this.orderRepository.find({
-        where: { campaña: { id: campaignId } }
+        where: {
+          campaña: { id: campaignId },
+          partida: { id: campaign.activaciones[0].partida.id }
+        }
       });
 
+      const currentlyActivation = campaign.activaciones[0].id
+
       if (orders.length === 0) {
-        throw new BadRequestException(`¡No hay órdenes asociadas a la campaña con ID: ${campaignId}!`);
+        throw new BadRequestException(`¡No hay órdenes asociadas a esta activación!`);
       }
 
+      // Crear un documento PDF vacío
       const mergedPdf = await PDFDocument.create();
 
+      // Iterar sobre cada orden y agregarla al PDF
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
+        // Descargar el archivo PDF de la orden de servicio
+        const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true, currentlyActivation);
 
+        // Cargar el PDF descargado
         const pdfLibDoc = await PDFDocument.load(pdfBytes);
 
+        // Extraer las páginas y agregarlas al documento combinado
         const copiedPages = await mergedPdf.copyPages(pdfLibDoc, pdfLibDoc.getPageIndices());
-
         copiedPages.forEach(page => mergedPdf.addPage(page));
       }
 
+      // Guardar el PDF final y retornar los bytes
       const mergedPdfBytes = await mergedPdf.save();
-
       return mergedPdfBytes;
+
     } catch (error) {
       handleExceptions(error);
     }
   }
 
 
-  async obtenerOrdenesPorCampaniaId(campaignId: string) {
-    return await this.orderRepository.find({
+  async getActiveOrdersByCampaignAndActivation(campaignId: string) {
+
+    const orders = await this.orderRepository.find({
       where: {
-        campaña: { id: campaignId }
+        campaña: { id: campaignId },
+      },
+      order: {
+        fechaDeEmision: 'DESC'
       },
       relations: {
-        proveedor: true
+        proveedor: true,
       },
     });
+
+    return orders
   }
 
   async updateOrderStatus(orderId: string, status: ESTATUS_ORDEN_DE_SERVICIO) {
@@ -650,18 +705,42 @@ export class OrdenService {
     }
   }
 
-  async getOrdersCreatedByCampaignModule(campaignId: string) {
-    const activation = await this.activationService.getLastActivation(campaignId);
+  /**
+  * Obtiene las órdenes de servicio creadas por el módulo de campaña, filtrando por campaña, activación y estatus si se proporcionan.
+  *
+  * @param {string} campaignId - ID de la campaña de la cual se obtendrán las órdenes.
+  * @param {string} [activationId] - ID opcional de la activación. Si no se proporciona, se utilizará la última activación de la campaña.
+  * @param {ESTATUS_ORDEN_DE_SERVICIO} [orderStatus] - Estatus opcional de las órdenes a filtrar. Si se proporciona, solo se retornan las órdenes con ese estatus.
+  *
+  * @returns {Promise<OrderEntity[]>} - Lista de órdenes encontradas que coinciden con los criterios de búsqueda.
+  *
+  * @throws {Error} - Lanza un error si ocurre algún fallo al consultar la base de datos o si no se encuentra la activación.
+  */
+  async getOrdersCreatedByCampaignModule(campaignId: string, activationId?: string, orderStatus?: ESTATUS_ORDEN_DE_SERVICIO) {
+    // Obtener la activación correspondiente
+    const activation = activationId
+      ? await this.activationService.findOne(activationId)
+      : await this.activationService.getLastActivation(campaignId);
+
+    // Construir condiciones dinámicamente
+    const where: any = {
+      campaña: { id: campaignId },
+      esCampania: true,
+      partida: { id: activation.partida.id }
+    };
+
+    // Si se proporciona orderStatus, lo agregamos al filtro
+    if (orderStatus) {
+      where.estatus = orderStatus;
+    }
 
     const orders = await this.orderRepository.find({
-      where: {
-        campaña: { id: campaignId },
-        esCampania: true,
-        partida: { id: activation.partida.id }
-      },
+      where,
       relations: ['contratoMaestro']
     });
 
     return orders;
   }
+
+
 }

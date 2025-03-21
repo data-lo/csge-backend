@@ -11,15 +11,37 @@ export class OrderEventsService {
         private readonly orderService: OrdenService,
     ) { }
 
-    @OnEvent('modified-order-status', { async: true })
-    async changeOrderStatus(payload: { orderId: string, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA }) {
-        this.logger.log(`🔄 Iniciando evento "modified-order-status" para la Orden: ${payload.orderId}`);
-        
+
+    @OnEvent('update-order-status', { async: true })
+    async updateOrderStatusFromEvent(payload: { orderId: string; orderStatus: ESTATUS_ORDEN_DE_SERVICIO }) {
+        this.logger.log(`🔄 Iniciando evento "update-order-status" para la Orden: ${payload.orderId}`);
+
         try {
             await this.orderService.updateOrderStatus(payload.orderId, payload.orderStatus);
-            this.logger.log(`✅ Evento "modified-order-status" completado. Estatus actualizado a ${payload.orderStatus}.`);
+            this.logger.log(`✅ Evento "update-order-status" completado. Estatus actualizado a ${payload.orderStatus}.`);
         } catch (error) {
-            this.logger.error(`❌ Error en el evento "modified-order-status" para la Orden ${payload.orderId}: ${error.message}`, error.stack);
+            this.logger.error(
+                `❌ Error en el evento "update-order-status" para la Orden ${payload.orderId}: ${error.message}`,
+                error.stack
+            );
+        }
+    }
+
+    @OnEvent('remove-orders', { async: true })
+    async removeOrders(payload: { orderIds: string[] }) {
+        this.logger.log(`🔄 Iniciando evento "eliminate-orders" para las órdenes: ${payload.orderIds.join(', ')}`);
+
+        try {
+            for (const orderId of payload.orderIds) {
+                await this.orderService.remove(orderId);
+            }
+
+            this.logger.log(`✅ Evento "eliminate-orders" completado. Órdenes eliminadas correctamente.`);
+        } catch (error) {
+            this.logger.error(
+                `❌ Error en el evento "eliminate-orders" para las órdenes ${payload.orderIds.join(', ')}: ${error.message}`,
+                error.stack
+            );
         }
     }
 }

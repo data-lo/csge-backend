@@ -555,7 +555,6 @@ export class FirmaService {
       const signatureAction = documentForSignature ? documentForSignature.signatureAction : null;
       
       if (!documentForSignature) {
-        "Si entra aquí!"
         document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign, activationId);
         return document;
       }
