@@ -20,6 +20,7 @@ import { ContratoMaestro } from './entities/contrato.maestro.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { handlerAmounts } from './functions/handler-amounts';
 import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
+import { Decimal } from 'decimal.js'
 
 
 @Injectable()
@@ -78,6 +79,7 @@ export class ContratosService {
       }
 
       const activeContractsCount = await this.countActiveContracts(provider.id);
+      
 
       const availableFunds = montoMaximoContratado + ivaMontoMaximoContratado;
 
@@ -139,6 +141,7 @@ export class ContratosService {
       handleExceptions(error);
     }
   }
+
 
   async findAll(pagina: number) {
     try {
@@ -442,7 +445,7 @@ export class ContratosService {
     });
 
     const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === order.tipoDeServicio);
-    
+
     const values = {
       masterContract: {
         availableAmount: masterContract.montoDisponible,
@@ -485,7 +488,7 @@ export class ContratosService {
         montoEjercido: updatedValues.masterContract.executedAmount,
         montoActivo: updatedValues.masterContract.activeAmount
       });
-    } else if(eventType === TYPE_EVENT_INVOICE.INVOICE_PAID){
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_PAID) {
 
       await this.contractRepository.update(contractByServiceType.id, {
         montoPagado: updatedValues.contractByServiceType.paidAmount,

@@ -15,6 +15,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Contrato } from './contrato.entity';
+import { OrderContractBreakdownMap } from '../interfaces/contract-breakdown-by-order';
 
 @Entity({ name: 'contrato_maestro' })
 export class ContratoMaestro {
@@ -165,6 +166,14 @@ export class ContratoMaestro {
     nullable: false,
   })
   montoActivo: number;
+
+  @Column({
+    name: 'contract_breakdown_by_order',
+    nullable: false,
+    type: 'jsonb',
+    default: () => "'{}'::jsonb"
+  })
+  contractBreakdownByOrder: OrderContractBreakdownMap;
 
   @OneToMany(() => Contrato, (contrato) => contrato.contratoMaestro)
   contratos: Contrato[];
