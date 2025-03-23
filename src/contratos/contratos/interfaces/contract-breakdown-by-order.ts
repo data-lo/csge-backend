@@ -3,15 +3,14 @@
 // Aunque inicialmente se diseñó para una sola orden, esta versión está adaptada para soportar múltiples órdenes.
 
 export interface OrderContractBreakdown {
-    orderId: string;
-    total: string;
-    contractAmountsUsed: {
-      contractId: string;
-      totalAmountUsedByThisContract: string;
-    }[];
-  }
-  
-  export type OrderContractBreakdownMap = {
-    [orderId: string]: OrderContractBreakdown;
-  };
-  
+  orderId: string;
+  total: string;
+  contractAmountsUsed: {
+    contractId: string;
+    totalAmountUsedByThisContract: string;
+  }[];
+}
+
+export type OrderContractBreakdownMap = {
+  [orderId: string]: OrderContractBreakdown;
+};

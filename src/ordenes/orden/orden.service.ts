@@ -102,7 +102,7 @@ export class OrdenService {
 
       if (amountDetails.total.lessThan(availableFunds)) {
         await this.masterContractRepository.update(masterContract.id, {
-          committedAmount: amountDetails.total.toString()
+          committedAmount: amountDetails.total.toNumber()
         });
       } else {
 
@@ -366,7 +366,7 @@ export class OrdenService {
         const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
 
         await this.masterContractRepository.update(masterContractRepository.id, {
-          committedAmount: newCommittedAmount.toString()
+          committedAmount: newCommittedAmount.toNumber()
         })
 
         await this.orderRepository.remove(order);

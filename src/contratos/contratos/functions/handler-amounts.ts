@@ -6,7 +6,7 @@ interface Props {
         paidAmount: number;
         executedAmount: number;
         activeAmount: number;
-        committedAmount: string;
+        committedAmount: number;
     };
     contractByServiceType: {
         paidAmount: number;
@@ -77,7 +77,7 @@ export function handlerAmounts(values: Props) {
             paidAmount: newValues.masterContract.paidAmount.toDecimalPlaces(4).toNumber(),
             executedAmount: newValues.masterContract.executedAmount.toDecimalPlaces(4).toNumber(),
             activeAmount: newValues.masterContract.activeAmount.toDecimalPlaces(4).toNumber(),
-            committedAmount: newValues.masterContract.committedAmount.toString()
+            committedAmount: newValues.masterContract.committedAmount.toDecimalPlaces(4).toNumber()
         },
         contractByServiceType: {
             paidAmount: newValues.contractByServiceType.paidAmount.toDecimalPlaces(4).toNumber(),

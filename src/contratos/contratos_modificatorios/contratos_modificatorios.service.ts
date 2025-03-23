@@ -15,7 +15,7 @@ export class ContratosModificatoriosService {
     @InjectRepository(ContratoModificatorio)
     private contratoModificatorioRepository: Repository<ContratoModificatorio>,
     private contratosService: ContratosService,
-  ) {}
+  ) { }
 
   async create(createContratoModificatorioDto: CreateContratoModificatorioDto) {
     try {
@@ -25,12 +25,12 @@ export class ContratosModificatoriosService {
         createContratoModificatorioDto;
       const contratoMaestroDb = await this.contratosService.findOne(contratoId);
 
-      if(montoMaximoContratado){
+      if (montoMaximoContratado) {
         montoDisponible = montoMaximoContratado;
       }
-      
+
       montoDisponible = montoMinimoContratado;
-      
+
       const contratoModificatorio = this.contratoModificatorioRepository.create(
         {
           montoDisponible: montoDisponible,
@@ -41,7 +41,9 @@ export class ContratosModificatoriosService {
         },
       );
       await this.contratoModificatorioRepository.save(contratoModificatorio);
+
       return contratoModificatorio;
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -88,10 +90,10 @@ export class ContratosModificatoriosService {
           'El contrato no se encuentra PENDIENTE. Cancelar Contrato',
         );
       } else {
-        await this.contratoModificatorioRepository.update(
-          id,
-          updateContratoModificatorioDto,
-        );
+        // await this.contratoModificatorioRepository.update(
+        //   id,
+        //   updateContratoModificatorioDto,
+        // );
         return await this.findOne(id);
       }
     } catch (error) {
@@ -164,7 +166,7 @@ export class ContratosModificatoriosService {
     }
   }
 
-  async calcularIva() {}
+  async calcularIva() { }
 
-  async actualizarMontos() {}
+  async actualizarMontos() { }
 }

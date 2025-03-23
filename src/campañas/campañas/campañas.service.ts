@@ -45,6 +45,7 @@ export class CampañasService {
 
   async create(createCampañaDto: CreateCampañaDto) {
     try {
+      console.log(createCampañaDto)
       let dependencias = [];
       const { dependenciasIds, activacion, ...rest } = createCampañaDto;
 
@@ -69,7 +70,9 @@ export class CampañasService {
         montoEjercido: 0,
         montoPagado: 0,
       };
+
       const partidaDb = await this.matchService.create(partidaDto);
+
       if (!partidaDb)
         throw new InternalServerErrorException({
           message: 'No se logro crear la partida',

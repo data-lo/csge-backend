@@ -61,7 +61,11 @@ export class ActivacionService {
 
       const lastActivation = await this.getLastActivation(campaign.id);
 
-      const numberOfActivation = lastActivation.numberOfActivation += 1
+      let numberOfActivation = 1;
+
+      if (lastActivation !== null) {
+        numberOfActivation = lastActivation.numberOfActivation += 1
+      }
 
       const currentlyDate = new Date();
 
@@ -97,6 +101,7 @@ export class ActivacionService {
   * @throws {NotFoundException} - Lanza una excepción si el `orderId` es proporcionado pero no se encuentra la orden o no tiene partida.
   */
   async getLastActivation(campaignId: string, orderId?: string) {
+
     let whereCondition: any = { campaña: { id: campaignId } };
 
     if (orderId) {
@@ -117,6 +122,7 @@ export class ActivacionService {
       order: { creadoEn: 'DESC' },
       relations: ['partida'],
     });
+
 
     return lastActivation;
   }
@@ -223,7 +229,7 @@ export class ActivacionService {
       const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
 
       await this.masterContractRepository.update(masterContractRepository.id, {
-        committedAmount: newCommittedAmount.toString()
+        committedAmount: newCommittedAmount.toNumber()
       })
 
       await this.orderRepository.remove(order);

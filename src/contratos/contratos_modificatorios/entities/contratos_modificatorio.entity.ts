@@ -28,15 +28,15 @@ export class ContratoModificatorio {
   estatusDeContrato: ESTATUS_DE_CONTRATO;
 
   @Column({
-    name:'numero_de_contrato'
+    name: 'numero_de_contrato'
   })
-  numeroDeContrato:string;
+  numeroDeContrato: string;
 
   @Column({
     name: 'monto_maximo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMaximoContratado: number;
@@ -45,7 +45,7 @@ export class ContratoModificatorio {
     name: 'monto_minimo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMinimoContratado: number;
@@ -54,7 +54,7 @@ export class ContratoModificatorio {
     name: 'iva_monto_minimo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   ivaMontoMinimoContratado: number;
@@ -63,7 +63,7 @@ export class ContratoModificatorio {
     name: 'iva_monto_maximo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   ivaMontoMaximoContratado: number;
@@ -79,7 +79,7 @@ export class ContratoModificatorio {
     name: 'monto_ejercido',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoEjercido: number;
@@ -88,7 +88,7 @@ export class ContratoModificatorio {
     name: 'monto_pagado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoPagado: number;
@@ -97,10 +97,28 @@ export class ContratoModificatorio {
     name: 'monto_disponible',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoDisponible: number;
+
+  @Column({
+    name: 'monto_activo',
+    type: 'decimal',
+    default: 0.0,
+    scale: 4,
+    nullable: false,
+  })
+  montoActivo: number;
+
+  @Column({
+    name: 'monto_reservado',
+    type: 'decimal',
+    scale: 4,
+    default: 0.0,
+    nullable: false,
+  })
+  committedAmount: number;
 
   @Column({
     name: 'fecha_inicial',
@@ -154,7 +172,7 @@ export class ContratoModificatorio {
     this.fechaInicial = formatToLocalTime(this.fechaInicial);
     this.fechaFinal = formatToLocalTime(this.fechaFinal);
   }
-  
+
   @BeforeUpdate()
   localeTimeZoneUpdate() {
     const value = new Date();
