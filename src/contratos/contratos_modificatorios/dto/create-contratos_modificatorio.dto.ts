@@ -43,6 +43,10 @@ export class CreateContratoModificatorioDto {
 
   @IsNumber({ maxDecimalPlaces: 4 })
   ivaMontoMaximoContratado: number;
+  
+  @IsString()
+  @IsOptional()
+  cancellationReason: string;
 
   // 📆 Fechas
   @IsOptional()

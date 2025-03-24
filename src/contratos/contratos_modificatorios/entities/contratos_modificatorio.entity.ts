@@ -33,6 +33,13 @@ export class ContratoModificatorio {
   numeroDeContrato: string;
 
   @Column({
+    name: 'cancellation_reason',
+    nullable: true,
+    default: null
+  })
+  cancellationReason: string;
+
+  @Column({
     name: 'monto_maximo_contratado',
     type: 'decimal',
     default: 0.0,

@@ -21,6 +21,7 @@ import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { handlerAmounts } from './functions/handler-amounts';
 import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
 import { Decimal } from 'decimal.js'
+import { ContratoModificatorio } from '../contratos_modificatorios/entities/contratos_modificatorio.entity';
 
 
 @Injectable()
@@ -38,6 +39,9 @@ export class ContratosService {
 
     @InjectRepository(ContratoMaestro)
     private readonly masterContractRepository: Repository<ContratoMaestro>,
+
+    @InjectRepository(ContratoModificatorio)
+    private readonly contractAmendmentRepository: Repository<ContratoModificatorio>,
 
     @InjectRepository(Orden)
     private readonly orderRepository: Repository<Orden>,
@@ -79,7 +83,7 @@ export class ContratosService {
       }
 
       const activeContractsCount = await this.countActiveContracts(provider.id);
-      
+
 
       const availableFunds = montoMaximoContratado + ivaMontoMaximoContratado;
 
@@ -146,10 +150,11 @@ export class ContratosService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const contratos = await this.masterContractRepository
+      const masterContracts = await this.masterContractRepository
         .createQueryBuilder('contratoMaestro')
         .leftJoinAndSelect('contratoMaestro.proveedor', 'proveedor')
         .leftJoinAndSelect('contratoMaestro.contratos', 'contratos')
+        .leftJoinAndSelect('contratoMaestro.contratosModificatorios', 'contratosModificatorios')
         .select([
           'contratoMaestro.id',
           'contratoMaestro.numeroDeContrato',
@@ -160,15 +165,49 @@ export class ContratosService {
           'contratoMaestro.montoDisponible',
           'contratoMaestro.committedAmount',
           'contratoMaestro.estatusDeContrato',
+
           'contratos.id',
           'contratos.tipoDeServicio',
           'proveedor.razonSocial',
+          'contratosModificatorios.committedAmount',
+          'contratosModificatorios.id',
+          'contratosModificatorios.montoActivo',
+          'contratosModificatorios.montoEjercido',
+          'contratosModificatorios.montoPagado',
+          'contratosModificatorios.montoDisponible',
         ])
         .skip(paginationSetter.getSkipElements(pagina))
         .take(paginationSetter.castPaginationLimit())
         .getMany();
 
-      return contratos;
+
+
+      for (const masterContract of masterContracts) {
+        let globalActiveAmount = new Decimal(masterContract.montoActivo || 0);
+        let globalExecutedAmount = new Decimal(masterContract.montoEjercido || 0);
+        let globalPaidAmount = new Decimal(masterContract.montoPagado || 0);
+        let globalAvailableAmount = new Decimal(masterContract.montoDisponible || 0);
+        let globalCommittedAmount = new Decimal(masterContract.committedAmount || 0);
+
+        if (masterContract.contratosModificatorios) {
+          for (const modificatoryContract of masterContract.contratosModificatorios) {
+            globalActiveAmount = globalActiveAmount.plus(new Decimal(modificatoryContract.montoActivo || 0));
+            globalExecutedAmount = globalExecutedAmount.plus(new Decimal(modificatoryContract.montoEjercido || 0));
+            globalPaidAmount = globalPaidAmount.plus(new Decimal(modificatoryContract.montoPagado || 0));
+            globalAvailableAmount = globalAvailableAmount.plus(new Decimal(modificatoryContract.montoDisponible || 0));
+          }
+        }
+
+        (masterContract as any).globalAmounts = {
+          active: globalActiveAmount.toNumber(),
+          execute: globalExecutedAmount.toNumber(),
+          paid: globalPaidAmount.toNumber(),
+          available: globalAvailableAmount.toNumber(),
+          committed: globalCommittedAmount.toNumber(),
+        };
+      }
+
+      return masterContracts;
     } catch (error) {
       handleExceptions(error);
     }
@@ -189,20 +228,23 @@ export class ContratosService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(masterContractId: string) {
     try {
-      const contrato = await this.masterContractRepository.findOne({
-        where: { id: id },
+      const masterContract = await this.masterContractRepository.findOne({
+        where: { id: masterContractId },
         relations: {
           contratos: true,
           proveedor: true,
           contratosModificatorios: true,
         },
       });
-      if (!contrato) {
-        throw new NotFoundException('El contrato no se encuentra');
+
+      if (!masterContract) {
+        throw new NotFoundException(`¡El contrato con ID '${masterContractId}' no se encuentra!`);
+
       }
-      return contrato;
+
+      return masterContract;
     } catch (error) {
       handleExceptions(error);
     }
@@ -210,17 +252,22 @@ export class ContratosService {
 
   async getContractStatus(id: string) {
     try {
-      const contratoMaestro = await this.masterContractRepository.findOne({
-        where: { id: id },
+      const contrato = await this.masterContractRepository.findOne({
+        where: { id },
         select: { estatusDeContrato: true },
       });
-      if (!contratoMaestro)
-        throw new NotFoundException('El contrato no se encuentra');
-      return { estatus: contratoMaestro.estatusDeContrato };
+
+      if (!contrato) {
+        throw new NotFoundException(`¡Contrato con ID ${id} no encontrado!`);
+      }
+
+      return { status: contrato.estatusDeContrato };
+
     } catch (error) {
       handleExceptions(error);
     }
   }
+
 
   async getContractedServiceTypes(proveedorId: string) {
     try {
@@ -291,12 +338,13 @@ export class ContratosService {
       } = updateContratoDto;
       const { estatusDeContrato } = contratoMaestroDb;
 
-      const estatusPermitidos = [
-        ESTATUS_DE_CONTRATO.ADJUDICADO,
+      const validStatus = [
         ESTATUS_DE_CONTRATO.PENDIENTE,
+        ESTATUS_DE_CONTRATO.ADJUDICADO,
+        ESTATUS_DE_CONTRATO.LIBERADO
       ];
 
-      if (!estatusPermitidos.includes(estatusDeContrato)) {
+      if (!validStatus.includes(estatusDeContrato)) {
         throw new BadRequestException(
           'EL CONTRATO DEBE DE ENCONTRARSE ADJUDICADO O PENDIENTE PARA MODIFICARSE',
         );
@@ -387,8 +435,9 @@ export class ContratosService {
   }
 
   async processContractCancellation(masterContractId: string, updateContratoDto: UpdateContratoDto) {
-    const { estatusDeContrato, motivoCancelacion } = updateContratoDto;
+    const { estatusDeContrato, cancellationReason } = updateContratoDto;
 
+    console.log("Si entra")
     try {
       const contract = await this.getContractStatus(masterContractId);
 
@@ -397,15 +446,42 @@ export class ContratosService {
         ESTATUS_DE_CONTRATO.ADJUDICADO,
       ];
 
-      if (!validStates.includes(contract.estatus)) {
+      if (!validStates.includes(contract.status)) {
+
         throw new BadRequestException(
           "¡El contrato debe estar en estatus 'Liberado' o 'Adjudicado' para poder cancelarse!"
         );
       }
 
+      const modificatoryContracts = await this.contractAmendmentRepository.find({
+        where: [
+          {
+            contratoMaestro: { id: masterContractId },
+            estatusDeContrato: ESTATUS_DE_CONTRATO.LIBERADO,
+          },
+          {
+            contratoMaestro: { id: masterContractId },
+            estatusDeContrato: ESTATUS_DE_CONTRATO.ADJUDICADO,
+          },
+          {
+            contratoMaestro: { id: masterContractId },
+            estatusDeContrato: ESTATUS_DE_CONTRATO.PENDIENTE
+          }
+        ]
+      });
+
+      if (modificatoryContracts.length > 0) {
+        for (const modificatoryContract of modificatoryContracts) {
+          await this.contractAmendmentRepository.update(modificatoryContract.id, {
+            estatusDeContrato: ESTATUS_DE_CONTRATO.CANCELADO,
+            cancellationReason: "EL CONTRATO PRINCIPAL FUE CANCELADO.",
+          });
+        }
+      }
+
       await this.masterContractRepository.update(masterContractId, {
-        estatusDeContrato,
-        motivoCancelacion,
+        estatusDeContrato: ESTATUS_DE_CONTRATO.CANCELADO,
+        cancellationReason: cancellationReason,
       });
 
       if (estatusDeContrato === ESTATUS_DE_CONTRATO.CANCELADO) {

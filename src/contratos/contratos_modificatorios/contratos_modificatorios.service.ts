@@ -8,6 +8,7 @@ import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
 import { ESTATUS_DE_CONTRATO } from '../interfaces/estatus-de-contrato';
 import { ContratosService } from '../contratos/contratos.service';
+import { Decimal } from 'decimal.js';
 
 @Injectable()
 export class ContratosModificatoriosService {
@@ -19,29 +20,47 @@ export class ContratosModificatoriosService {
 
   async create(createContratoModificatorioDto: CreateContratoModificatorioDto) {
     try {
-      let montoDisponible: number = 0.0;
+      const {
+        montoMinimoContratado,
+        montoMaximoContratado,
+        ivaMontoMaximoContratado,
+        ivaMontoMinimoContratado,
+        contratoId,
+        ...rest
+      } = createContratoModificatorioDto;
 
-      const { montoMinimoContratado, montoMaximoContratado, contratoId, ...rest } =
-        createContratoModificatorioDto;
-      const contratoMaestroDb = await this.contratosService.findOne(contratoId);
+      const masterContract = await this.contratosService.findOne(contratoId);
 
-      if (montoMaximoContratado) {
-        montoDisponible = montoMaximoContratado;
+      if (!masterContract) {
+        throw new BadRequestException(`El contrato principal con ID ${contratoId} no existe.`);
       }
 
-      montoDisponible = montoMinimoContratado;
+      const maxAmount = new Decimal(montoMaximoContratado || 0);
+      const maxIva = new Decimal(ivaMontoMaximoContratado || 0);
+      const minAmount = new Decimal(montoMinimoContratado || 0);
+      const minIva = new Decimal(ivaMontoMinimoContratado || 0);
 
-      const contratoModificatorio = this.contratoModificatorioRepository.create(
-        {
-          montoDisponible: montoDisponible,
-          montoMinimoContratado: montoMinimoContratado,
-          montoMaximoContratado: montoMaximoContratado,
-          contratoMaestro: contratoMaestroDb,
-          ...rest,
-        },
-      );
+      const availableAmount = maxAmount.plus(maxIva);
+      const committedAmount = new Decimal(0);
+      const activeAmount = new Decimal(0);
+      const executedAmount = new Decimal(0);
+      const paidAmount = new Decimal(0);
+
+      const contratoModificatorio = this.contratoModificatorioRepository.create({
+        montoDisponible: availableAmount.toNumber(),
+        montoMinimoContratado: minAmount.toNumber(),
+        montoMaximoContratado: maxAmount.toNumber(),
+        ivaMontoMaximoContratado: maxIva.toNumber(),
+        ivaMontoMinimoContratado: minIva.toNumber(),
+        contratoMaestro: masterContract,
+        committedAmount: committedAmount.toNumber(),
+        montoActivo: activeAmount.toNumber(),
+        montoEjercido: executedAmount.toNumber(),
+        montoPagado: paidAmount.toNumber(),
+        ...rest,
+      });
+
       await this.contratoModificatorioRepository.save(contratoModificatorio);
-
       return contratoModificatorio;
 
     } catch (error) {
@@ -77,24 +96,28 @@ export class ContratosModificatoriosService {
     }
   }
 
-  async update(
-    id: string,
-    updateContratoModificatorioDto: UpdateContratoModificatorioDto,
+  async update(modificatoryContractId: string, updateContratoModificatorioDto: UpdateContratoModificatorioDto,
   ) {
+    const validStatus = [
+      ESTATUS_DE_CONTRATO.PENDIENTE,
+      ESTATUS_DE_CONTRATO.ADJUDICADO,
+      ESTATUS_DE_CONTRATO.LIBERADO
+    ];
+
     try {
-      const contratoModificatorioDb = await this.findOne(id);
+      const contratoModificatorioDb = await this.findOne(modificatoryContractId);
+
       const { estatusDeContrato } = contratoModificatorioDb;
 
-      if (estatusDeContrato != ESTATUS_DE_CONTRATO.PENDIENTE) {
-        throw new BadRequestException(
-          'El contrato no se encuentra PENDIENTE. Cancelar Contrato',
-        );
+      if (!validStatus.includes(estatusDeContrato)) {
+
+        throw new BadRequestException('¡El contrato no tiene un estatus válido para poder ser cancelado!');
+
       } else {
-        // await this.contratoModificatorioRepository.update(
-        //   id,
-        //   updateContratoModificatorioDto,
-        // );
-        return await this.findOne(id);
+
+        await this.contratoModificatorioRepository.update(modificatoryContractId, updateContratoModificatorioDto);
+
+        return await this.findOne(modificatoryContractId);
       }
     } catch (error) {
       handleExceptions(error);
@@ -104,7 +127,7 @@ export class ContratosModificatoriosService {
   async remove(id: string) {
     try {
       const estatusDelContrato = await this.obtenerEstatus(id);
-      if (estatusDelContrato.estatus != ESTATUS_DE_CONTRATO.PENDIENTE) {
+      if (estatusDelContrato.status != ESTATUS_DE_CONTRATO.PENDIENTE) {
         throw new BadRequestException(
           'El contrato no cuenta con estatus PENDIENTE. Cancelar Contrato',
         );
@@ -121,7 +144,7 @@ export class ContratosModificatoriosService {
     try {
       const contratoModificatorio = await this.findOne(id);
       const estatusDeContrato = contratoModificatorio.estatusDeContrato;
-      return { estatus: estatusDeContrato };
+      return { status: estatusDeContrato };
     } catch (error) {
       handleExceptions(error);
     }
@@ -144,22 +167,30 @@ export class ContratosModificatoriosService {
     }
   }
 
-  async desactivarCancelarContrato(
-    id: string,
-    updateContratoDto: UpdateContratoModificatorioDto,
-  ) {
-    const { estatusDeContrato } = updateContratoDto;
+  async cancellContract(id: string, updateContratoDto: UpdateContratoModificatorioDto,) {
+
+    console.log("Ok")
     try {
-      const estatusDeContratoDb = await this.obtenerEstatus(id);
-      if (estatusDeContratoDb.estatus === ESTATUS_DE_CONTRATO.LIBERADO) {
+      const { cancellationReason } = updateContratoDto
+
+      const status = await this.obtenerEstatus(id);
+
+      const validStatus = [
+        ESTATUS_DE_CONTRATO.ADJUDICADO,
+        ESTATUS_DE_CONTRATO.LIBERADO
+      ]
+
+      if (validStatus.includes(status.status)) {
+
         await this.contratoModificatorioRepository.update(id, {
-          estatusDeContrato: estatusDeContrato,
+          estatusDeContrato: ESTATUS_DE_CONTRATO.CANCELADO,
+          cancellationReason: cancellationReason
         });
-        return { message: `Estatus de contrato ${estatusDeContrato}` };
+
+        return { message: '¡El contrato ha sido cancelado exitosamente!' };
+
       } else {
-        throw new BadRequestException(
-          'El contrato se debe encontraro LIBERADO para desactivarse o cancelarse',
-        );
+        throw new BadRequestException('¡El contrato debe estar en Adjudicado o Liberado para poder cancelarse!',);
       }
     } catch (error) {
       handleExceptions(error);

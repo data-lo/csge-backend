@@ -62,7 +62,7 @@ export class CreateContratoDto {
   
   @IsString()
   @IsOptional()
-  motivoCancelacion: string;
+  cancellationReason: string;
 
   @IsString()
   @IsOptional()

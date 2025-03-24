@@ -333,8 +333,12 @@ export class ContratoMaestro {
   fechaFinal: Date;
 
   // ⚠️ OTROS
-  @Column({ name: 'motivo_de_cancelacion', nullable: true, default: null })
-  motivoCancelacion: string;
+  @Column({
+    name: 'cancellation_reason',
+    nullable: true,
+    default: null
+  })
+  cancellationReason: string;
 
   @Column({ name: 'link_al_contrato', nullable: true, default: null })
   linkContrato: string;

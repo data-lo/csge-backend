@@ -50,7 +50,7 @@ export class ContratosModificatoriosController {
   @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Patch('desactivar-cancelar/:id')
   desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoModificatorioDto) {
-    return this.contratosModificatoriosService.desactivarCancelarContrato(id, updateContratoDto);
+    return this.contratosModificatoriosService.cancellContract(id, updateContratoDto);
   }
 
   @Auth(...CONTRACT_USER_ROLESModificatorios)
