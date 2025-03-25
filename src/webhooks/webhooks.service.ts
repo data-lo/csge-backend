@@ -58,9 +58,18 @@ export class WebhooksService {
       const documentId = document.documentId;
 
       if (document.documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        this.eventEmitter.emit('update-contract-amounts-from-order', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
-        this.eventEmitter.emit('update-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
+        if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+          this.eventEmitter.emit('update-contract-amounts-from-order', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
+
+          this.eventEmitter.emit('update-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
+        } else {
+          this.eventEmitter.emit('update-contract-amounts-from-order', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_CANCELLED });
+
+          this.eventEmitter.emit('update-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA });
+        }
+
+
 
       } else if (document.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });

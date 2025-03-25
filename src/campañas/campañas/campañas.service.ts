@@ -361,8 +361,7 @@ export class CampañasService {
 
 
   private async validateCampaignStatusForSignatureAction(campaignStatus: CAMPAIGN_STATUS, signatureAction: SIGNATURE_ACTION_ENUM) {
-    console.log(campaignStatus)
-    console.log(signatureAction)
+
     // Estatus válidos para aprobación
     const VALID_APPROVAL_STATES = [
       CAMPAIGN_STATUS.CREADA,

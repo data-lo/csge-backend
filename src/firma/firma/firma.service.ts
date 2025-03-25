@@ -259,7 +259,7 @@ export class FirmaService {
           where: { id: documentoId },
         });
 
-        if (documentoDb.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE)
+        if (!(documentoDb.estatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE || documentoDb.estatus === ESTATUS_ORDEN_DE_SERVICIO.ACTIVA))
           throw new BadRequestException(
             'Solo se pueden mandar a aprobar ordenes con estatus de pendiente',
           );

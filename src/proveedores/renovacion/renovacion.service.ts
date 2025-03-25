@@ -58,15 +58,15 @@ export class RenovacionService {
         tarifaUnitaria: unitPrice,
         fechaDeCreacion: new Date(),
         iva: tax,
-        esUltimaRenovacion: isFirstTime,
+        esUltimaRenovacion: true,
         descripcionDelServicio: description
       };
 
       await this.renovacionRepository.save(renovacion);
 
-
       // Devolver sin la relación de servicio
       const renovacionSinServicio = { ...renovacion };
+
       delete renovacionSinServicio.servicio;
 
       return renovacionSinServicio;
@@ -109,16 +109,20 @@ export class RenovacionService {
     }
   }
 
-  async obtenerRenovaciones(servicioId: string) {
+  async getRenovations(servicioId: string) {
     try {
-      const servicioDb = await this.servicioRepository.findOne({
+      const service = await this.servicioRepository.findOne({
         where: { id: servicioId },
         relations: {
           renovaciones: true
         }
       });
-      if (!servicioDb) throw new BadRequestException('El servicio no se encuentra');
-      return servicioDb.renovaciones;
+
+      if (!service) {
+        throw new BadRequestException('El servicio no se encuentra');
+      }
+
+      return service.renovaciones;
 
     } catch (error: any) {
       handleExceptions(error);
@@ -127,10 +131,12 @@ export class RenovacionService {
 
   async isFirstRenovation(servicioId: string) {
     try {
-      const renovaciones = await this.obtenerRenovaciones(servicioId);
-      if (renovaciones.length < 1) {
+      const renovations = await this.getRenovations(servicioId);
+
+      if (renovations.length < 1) {
         return true;
       }
+
       return false;
     } catch (error) {
       ;
@@ -147,12 +153,15 @@ export class RenovacionService {
           renovaciones: true
         }
       });
+
       const renovacion = servicioDb.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion === true) {
           return renovacion;
         }
       });
+
       renovacion.estatus = true;
+
       await this.renovacionRepository.save(renovacion);
       return;
     } catch (error: any) {

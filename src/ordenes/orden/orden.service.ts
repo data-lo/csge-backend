@@ -51,7 +51,6 @@ import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-en
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
 import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
-// import { Factura } from '../factura/entities/factura.entity';
 
 
 /**
@@ -85,6 +84,7 @@ export class OrdenService {
 
   async create(createOrderDto: CreateOrdenDto) {
     try {
+      console.log(createOrderDto)
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
 
       const currentDate = new Date();
@@ -131,7 +131,7 @@ export class OrdenService {
       // Obtener la última partida de la campaña (si existe)
       const match = campaign?.activaciones.at(-1)?.partida ?? null;
 
-      const numberOfActivation = campaign?.activaciones.at(-1)?.numberOfActivation ?? null
+      const numberOfActivation = campaign?.activaciones.at(-1)?.numberOfActivation ?? 1
 
       // Generar el folio de la orden basado en el tipo de servicio
       const folio = await this.getCurrentFolio(tipoDeServicio);
@@ -276,6 +276,7 @@ export class OrdenService {
 
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
     try {
+      console.log("Ok")
       const {
         campaniaId,
         proveedorId,
@@ -291,9 +292,8 @@ export class OrdenService {
         {
           where: {
             id: id,
-          }, relations: {
-            serviciosContratados: true
-          }
+          },
+          relations: { serviciosContratados: true }
         });
 
       if (!currentlyOrder) {
@@ -331,6 +331,18 @@ export class OrdenService {
         currentlyOrder.serviciosContratados = newServices;
       }
       const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
+
+
+      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
+
+      if (amountDetails.total.lessThan(availableFunds)) {
+        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+          committedAmount: amountDetails.total.toNumber()
+        });
+      } else {
+        throw new NotFoundException('¡No se pudo actualizar la orden debido a insuficiencia de fondos en los contratos!');
+      }
+      
 
       currentlyOrder.iva = amountDetails.tax.toString();
 
@@ -527,42 +539,77 @@ export class OrdenService {
     }
   }
 
-  async mandarOrdenAFirmar(ordenId: string) {
-    try {
-      const order = await this.orderRepository.findOneBy({
-        id: ordenId
-      });
+  // async mandarOrdenAFirmar(ordenId: string) {
+  //   try {
+  //     const order = await this.orderRepository.findOneBy({
+  //       id: ordenId
+  //     });
 
-      if (!order) {
-        throw new BadRequestException(`¡No se encontró la orden con ID: ${ordenId}!`);
-      }
+  //     if (!order) {
+  //       throw new BadRequestException(`¡No se encontró la orden con ID: ${ordenId}!`);
+  //     }
 
-      const documentoFirmaDto: CreateFirmaDto = {
-        documentId: ordenId,
-        documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
-        isSigned: false,
-        signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
-      };
+  //     const documentoFirmaDto: CreateFirmaDto = {
+  //       documentId: ordenId,
+  //       documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
+  //       isSigned: false,
+  //       signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
+  //     };
 
+  //     try {
+  //       const document = await this.signatureService.findOne(ordenId);
+
+  //       if (document) {
+  //         throw new BadRequestException('¡El documento ya se encuentra en espera de firma!',)
+  //       }
+
+  //     } catch (error) {
+
+  //       if (error.response.status === '404') {
+  //         return await this.signatureService.create(documentoFirmaDto);
+  //       }
+
+  //       throw error;
+  //     }
+  //   } catch (error) {
+  //     handleExceptions(error);
+  //   }
+  // }
+
+
+  async sendToSigningOrder(orderId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
+    console.log("OKAS")
       try {
-        const document = await this.signatureService.findOne(ordenId);
-
-        if (document) {
-          throw new BadRequestException('¡El documento ya se encuentra en espera de firma!',)
+        const order = await this.orderRepository.findOne({
+          where: { id: orderId }
+        });
+  
+        if (!order) {
+          throw new NotFoundException(`¡La campaña con ID ${orderId} no fue encontrada!`);
         }
-
+  
+        // await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
+  
+        const signatureObject = {
+          isSigned: false,
+          documentId: orderId,
+          documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
+          signatureAction: signatureAction
+        };
+  
+        await this.signatureService.create(signatureObject);
+  
+        order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
+  
+        await this.orderRepository.save(order);
+  
+        return { message: '¡La campaña ha sido enviada al módulo de firma!' };
+  
       } catch (error) {
-
-        if (error.response.status === '404') {
-          return await this.signatureService.create(documentoFirmaDto);
-        }
-
-        throw error;
+        handleExceptions(error);
       }
-    } catch (error) {
-      handleExceptions(error);
     }
-  }
+  
 
   async getOrderInPDF(orderId: string) {
 
