@@ -275,8 +275,9 @@ export class OrdenService {
   }
 
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
+    console.log("Proband. update de CAM")
     try {
-      console.log("Ok")
+
       const {
         campaniaId,
         proveedorId,
@@ -539,46 +540,7 @@ export class OrdenService {
     }
   }
 
-  // async mandarOrdenAFirmar(ordenId: string) {
-  //   try {
-  //     const order = await this.orderRepository.findOneBy({
-  //       id: ordenId
-  //     });
-
-  //     if (!order) {
-  //       throw new BadRequestException(`¡No se encontró la orden con ID: ${ordenId}!`);
-  //     }
-
-  //     const documentoFirmaDto: CreateFirmaDto = {
-  //       documentId: ordenId,
-  //       documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
-  //       isSigned: false,
-  //       signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
-  //     };
-
-  //     try {
-  //       const document = await this.signatureService.findOne(ordenId);
-
-  //       if (document) {
-  //         throw new BadRequestException('¡El documento ya se encuentra en espera de firma!',)
-  //       }
-
-  //     } catch (error) {
-
-  //       if (error.response.status === '404') {
-  //         return await this.signatureService.create(documentoFirmaDto);
-  //       }
-
-  //       throw error;
-  //     }
-  //   } catch (error) {
-  //     handleExceptions(error);
-  //   }
-  // }
-
-
   async sendToSigningOrder(orderId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
-    console.log("OKAS")
       try {
         const order = await this.orderRepository.findOne({
           where: { id: orderId }

@@ -24,6 +24,8 @@ import { MinioService } from 'src/minio/minio.service';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import * as XLSX from 'xlsx';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import Decimal from 'decimal.js';
+import { PaymentRegister } from './interfaces/payment-register';
 
 @Injectable()
 export class FacturaService {
@@ -65,7 +67,6 @@ export class FacturaService {
       const validacionBool = Boolean(validacionTestigo);
 
       if (!validacionBool) {
-        console.log('ERROR EN VALIDACIÓN')
         throw new BadRequestException({ message: 'VALIDAR TESTIGO', id: id });
       }
 
@@ -241,6 +242,7 @@ export class FacturaService {
           .TotalImpuestosTrasladados;
 
       let conceptos = facturaXml['cfdi:Comprobante']['cfdi:Conceptos'];
+      
       if (!Array.isArray(conceptos)) {
         conceptos = [conceptos];
       }
@@ -384,36 +386,66 @@ export class FacturaService {
         credit: Number(row[19]) || 0
       }));
 
-      let paidInvoices: string[] = [];
+      let paidInvoiceCount: number = 0;
 
       for (const row of jsonData) {
         const invoice = await this.invoiceRepository.findOne({
-          where: {
-            folio: row.invoiceNumber
-          },
+          where: { folio: row.invoiceNumber }
         });
 
-        if (invoice) {
-          if (invoice.estatus === INVOICE_STATUS.CONTEJADA || invoice.estatus === INVOICE_STATUS.APROBADA) {
-            paidInvoices.push(invoice.id);
-          }
-        }
-      }
+        if (!invoice) continue;
 
-      if (paidInvoices.length > 0) {
-        this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds: paidInvoices });
+        const isProcessableStatus = [
+          INVOICE_STATUS.CONTEJADA,
+          INVOICE_STATUS.APROBADA,
+          INVOICE_STATUS.PARTIAL_PAY
+        ].includes(invoice.estatus);
+
+        if (!isProcessableStatus) continue;
+
+        const totalInvoiceAmount = new Decimal(invoice.total);
+        const paidAmount = new Decimal(row.paidAmount);
+        const isFullyPaid = paidAmount.equals(totalInvoiceAmount);
+
+        const newStatus = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
+
+        const existingPayments = invoice.paymentRegister || [];
+
+        const alreadyRegistered = existingPayments.some(item =>
+          new Date(item.paymentRegisteredAt).getTime() === new Date(row.accountingDate).getTime() &&
+          Number(item.paidAmount) === Number(row.paidAmount) &&
+          item.checkNumber === row.checkNumber
+        );
+
+        if (alreadyRegistered) continue;
+
+        const newPayment: PaymentRegister = {
+          paidAmount: paidAmount.toString(),
+          checkNumber: row.checkNumber,
+          paymentRegisteredAt: new Date()
+        };
+
+        const updatedPayments = [...existingPayments, newPayment];
+
+        await this.invoiceRepository.update(invoice.id, {
+          paymentRegister: updatedPayments,
+          estatus: newStatus
+        });
+
+        paidInvoiceCount += 1;
+
       }
 
       return {
         message: '¡Archivo procesado correctamente! ',
         data: {
-          numberOfInvoicesPaid: paidInvoices.length
+          notPaidInvoiceCout: jsonData.length - paidInvoiceCount,
+          paidInvoiceCount: paidInvoiceCount
         }
       };
 
     } catch (error) {
-      console.error("Error procesando el archivo Excel:", error);
-      throw new Error("Error al procesar el archivo Excel");
+      throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }
 
