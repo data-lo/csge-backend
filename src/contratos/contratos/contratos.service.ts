@@ -8,7 +8,7 @@ import {
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
-import { In, LessThanOrEqual, Repository } from 'typeorm';
+import { In, LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
@@ -22,6 +22,8 @@ import { handlerAmounts } from './functions/handler-amounts';
 import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
 import { Decimal } from 'decimal.js'
 import { ContratoModificatorio } from '../contratos_modificatorios/entities/contratos_modificatorio.entity';
+import { EXTENSION_TYPE_ENUM } from '../contratos_modificatorios/enums/extension-type-enum';
+import { addTimeToDate } from 'src/functions/add-time-to-date';
 
 
 @Injectable()
@@ -57,8 +59,12 @@ export class ContratosService {
         tipoDeServicios,
         proveedorId,
         numeroDeContrato,
+        fechaFinal,
+        fechaInicial,
         ...rest
       } = createContratoDto;
+
+      const date = new Date();
 
       const exists = await this.masterContractRepository.exists({
         where: { numeroDeContrato },
@@ -84,7 +90,6 @@ export class ContratosService {
 
       const activeContractsCount = await this.countActiveContracts(provider.id);
 
-
       const availableFunds = montoMaximoContratado + ivaMontoMaximoContratado;
 
       const masterContract = this.masterContractRepository.create({
@@ -95,6 +100,8 @@ export class ContratosService {
         montoDisponible: availableFunds,
         proveedor: provider,
         numeroDeContrato: numeroDeContrato,
+        fechaFinal: addTimeToDate(fechaFinal),
+        fechaInicial: addTimeToDate(fechaInicial, 0, 0),
         ...rest,
       });
 
@@ -170,6 +177,7 @@ export class ContratosService {
           'contratos.tipoDeServicio',
           'proveedor.razonSocial',
           'contratosModificatorios.committedAmount',
+          'contratosModificatorios.estatusDeContrato',
           'contratosModificatorios.id',
           'contratosModificatorios.montoActivo',
           'contratosModificatorios.montoEjercido',
@@ -191,10 +199,12 @@ export class ContratosService {
 
         if (masterContract.contratosModificatorios) {
           for (const modificatoryContract of masterContract.contratosModificatorios) {
-            globalActiveAmount = globalActiveAmount.plus(new Decimal(modificatoryContract.montoActivo || 0));
-            globalExecutedAmount = globalExecutedAmount.plus(new Decimal(modificatoryContract.montoEjercido || 0));
-            globalPaidAmount = globalPaidAmount.plus(new Decimal(modificatoryContract.montoPagado || 0));
-            globalAvailableAmount = globalAvailableAmount.plus(new Decimal(modificatoryContract.montoDisponible || 0));
+            if (modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO && modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS) {
+              globalActiveAmount = globalActiveAmount.plus(new Decimal(modificatoryContract.montoActivo || 0));
+              globalExecutedAmount = globalExecutedAmount.plus(new Decimal(modificatoryContract.montoEjercido || 0));
+              globalPaidAmount = globalPaidAmount.plus(new Decimal(modificatoryContract.montoPagado || 0));
+              globalAvailableAmount = globalAvailableAmount.plus(new Decimal(modificatoryContract.montoDisponible || 0));
+            }
           }
         }
 
@@ -298,18 +308,19 @@ export class ContratosService {
   }
 
 
-  async modificarEstatus(id: string, updateContratoDto: UpdateContratoDto) {
+  async changeStatus(contractMasterId: string, newStatus: ESTATUS_DE_CONTRATO) {
     try {
-      const { estatusDeContrato } = updateContratoDto;
-      const contratoMaestroDb = await this.masterContractRepository.findOne({
-        where: { id: id },
-      });
-      contratoMaestroDb.estatusDeContrato = estatusDeContrato;
-      await this.masterContractRepository.save(contratoMaestroDb);
 
-      return {
-        message: `Estatus de contrato actuzalizado a ${estatusDeContrato}`,
-      };
+      const masterContract = await this.masterContractRepository.findOne({
+        where: { id: contractMasterId },
+      });
+
+      masterContract.estatusDeContrato = newStatus;
+
+      await this.masterContractRepository.save(masterContract);
+
+      return { message: `¡Estatus del contrato actualizado exitosamente!` };
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -326,8 +337,9 @@ export class ContratosService {
         },
       });
 
-      if (!contratoMaestroDb)
+      if (!contratoMaestroDb) {
         throw new BadRequestException('No se encuentra el contrato');
+      }
 
       const {
         linkContrato,
@@ -437,7 +449,6 @@ export class ContratosService {
   async processContractCancellation(masterContractId: string, updateContratoDto: UpdateContratoDto) {
     const { estatusDeContrato, cancellationReason } = updateContratoDto;
 
-    console.log("Si entra")
     try {
       const contract = await this.getContractStatus(masterContractId);
 
@@ -506,7 +517,7 @@ export class ContratosService {
 
     } catch (error) {
       handleExceptions(error);
-      throw error; // Relanzar el error para mantener trazabilidad
+      throw error;
     }
   }
 
@@ -578,25 +589,39 @@ export class ContratosService {
     }
   }
 
-  async checkContractExpiration() {
-    const currentlyDate = new Date();
+  async checkContractsExpiration() {
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
 
     // Obtener contratos que finalizan hoy con sus relaciones
     const masterContractsEndsToday = await this.masterContractRepository.find({
-      where: { fechaFinal: LessThanOrEqual(currentlyDate) },
-      relations: ["contratos", "proveedor"]
+      where: { fechaFinal: LessThan(today) },
+      relations: ["contratos", "proveedor", "contratosModificatorios"]
     });
 
     const contractsByProvider: Record<string, ContratoMaestro[]> = {};
 
-    // Agrupar los contrato maestro por proveedor
+    // Agrupar los contratos maestro por proveedor
     for (const masterContract of masterContractsEndsToday) {
       const providerId = masterContract.proveedor.id;
 
       if (!contractsByProvider[providerId]) {
         contractsByProvider[providerId] = [];
       }
-      contractsByProvider[providerId].push(masterContract);
+
+      const modificatoryContracts = masterContract.contratosModificatorios
+        .filter(contract => contract.extensionType === EXTENSION_TYPE_ENUM.TIME)
+        .sort((a, b) => new Date(a.creadoEn).getTime() - new Date(b.creadoEn).getTime());
+
+      const lastModificatory = modificatoryContracts[modificatoryContracts.length - 1];
+
+      if (!lastModificatory || new Date(lastModificatory.fechaFinal).getTime() < today.getTime()) {
+        console.log("Se desactiva hoy el contrato modificatorio.");
+        console.log(lastModificatory);
+        contractsByProvider[providerId].push(masterContract);
+      }
     }
 
     // Recorrer cada proveedor
@@ -706,6 +731,20 @@ export class ContratosService {
     );
 
     return typeServices.some(service => servicesTypeActive.includes(service));
+  }
+
+  async getServiceTypesByContractMaster(masterContractId: string) {
+    const masterContracts = await this.masterContractRepository.find({
+      where: { id: masterContractId },
+      relations: ["contratos"]
+    });
+
+    const servicesTypeActive: TIPO_DE_SERVICIO[] = masterContracts.flatMap(masterContract =>
+      masterContract.contratos.map(contract => contract.tipoDeServicio)
+    );
+
+    return servicesTypeActive
+
   }
 }
 

@@ -326,17 +326,23 @@ export class ContratoMaestro {
   contractBreakdownByOrder: OrderContractBreakdownMap;
 
   // 📆 FECHAS
-  @Column({ name: 'fecha_inicial', type: 'date', nullable: true })
+  @Column({
+    name: 'fecha_inicial',
+    nullable: true
+  })
   fechaInicial: Date;
 
-  @Column({ name: 'fecha_final', type: 'date', nullable: true })
+  @Column({
+    name: 'fecha_final',
+    nullable: false
+  })
   fechaFinal: Date;
 
   // ⚠️ OTROS
   @Column({
     name: 'cancellation_reason',
     nullable: true,
-    default: null
+    default: false
   })
   cancellationReason: string;
 

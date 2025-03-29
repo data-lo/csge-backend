@@ -1,5 +1,7 @@
 import { ESTATUS_DE_CONTRATO } from "src/contratos/interfaces/estatus-de-contrato";
 import { IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Length, Min } from "class-validator";
+import { EXTENSION_TYPE_ENUM } from "../enums/extension-type-enum";
+import { TIPO_DE_CONTRATO } from "src/contratos/interfaces/tipo-de-contrato";
 
 
 export class CreateContratoModificatorioDto {
@@ -28,6 +30,12 @@ export class CreateContratoModificatorioDto {
   @IsOptional()
   @IsString()
   linkContrato: string;
+
+  @IsEnum(EXTENSION_TYPE_ENUM)
+  extensionType: EXTENSION_TYPE_ENUM;
+
+  @IsEnum(TIPO_DE_CONTRATO)
+  masterContractType: TIPO_DE_CONTRATO; 
 
   // 💰 Montos (tipo string por precisión)
   @IsOptional()

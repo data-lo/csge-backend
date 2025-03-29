@@ -52,7 +52,7 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
     TypeOrmModule.forRoot({
       type: "postgres",
       url: process.env.DATABASE_URL,
-      ssl: true,
+      ssl: false,
       synchronize: true,
       autoLoadEntities: true,
     }),

@@ -123,7 +123,6 @@ export class ActivacionService {
       relations: ['partida'],
     });
 
-
     return lastActivation;
   }
 

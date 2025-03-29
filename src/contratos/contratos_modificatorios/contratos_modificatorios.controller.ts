@@ -26,7 +26,7 @@ export class ContratosModificatoriosController {
   @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.contratosModificatoriosService.obtenerEstatus(id);
+    return this.contratosModificatoriosService.getStatus(id);
   }
 
   @Auth(...CONTRACT_USER_ROLESModificatorios)

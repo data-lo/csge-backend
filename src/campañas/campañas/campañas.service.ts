@@ -9,7 +9,7 @@ import { UpdateCampañaDto } from './dto/update-campaña.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Campaña } from './entities/campaña.entity';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { Dependencia } from '../dependencia/entities/dependencia.entity';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { ActivacionService } from '../activacion/activacion.service';
@@ -211,7 +211,6 @@ export class CampañasService {
   }
 
   async closeCampaign(campaignId: string, activationId: string) {
-
     const validStatus = [
       CAMPAIGN_STATUS.APROBADA,
       CAMPAIGN_STATUS.CANCELADA,
@@ -231,7 +230,6 @@ export class CampañasService {
 
       if (!validStatus.includes(campaign.campaignStatus)) {
         throw new Error('¡No es posible cerrar la campaña debido a un estatus no válido!');
-        // await this.signatureService.updateDocumentByDocumentIdAndActivation(campaignId, activationId)
       }
 
       campaign.campaignStatus = CAMPAIGN_STATUS.INACTIVA;
@@ -416,6 +414,28 @@ export class CampañasService {
 
     } catch (error) {
       handleExceptions(error);
+    }
+  }
+
+
+  async checkCampaignsExpiration  () {
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    // Obtener contratos que finalizan hoy con sus relaciones
+    const campaignsEndsToday = await this.campaignRepository.find({
+      where: {
+        activaciones: { fechaDeCierre: LessThan(today) },
+      }
+    });
+
+    for(const campaign of campaignsEndsToday){
+
+      const lastActivation = await this.activationService.getLastActivation(campaign.id)
+
+      await this.closeCampaign(campaign.id, lastActivation.id);
     }
   }
 }

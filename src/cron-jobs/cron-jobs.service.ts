@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 
 @Injectable()
@@ -8,17 +9,24 @@ export class CronJobsService {
   constructor(
     private readonly contractsService: ContratosService,
 
+    private readonly campaignService: CampañasService
+
   ) { }
 
+  // 🕖 Cron job: Ejecuta esta tarea automáticamente todos los días a las 7:00 AM
+  // Expresión cron: '0 7 * * *' → Minuto 0, Hora 7, cualquier día del mes, cualquier mes, cualquier día de la semana
+  // Nota: La hora depende del huso horario del servidor (o del valor 'timeZone' si se especifica)
   @Cron('45 * * * * *')
   async Contracts() {
-    await this.contractsService.checkContractExpiration();
+    await this.contractsService.checkContractsExpiration();
     await this.contractsService.disableProvidersWithoutActiveContracts();
   }
 
-  @Cron('0 8 * * *') // Se ejecuta a las 8:00 AM Todos los Días
-  handleCron() {
-    console.log('Ejecutando cron job a las 11:00 PM UTC...');
+  // 🕖 Cron job: Ejecuta esta tarea automáticamente todos los días a las 7:00 AM
+  // Expresión cron: '0 7 * * *' → Minuto 0, Hora 7, cualquier día del mes, cualquier mes, cualquier día de la semana
+  // Nota: La hora depende del huso horario del servidor (o del valor 'timeZone' si se especifica)
+  @Cron('0 7 * * *')
+  async Campaigns() {
+    await this.campaignService.checkCampaignsExpiration();
   }
-
 }

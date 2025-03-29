@@ -13,6 +13,8 @@ import {
 } from 'typeorm';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { formatToLocalTime } from 'src/helpers/format-to-local-time';
+import { EXTENSION_TYPE_ENUM } from '../enums/extension-type-enum';
+import { TIPO_DE_CONTRATO } from 'src/contratos/interfaces/tipo-de-contrato';
 @Entity()
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
@@ -128,16 +130,33 @@ export class ContratoModificatorio {
   committedAmount: number;
 
   @Column({
-    name: 'fecha_inicial',
-    type: 'date',
+    name: 'extension_type',
+    type: 'enum',
+    default: EXTENSION_TYPE_ENUM.AMOUNTS,
+    enum: EXTENSION_TYPE_ENUM,
     nullable: false,
+  })
+  extensionType: EXTENSION_TYPE_ENUM;
+
+
+  @Column({
+    name: 'contract_type',
+    type: 'enum',
+    default: TIPO_DE_CONTRATO.CERRADO,
+    enum: TIPO_DE_CONTRATO,
+    nullable: false,
+  })
+  contractType: TIPO_DE_CONTRATO;
+
+  @Column({
+    name: 'fecha_inicial',
+    nullable: true 
   })
   fechaInicial: Date;
 
   @Column({
     name: 'fecha_final',
-    type: 'date',
-    nullable: false,
+    nullable: true
   })
   fechaFinal: Date;
 
@@ -149,13 +168,13 @@ export class ContratoModificatorio {
   linkContrato: string;
 
   @Column({
-    name: 'ordenes_de_servicio_id',
+    name: 'orders_services',
     type: 'uuid',
     nullable: true,
     default: null,
     array: true,
   })
-  ordenesDeServicioId: string[];
+  orders_services: string[];
 
   @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.contratosModificatorios)
   @JoinColumn({ name: 'contrato_maestro_id' })
@@ -170,21 +189,4 @@ export class ContratoModificatorio {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaInicial = formatToLocalTime(this.fechaInicial);
-    this.fechaFinal = formatToLocalTime(this.fechaFinal);
-  }
-
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaInicial = formatToLocalTime(this.fechaInicial);
-    this.fechaFinal = formatToLocalTime(this.fechaFinal);
-  }
 }
