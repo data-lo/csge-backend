@@ -8,6 +8,7 @@ import { rolesOrdenes } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 
 @Controller('ordenes/ordenes-de-servicio')
@@ -22,10 +23,12 @@ export class OrdenController {
 
   @Auth(...rolesOrdenes)
   @Post('mandar-aprobar/:id')
-  aprobarOrdern(
+  sendToSigningOrder(
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() signatureAction: {signatureAction :string}
   ) {
-    return this.ordenService.mandarOrdenAFirmar(id);
+    console.log(signatureAction)
+    return this.ordenService.sendToSigningOrder(id, signatureAction.signatureAction as SIGNATURE_ACTION_ENUM);
   }
 
 
@@ -110,15 +113,9 @@ export class OrdenController {
   @Auth(...rolesOrdenes)
   @Get('campanias/:campaignId')
   GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
-    return this.ordenService.obtenerOrdenesPorCampaniaId(id);
+    return this.ordenService.getActiveOrdersByCampaignAndActivation(id);
   }
-
-  // @Auth(...rolesOrdenes)
-  // @Patch('actualizar-estatus/:id')
-  // actualizarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body('estatus') estatus: ESTATUS_ORDEN_DE_SERVICIO) {
-  //   return this.ordenService.actualizarEstatusOrden(id, estatus);
-  // }
-
+  
   @Auth(...rolesOrdenes)
   @Patch('cancelar/:id')
   cancelarOrden(@Param('id', ParseUUIDPipe) id: string) {

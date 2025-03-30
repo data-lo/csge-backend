@@ -7,6 +7,7 @@ import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { CAMPAIGN_STATUS } from './interfaces/estatus-campaña.enum';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { CAMPAIGN_ROLES } from '../valid-modules-campanias-roles.ob';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Controller('campanias/campanias')
 export class CampañasController {
@@ -21,11 +22,12 @@ export class CampañasController {
   }
 
   @Auth(...CAMPAIGN_ROLES)
-  @Post('mandar-aprobar/:id')
-  aprobarCampania(
-    @Param('id', ParseUUIDPipe) id: string
+  @Post('send-to-signing-campaign/:campaignId')
+  sendToSigningCampaign(
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Query('signatureAction') signatureAction: SIGNATURE_ACTION_ENUM
   ) {
-    return this.campañasService.mandarCampañaAAprobar(id);
+    return this.campañasService.sendToSigningCampaign(campaignId, signatureAction);
   }
 
   @Auth(...CAMPAIGN_ROLES)
@@ -59,7 +61,7 @@ export class CampañasController {
     @Res() response: Response,
     @Param('id', ParseUUIDPipe) id: string
   ) {
-    const pdfDoc = await this.campañasService.getApprovalCampaignDocument(id);
+    const pdfDoc = await this.campañasService.getCampaignDocument(id);
 
     if (pdfDoc.tipo === 'url') {
       response.send(pdfDoc.url);
@@ -73,15 +75,12 @@ export class CampañasController {
   }
 
   @Auth(...CAMPAIGN_ROLES)
-  @Get('close/:id')
-  close(@Param('id', ParseUUIDPipe) id: string) {
-    return this.campañasService.closeCampaign(id);
-  }
-
-  @Auth(...CAMPAIGN_ROLES)
-  @Patch('cancelar')
-  cancelar(@Body('campañaId', ParseUUIDPipe) id: string) {
-    return this.campañasService.cancelarCampaña(id);
+  @Get('close/:campaignId/:activationId')
+  close(
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Param('activationId') activationId: string
+  ) {
+    return this.campañasService.closeCampaign(campaignId, activationId);
   }
 
   @Auth(...CAMPAIGN_ROLES)

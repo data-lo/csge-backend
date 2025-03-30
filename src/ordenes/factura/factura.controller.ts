@@ -10,11 +10,12 @@ import {
   Query,
   ParseUUIDPipe,
   Res,
+  UploadedFile,
 } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
 import { rolesFactura } from './valid-facturas-roles.ob';
@@ -23,16 +24,23 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
-import {v4 as uuidv4} from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 
 @Controller('ordenes/facturas')
 export class FacturaController {
   constructor(
     private readonly facturaService: FacturaService,
     private readonly minioService: MinioService
-  ) {}
-  
+  ) { }
+
   private readonly logger = new LoggerService(FacturaController.name);
+
+  @Auth(...rolesFactura)
+  @Post('payments')
+  @UseInterceptors(FileInterceptor('file'),)
+  readFileEBSUpdateStatusAndMarkPaid(@UploadedFile() file: Express.Multer.File,) {
+    return this.facturaService.readFileEBSUpdateStatusAndMarkPaid(file);
+  }
 
   @Auth(...rolesFactura)
   @Post()
@@ -42,41 +50,40 @@ export class FacturaController {
   async create(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() createFacturaDto: CreateFacturaDto,
-    @GetUser() usuario:Usuario
+    @GetUser() usuario: Usuario
   ) {
     const uuid = uuidv4();
 
     const minioFiles = [
       {
-        name:`pdf/${uuid}.pdf`,
-        file:files[0]
+        name: `pdf/${uuid}.pdf`,
+        file: files[0]
       },
       {
-        name:`xml/${uuid}.xml`,
-        file:files[1]
+        name: `xml/${uuid}.xml`,
+        file: files[1]
       }
     ]
 
-    try{
+    try {
       await this.minioService.subirArchivosAMinio(minioFiles);
-    }catch(error){
+    } catch (error) {
       this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
       handleExceptions(error);
     }
 
     createFacturaDto.id = uuid;
-    return this.facturaService.create(createFacturaDto,usuario);
+    return this.facturaService.create(createFacturaDto, usuario);
   }
 
-  @Auth(...rolesFactura) 
+  @Auth(...rolesFactura)
   @Post('cotejar/:id')
   cotrejarFactura(
-    @Param('id',ParseUUIDPipe) id: string,
-    @GetUser() usuario:Usuario
-  )
-    {
-      return this.facturaService.cotejarFactura(id,usuario);
-  } 
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() usuario: Usuario
+  ) {
+    return this.facturaService.cotejarFactura(id, usuario);
+  }
 
   @Auth(...rolesFactura)
   @Get()
@@ -102,7 +109,7 @@ export class FacturaController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     const pdfDoc = await this.facturaService.obtenerDocumentoDeFacturaPdf(id);
-  
+
     if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
     } else {
@@ -113,7 +120,7 @@ export class FacturaController {
       pdfDoc.end();
     }
   }
-  
+
 
   @Auth(...rolesFactura)
   @Get(':id')
@@ -126,14 +133,14 @@ export class FacturaController {
     @Param('id') id: string,
     @Query('tipo') tipoArchivo: string,
     @Res() res: Response
-  ){
-    const buffer = await this.minioService.obtenerArchivosDescarga(id,tipoArchivo);
-    const contentType = tipoArchivo === 'xml' ? 'application/xml' : 'application/pdf';  
+  ) {
+    const buffer = await this.minioService.obtenerArchivosDescarga(id, tipoArchivo);
+    const contentType = tipoArchivo === 'xml' ? 'application/xml' : 'application/pdf';
     res.set({
-        'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${id}.${tipoArchivo}"`
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="${id}.${tipoArchivo}"`
     });
-    
+
     res.send(buffer);
   }
 

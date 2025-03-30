@@ -13,6 +13,8 @@ import {
 } from 'typeorm';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import { formatToLocalTime } from 'src/helpers/format-to-local-time';
+import { EXTENSION_TYPE_ENUM } from '../enums/extension-type-enum';
+import { TIPO_DE_CONTRATO } from 'src/contratos/interfaces/tipo-de-contrato';
 @Entity()
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
@@ -28,15 +30,22 @@ export class ContratoModificatorio {
   estatusDeContrato: ESTATUS_DE_CONTRATO;
 
   @Column({
-    name:'numero_de_contrato'
+    name: 'numero_de_contrato'
   })
-  numeroDeContrato:string;
+  numeroDeContrato: string;
+
+  @Column({
+    name: 'cancellation_reason',
+    nullable: true,
+    default: null
+  })
+  cancellationReason: string;
 
   @Column({
     name: 'monto_maximo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMaximoContratado: number;
@@ -45,7 +54,7 @@ export class ContratoModificatorio {
     name: 'monto_minimo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoMinimoContratado: number;
@@ -54,7 +63,7 @@ export class ContratoModificatorio {
     name: 'iva_monto_minimo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   ivaMontoMinimoContratado: number;
@@ -63,7 +72,7 @@ export class ContratoModificatorio {
     name: 'iva_monto_maximo_contratado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   ivaMontoMaximoContratado: number;
@@ -79,7 +88,7 @@ export class ContratoModificatorio {
     name: 'monto_ejercido',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoEjercido: number;
@@ -88,7 +97,7 @@ export class ContratoModificatorio {
     name: 'monto_pagado',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoPagado: number;
@@ -97,22 +106,57 @@ export class ContratoModificatorio {
     name: 'monto_disponible',
     type: 'decimal',
     default: 0.0,
-    scale: 2,
+    scale: 4,
     nullable: false,
   })
   montoDisponible: number;
 
   @Column({
-    name: 'fecha_inicial',
-    type: 'date',
+    name: 'monto_activo',
+    type: 'decimal',
+    default: 0.0,
+    scale: 4,
     nullable: false,
+  })
+  montoActivo: number;
+
+  @Column({
+    name: 'monto_reservado',
+    type: 'decimal',
+    scale: 4,
+    default: 0.0,
+    nullable: false,
+  })
+  committedAmount: number;
+
+  @Column({
+    name: 'extension_type',
+    type: 'enum',
+    default: EXTENSION_TYPE_ENUM.AMOUNTS,
+    enum: EXTENSION_TYPE_ENUM,
+    nullable: false,
+  })
+  extensionType: EXTENSION_TYPE_ENUM;
+
+
+  @Column({
+    name: 'contract_type',
+    type: 'enum',
+    default: TIPO_DE_CONTRATO.CERRADO,
+    enum: TIPO_DE_CONTRATO,
+    nullable: false,
+  })
+  contractType: TIPO_DE_CONTRATO;
+
+  @Column({
+    name: 'fecha_inicial',
+    nullable: true 
   })
   fechaInicial: Date;
 
   @Column({
     name: 'fecha_final',
-    type: 'date',
-    nullable: false,
+    nullable: true
   })
   fechaFinal: Date;
 
@@ -124,13 +168,13 @@ export class ContratoModificatorio {
   linkContrato: string;
 
   @Column({
-    name: 'ordenes_de_servicio_id',
+    name: 'orders_services',
     type: 'uuid',
     nullable: true,
     default: null,
     array: true,
   })
-  ordenesDeServicioId: string[];
+  orders_services: string[];
 
   @ManyToOne(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.contratosModificatorios)
   @JoinColumn({ name: 'contrato_maestro_id' })
@@ -145,21 +189,4 @@ export class ContratoModificatorio {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date();
-    this.creadoEn = formatToLocalTime(value);
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaInicial = formatToLocalTime(this.fechaInicial);
-    this.fechaFinal = formatToLocalTime(this.fechaFinal);
-  }
-  
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    const value = new Date();
-    this.actualizadoEn = formatToLocalTime(value);
-    this.fechaInicial = formatToLocalTime(this.fechaInicial);
-    this.fechaFinal = formatToLocalTime(this.fechaFinal);
-  }
 }

@@ -11,12 +11,15 @@ import { DocumentsModule } from 'src/documents/documents.module';
 import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from 'src/auth/auth.module';
 import { Campaña } from 'src/campañas/campañas/entities/campaña.entity';
+import { ActivacionService } from 'src/campañas/activacion/activacion.service';
+import { ActivacionModule } from 'src/campañas/activacion/activacion.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Firma, Usuario, Orden, Factura, Campaña]),
     FirmamexModule,
     DocumentsModule,
+    ActivacionModule,
     PassportModule,
     AuthModule
   ],

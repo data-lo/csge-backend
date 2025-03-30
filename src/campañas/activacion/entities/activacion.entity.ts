@@ -55,18 +55,26 @@ export class Activacion {
   })
   status: boolean;
 
+  @Column({
+    name: 'number_of_activation',
+    type: 'int',
+    nullable: false,
+    default: 0
+  })
+  numberOfActivation: number;
+
   @OneToOne(() => Partida, {
     eager: true,
-    cascade:true,
+    cascade: true,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({name:'partidaId'})
+  @JoinColumn({ name: 'partidaId' })
   partida: Partida;
 
-  @ManyToOne(() => Campaña, (campaña) => campaña.activaciones,{
-    onDelete:'CASCADE'
+  @ManyToOne(() => Campaña, (campaña) => campaña.activaciones, {
+    onDelete: 'CASCADE'
   })
-  @JoinColumn({name:'campaniaId'})
+  @JoinColumn({ name: 'campaniaId' })
   campaña: Campaña;
 
   @CreateDateColumn({
@@ -78,19 +86,4 @@ export class Activacion {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
-
-  // @BeforeInsert()
-  // localeTimeZoneInsert() {
-  //   const value = new Date();
-  //   this.creadoEn = formatToLocalTime(value);
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeCreacion = formatToLocalTime(this.fechaDeCreacion);
-  // }
-
-  // @BeforeUpdate()
-  // localeTimeZoneUpdate() {
-  //   const value = new Date();
-  //   this.actualizadoEn = formatToLocalTime(value);
-  // }
-
 }

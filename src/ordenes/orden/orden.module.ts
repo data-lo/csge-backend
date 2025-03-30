@@ -13,6 +13,7 @@ import { OrderEventsService } from './orden.events.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { IvaModule } from 'src/configuracion/iva/iva.module';
+import { ActivacionModule } from 'src/campañas/activacion/activacion.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Orden]),
@@ -22,6 +23,7 @@ import { IvaModule } from 'src/configuracion/iva/iva.module';
     PartidaModule,
     ServicioContratadoModule,
     FirmaModule,
+    ActivacionModule,
     IvaModule,
     AuthModule,
     PassportModule

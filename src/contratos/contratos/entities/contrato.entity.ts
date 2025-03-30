@@ -28,7 +28,7 @@ export class Contrato {
   @Column({
     name: 'monto_activo',
     type: 'decimal',
-    scale: 2,
+    scale: 4,
     default: 0.0,
     nullable: false,
   })
@@ -37,7 +37,7 @@ export class Contrato {
   @Column({
     name: 'monto_ejercido',
     type: 'decimal',
-    scale: 2,
+    scale: 4,
     default: 0.0,
     nullable: false,
   })
@@ -47,7 +47,7 @@ export class Contrato {
   @Column({
     name: 'monto_pagado',
     type: 'decimal',
-    scale: 2,
+    scale: 4,
     default: 0.0,
     nullable: false,
   })

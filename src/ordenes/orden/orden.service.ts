@@ -9,23 +9,24 @@
 // Importaciones necesarias
 import {
   BadRequestException,
+  ExceptionFilter,
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { PDFDocument } from 'pdf-lib';
+import Decimal from 'decimal.js';
+
 
 // Entidades y DTOs
 import { Orden } from './entities/orden.entity';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
-import { ServicioDto } from '../servicio_contratado/dto/servicio-json.dto';
 
 // Servicios relacionados
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
@@ -46,8 +47,11 @@ import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servici
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { TipoProveedor } from 'src/proveedores/proveedor/interfaces/tipo-proveedor.interface';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { number } from 'joi';
-import { ServicioContratado } from '../servicio_contratado/entities/servicio_contratado.entity';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { ActivacionService } from 'src/campañas/activacion/activacion.service';
+import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
+import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
+
 
 /**
  * Servicio para la gestión de órdenes de servicio.
@@ -59,75 +63,65 @@ export class OrdenService {
     private orderRepository: Repository<Orden>,
 
     @InjectRepository(ContratoMaestro)
-    private masterContract: Repository<ContratoMaestro>,
+    private masterContractRepository: Repository<ContratoMaestro>,
 
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
-    private readonly firmaService: FirmaService,
+
+    private readonly signatureService: FirmaService,
 
     private readonly campaignService: CampañasService,
 
+    private readonly activationService: ActivacionService,
+
     private readonly proveedorService: ProveedorService,
-    private readonly contratoService: ContratosService,
-    private readonly servicioContratadoService: ServicioContratadoService,
+
+    private readonly contractService: ContratosService,
+
+    private readonly contractedServiceService: ServicioContratadoService,
   ) { }
 
 
   async create(createOrderDto: CreateOrdenDto) {
     try {
+      console.log(createOrderDto)
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
-      console.log(serviciosContratados)
+
       const currentDate = new Date();
 
       // Buscar proveedor, contrato y campaña en paralelo
       const [provider, masterContract, campaign] = await Promise.all([
         this.proveedorService.findOne(proveedorId),
-        this.contratoService.findOne(contratoId),
+        this.contractService.findOne(contratoId),
         this.campaignService.findOne(campaniaId),
       ]);
 
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
-      let totalAmount: number = 0;
-      let categorizedServices: any[] = [];
+      const availableFunds = new Decimal(masterContract.montoDisponible).minus(new Decimal(masterContract.committedAmount));
 
-      for (const contractedService of serviciosContratados) {
-        const serviceTotal = contractedService.cantidad *
-          (Number(contractedService.servicio.tarifaUnitaria) + Number(contractedService.servicio.iva));
-
-        totalAmount += serviceTotal;
-        categorizedServices.push(contractedService);
-      }
-
-      const availableFunds = masterContract.montoDisponible - masterContract.committedAmount;
-
-      console.log(availableFunds);
-
-      if (availableFunds > totalAmount) {
-        console.log("Se hizo la actualización.");
-        await this.masterContract.update(masterContract.id, {
-          committedAmount: totalAmount
+      if (amountDetails.total.lessThan(availableFunds)) {
+        await this.masterContractRepository.update(masterContract.id, {
+          committedAmount: amountDetails.total.toNumber()
         });
       } else {
 
-        const formattedServices = categorizedServices.map((contractedService: { cantidad: number, uniqueId: string, servicio: { nombreDeServicio: string, tarifaUnitaria: number, iva: number } }) => ({
-          // total: contractedService.cantidad * (contractedService.servicio.tarifaUnitaria + contractedService.servicio.iva),
-          quantity: contractedService.cantidad,
-          serviceName: contractedService.servicio.nombreDeServicio,
-          uniqueId: contractedService.uniqueId
+        const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
+          quantity: cantidad,
+          serviceName: servicio.nombreDeServicio,
+          uniqueId: uniqueId
         }));
 
         return {
           status: "NOT_CREATED",
           data: {
-            amount: totalAmount,
+            amount: amountDetails.subtotal.toString(),
             providerName: provider.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
           }
         };
       }
-
-
 
       // Validar si el proveedor puede agregarse sin contrato
       if (!masterContract && provider.tipoProveedor !== TipoProveedor.SERVICIOS) {
@@ -136,6 +130,8 @@ export class OrdenService {
 
       // Obtener la última partida de la campaña (si existe)
       const match = campaign?.activaciones.at(-1)?.partida ?? null;
+
+      const numberOfActivation = campaign?.activaciones.at(-1)?.numberOfActivation ?? 1
 
       // Generar el folio de la orden basado en el tipo de servicio
       const folio = await this.getCurrentFolio(tipoDeServicio);
@@ -149,6 +145,10 @@ export class OrdenService {
         folio: folio,
         tipoDeServicio,
         fechaDeEmision: currentDate,
+        numberOfActivation: numberOfActivation,
+        iva: amountDetails.tax.toString(),
+        total: amountDetails.total.toString(),
+        subtotal: amountDetails.total.toString(),
         ...rest,
       });
 
@@ -158,7 +158,7 @@ export class OrdenService {
         await Promise.all(
           serviciosContratados.map(async (servicioContratado) => {
             const { cantidad, carteleraId, ...rest } = servicioContratado;
-            await this.servicioContratadoService.create({
+            await this.contractedServiceService.create({
               ...rest,
               cantidad,
               ordenId: order.id,
@@ -167,13 +167,9 @@ export class OrdenService {
           })
         );
 
-        // Calcular montos de la orden
-        await this.calcularMontosDeOrden(order.id);
+        const orderId = order.id;
 
-        // Eliminar campos innecesarios antes de devolver la orden
-        const camposAEliminar = ["contratoMaestro", "campaña.activaciones", "campaña.dependencias", "campaña.creadoEn", "campaña.actualizadoEn", "partida", "proveedor"];
-        camposAEliminar.forEach((campo) => delete order[campo]);
-        return order;
+        return orderId;
 
       } catch (error) {
         await this.remove(order.id);
@@ -267,7 +263,9 @@ export class OrdenService {
         },
       });
 
-      if (!orden) throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+      if (!orden) {
+        throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+      }
 
       return orden;
 
@@ -277,7 +275,9 @@ export class OrdenService {
   }
 
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
+    console.log("Proband. update de CAM")
     try {
+
       const {
         campaniaId,
         proveedorId,
@@ -293,9 +293,8 @@ export class OrdenService {
         {
           where: {
             id: id,
-          }, relations: {
-            serviciosContratados: true
-          }
+          },
+          relations: { serviciosContratados: true }
         });
 
       if (!currentlyOrder) {
@@ -309,21 +308,21 @@ export class OrdenService {
         currentlyOrder.proveedor = await this.proveedorService.findOne(proveedorId);
       }
       if (contratoId) {
-        currentlyOrder.contratoMaestro = await this.contratoService.findOne(contratoId);
+        currentlyOrder.contratoMaestro = await this.contractService.findOne(contratoId);
       }
 
       Object.assign(currentlyOrder, { ...rest },);
 
       if (currentlyOrder.serviciosContratados) {
         for (const servicioContratado of currentlyOrder.serviciosContratados) {
-          await this.servicioContratadoService.remove(servicioContratado.id);
+          await this.contractedServiceService.remove(servicioContratado.id);
         }
       }
 
       if (serviciosContratados) {
         newServices = await Promise.all(
           serviciosContratados.map(async (updateService) => {
-            return await this.servicioContratadoService.create({
+            return await this.contractedServiceService.create({
               ...updateService,
               ordenId: currentlyOrder.id,
             });
@@ -332,10 +331,27 @@ export class OrdenService {
 
         currentlyOrder.serviciosContratados = newServices;
       }
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
+
+      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
+
+      if (amountDetails.total.lessThan(availableFunds)) {
+        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+          committedAmount: amountDetails.total.toNumber()
+        });
+      } else {
+        throw new NotFoundException('¡No se pudo actualizar la orden debido a insuficiencia de fondos en los contratos!');
+      }
+      
+
+      currentlyOrder.iva = amountDetails.tax.toString();
+
+      currentlyOrder.total = amountDetails.total.toString();
+
+      currentlyOrder.subtotal = amountDetails.subtotal.toString();
 
       await this.orderRepository.save(currentlyOrder);
-      await this.calcularMontosDeOrden(currentlyOrder.id);
 
       return { message: 'ORDEN ACTUALIZADA CON EXITO' };
     } catch (error) {
@@ -343,20 +359,36 @@ export class OrdenService {
     }
   }
 
-  async remove(id: string) {
+  async remove(orderId: string) {
     try {
-      const orden = await this.findOne(id);
-      const estatus = orden.estatus;
-      if (estatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
-        for (const servicioContratado of orden.serviciosContratados) {
-          await this.servicioContratadoService.remove(servicioContratado.id);
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['contratoMaestro', 'serviciosContratados']
+      });
+
+      const orderStatus = order.estatus;
+
+      if (orderStatus === ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
+
+        for (const servicioContratado of order.serviciosContratados) {
+          await this.contractedServiceService.remove(servicioContratado.id);
         }
-        await this.orderRepository.remove(orden);
-        return { message: 'Orden eliminada exitosamente' };
+
+        const masterContractRepository = await this.contractService.findOne(order.contratoMaestro.id);
+
+        const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+
+        await this.masterContractRepository.update(masterContractRepository.id, {
+          committedAmount: newCommittedAmount.toNumber()
+        })
+
+        await this.orderRepository.remove(order);
+
+        return { message: '¡La orden ha sido eliminada con éxito!' };
       }
-      throw new BadRequestException(
-        'No es posible eliminar la orden debido a su estatus, cancelar orden',
-      );
+
+      throw new BadRequestException('¡No es posible eliminar la orden debido a su estatus!');
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -438,27 +470,6 @@ export class OrdenService {
     }
   }
 
-  // async actualizarEstatusOrden(
-  //   id: string,
-  //   nuevoEstatus: ESTATUS_ORDEN_DE_SERVICIO,
-  // ) {
-  //   try {
-  //     const orden = await this.findOne(id);
-  //     if (orden) {
-  //       await this.orderRepository.update(id, {
-  //         estatus: nuevoEstatus,
-  //       });
-  //     }
-  //     return {
-  //       id: orden.id,
-  //       estatus: nuevoEstatus,
-  //       message: 'Estatus actualizado correctamente',
-  //     };
-  //   } catch (error) {
-  //     handleExceptions(error);
-  //   }
-  // }
-
   async obtenerEstatusOrden(id: string) {
     try {
       const orden = await this.findOne(id);
@@ -485,80 +496,88 @@ export class OrdenService {
     }
   }
 
-  async calcularMontosDeOrden(ordenId: string) {
+  async calculateOrderAmounts(contractedServicesList: CreateContractedServiceDto[]) {
     try {
-      const orden = await this.findOne(ordenId);
-      const { serviciosContratados } = orden;
 
-      let iva = 0;
-      let subtotal = 0;
-      let total = 0.0;
-      let ivaFrontera = false;
+      let tax = new Decimal(0);
 
-      serviciosContratados.forEach((servicioContratado) => {
-        const servicio = plainToClass(ServicioDto, servicioContratado.servicio);
-        const cantidad = servicioContratado.cantidad;
-        const tarifaUnitaria = parseFloat(servicio.tarifaUnitaria);
-        ivaFrontera = servicio.ivaFrontera;
+      let subtotal = new Decimal(0);
 
-        if (isNaN(cantidad) || isNaN(tarifaUnitaria)) {
-          throw new Error('Cantidad, Tarifa Unitaria o Iva no son tipo Number');
+      let total = new Decimal(0);
+
+      let borderTax = false;
+
+      contractedServicesList.forEach((contractedService) => {
+
+        const service = plainToClass(ServicioObjectDto, contractedService.servicio);
+
+        const quantity = new Decimal(contractedService.cantidad);
+
+        const unitPrice = new Decimal(service.tarifaUnitaria);
+
+        borderTax = service.ivaFrontera;
+
+        if (quantity.isNaN() || unitPrice.isNaN()) {
+          throw new Error('¡Error! La cantidad o la tarifa unitaria no son números válidos.');
         }
 
-        const subtotalServicio = tarifaUnitaria * cantidad;
-        subtotal += subtotalServicio;
+        const serviceSubtotal = unitPrice.times(quantity);
+
+        subtotal = subtotal.plus(serviceSubtotal);
       });
 
-      iva = await this.ivaGetter.obtenerIva(subtotal, ivaFrontera);
-      total = subtotal + iva;
+      tax = new Decimal(await this.ivaGetter.getTax(subtotal.toString(), borderTax));
 
-      orden.subtotal = parseFloat(subtotal.toFixed(2));
-      orden.iva = parseFloat(iva.toFixed(2));
-      orden.total = parseFloat(total.toFixed(2));
+      total = subtotal.plus(tax);
 
-      await this.orderRepository.save(orden);
       return {
-        subtotal: orden.subtotal,
-        iva: orden.iva,
-        total: orden.total,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
       };
     } catch (error) {
       handleExceptions(error);
     }
   }
 
-  async mandarOrdenAFirmar(ordenId: string) {
-    try {
-      const ordenDb = await this.orderRepository.findOneBy({ id: ordenId });
-      if (!ordenDb) throw new BadRequestException('LA ORDEN NO SE ENCUENTRA');
-      const documentoFirmaDto: CreateFirmaDto = {
-        ordenOFacturaId: ordenId,
-        tipoDeDocumento: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
-        estaFirmado: false,
-      };
-
+  async sendToSigningOrder(orderId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
       try {
-        const documentoEnFirma = await this.firmaService.findOne(ordenId);
-        if (documentoEnFirma)
-          throw new BadRequestException({
-            status: '406',
-            message: 'EL DOCUMENTO YA SE ENCUENTRA EN ESPERA DE FIRMA',
-          });
-      } catch (error) {
-        if (error.response.status === '404') {
-          return await this.firmaService.create(documentoFirmaDto);
+        const order = await this.orderRepository.findOne({
+          where: { id: orderId }
+        });
+  
+        if (!order) {
+          throw new NotFoundException(`¡La campaña con ID ${orderId} no fue encontrada!`);
         }
-        throw error;
+  
+        // await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
+  
+        const signatureObject = {
+          isSigned: false,
+          documentId: orderId,
+          documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
+          signatureAction: signatureAction
+        };
+  
+        await this.signatureService.create(signatureObject);
+  
+        order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
+  
+        await this.orderRepository.save(order);
+  
+        return { message: '¡La campaña ha sido enviada al módulo de firma!' };
+  
+      } catch (error) {
+        handleExceptions(error);
       }
-    } catch (error) {
-      handleExceptions(error);
     }
-  }
+  
 
   async getOrderInPDF(orderId: string) {
 
     const order = await this.orderRepository.findOne({
-      where: { id: orderId }
+      where: { id: orderId },
+      relations: ["campaña"]
     });
 
     if (!order) {
@@ -569,57 +588,109 @@ export class OrdenService {
 
     const isFromCampaing = false;
 
-    return await this.firmaService.descargarDocumento(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing);
+    let activationId: string = "";
+
+    if (isCampaign) {
+      let lastActivation = await this.activationService.getLastActivation(order.campaña.id, orderId);
+
+      activationId = lastActivation.id;
+    }
+
+    return await this.signatureService.downloadFile(orderId, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, isFromCampaing, activationId);
   }
 
-  async generateCampaignOrdersInPDF(campaignId: string) {
+
+  /**
+ * Genera un documento PDF que contiene todas las órdenes de servicio asociadas a una campaña específica.
+ * 
+ * @async
+ * @param {string} campaignId - El identificador único de la campaña para la cual se generará el PDF de órdenes.
+ * @returns {Promise<Uint8Array | ExceptionFilter>} - Un `Uint8Array` que representa los bytes del PDF generado o `void` en caso de error.
+ * 
+ * @throws {BadRequestException} - Lanza una excepción si la campaña no existe o si no hay órdenes asociadas a la campaña.
+ * @throws {Error} - Propaga cualquier error inesperado que ocurra durante la generación del PDF.
+ * 
+ * @description
+ * 1. Busca la campaña en la base de datos utilizando el `campaignId`.
+ * 2. Verifica que la campaña exista, de lo contrario, lanza una excepción.
+ * 3. Obtiene las órdenes de servicio asociadas a la campaña y su partida.
+ * 4. Si no hay órdenes encontradas, lanza una excepción.
+ * 5. Crea un nuevo documento PDF.
+ * 6. Itera sobre cada orden de servicio:
+ *    - Descarga el archivo PDF de la orden de servicio.
+ *    - Carga el PDF descargado y extrae sus páginas.
+ *    - Agrega las páginas extraídas al documento PDF principal.
+ * 7. Guarda y retorna los bytes del PDF combinado.
+ * 8. Maneja posibles errores utilizando la función `handleExceptions`.
+ */
+
+  async generateCampaignOrdersInPDF(campaignId: string): Promise<Uint8Array> {
     try {
+
+      // Buscar la campaña en la base de datos
       const campaign = await this.campaignService.findOne(campaignId);
 
       if (!campaign) {
         throw new BadRequestException(`¡No se encontró la campaña con ID: ${campaignId}!`);
       }
 
+      // Buscar órdenes asociadas a la campaña y su activación a través de su partida
       const orders = await this.orderRepository.find({
-        where: { campaña: { id: campaignId } }
+        where: {
+          campaña: { id: campaignId },
+          partida: { id: campaign.activaciones[0].partida.id }
+        }
       });
 
+      const currentlyActivation = campaign.activaciones[0].id
+
       if (orders.length === 0) {
-        throw new BadRequestException(`¡No hay órdenes asociadas a la campaña con ID: ${campaignId}!`);
+        throw new BadRequestException(`¡No hay órdenes asociadas a esta activación!`);
       }
 
+      // Crear un documento PDF vacío
       const mergedPdf = await PDFDocument.create();
 
+      // Iterar sobre cada orden y agregarla al PDF
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        const pdfBytes = await this.firmaService.descargarDocumento(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true);
+        // Descargar el archivo PDF de la orden de servicio
+        const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true, currentlyActivation);
 
+        // Cargar el PDF descargado
         const pdfLibDoc = await PDFDocument.load(pdfBytes);
 
+        // Extraer las páginas y agregarlas al documento combinado
         const copiedPages = await mergedPdf.copyPages(pdfLibDoc, pdfLibDoc.getPageIndices());
-
         copiedPages.forEach(page => mergedPdf.addPage(page));
       }
 
+      // Guardar el PDF final y retornar los bytes
       const mergedPdfBytes = await mergedPdf.save();
-
       return mergedPdfBytes;
+
     } catch (error) {
       handleExceptions(error);
     }
   }
 
 
-  async obtenerOrdenesPorCampaniaId(campaignId: string) {
-    return await this.orderRepository.find({
+  async getActiveOrdersByCampaignAndActivation(campaignId: string) {
+
+    const orders = await this.orderRepository.find({
       where: {
-        campaña: { id: campaignId }
+        campaña: { id: campaignId },
+      },
+      order: {
+        fechaDeEmision: 'DESC'
       },
       relations: {
-        proveedor: true
+        proveedor: true,
       },
     });
+
+    return orders
   }
 
   async updateOrderStatus(orderId: string, status: ESTATUS_ORDEN_DE_SERVICIO) {
@@ -643,16 +714,42 @@ export class OrdenService {
     }
   }
 
-  async getOrdersCreatedByCampaignModule(campaignId: string) {
+  /**
+  * Obtiene las órdenes de servicio creadas por el módulo de campaña, filtrando por campaña, activación y estatus si se proporcionan.
+  *
+  * @param {string} campaignId - ID de la campaña de la cual se obtendrán las órdenes.
+  * @param {string} [activationId] - ID opcional de la activación. Si no se proporciona, se utilizará la última activación de la campaña.
+  * @param {ESTATUS_ORDEN_DE_SERVICIO} [orderStatus] - Estatus opcional de las órdenes a filtrar. Si se proporciona, solo se retornan las órdenes con ese estatus.
+  *
+  * @returns {Promise<OrderEntity[]>} - Lista de órdenes encontradas que coinciden con los criterios de búsqueda.
+  *
+  * @throws {Error} - Lanza un error si ocurre algún fallo al consultar la base de datos o si no se encuentra la activación.
+  */
+  async getOrdersCreatedByCampaignModule(campaignId: string, activationId?: string, orderStatus?: ESTATUS_ORDEN_DE_SERVICIO) {
+    // Obtener la activación correspondiente
+    const activation = activationId
+      ? await this.activationService.findOne(activationId)
+      : await this.activationService.getLastActivation(campaignId);
+
+    // Construir condiciones dinámicamente
+    const where: any = {
+      campaña: { id: campaignId },
+      esCampania: true,
+      partida: { id: activation.partida.id }
+    };
+
+    // Si se proporciona orderStatus, lo agregamos al filtro
+    if (orderStatus) {
+      where.estatus = orderStatus;
+    }
+
     const orders = await this.orderRepository.find({
-      where: {
-        campaña: { id: campaignId },
-        esCampania: true
-      },
+      where,
       relations: ['contratoMaestro']
     });
 
     return orders;
   }
+
 
 }

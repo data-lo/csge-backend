@@ -22,22 +22,27 @@ export class ServicioService {
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
 
-    private estacionService: EstacionService,
+    private stationService: EstacionService,
+
     private eventEmitter: EventEmitter2,
   ) { }
 
   async create(createServicioDto: CreateServicioDto) {
+
     try {
       const { estacionId, ...rest } = createServicioDto;
-      const estacionDb = await this.estacionService.findOne(createServicioDto.estacionId);
+
+      const station = await this.stationService.getStation(createServicioDto.estacionId);
+
       const servicio = this.servicioRepository.create({
-        estacion: estacionDb,
+        estacion: station,
         ...rest
       });
 
       await this.servicioRepository.save(servicio);
-      delete servicio.estacion;
+
       return servicio;
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -105,9 +110,9 @@ export class ServicioService {
         }
       });
 
-      lastRenewal.ivaIncluido = false;
-
-      if (!lastRenewal) throw new NotFoundException('¡No se encontró la renovación!');
+      if (!lastRenewal) {
+        throw new NotFoundException('¡No se encontró la renovación!');
+      }
 
       delete lastRenewal.fechaDeCreacion;
 

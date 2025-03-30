@@ -1,53 +1,53 @@
 import { IsArray, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
-import { ServicioDto } from "./servicio-json.dto";
+import { ServicioObjectDto } from "./servicio-object.dto";
 import { Type } from "class-transformer";
 
-export class CreateServicioContratadoDto {
-    
+export class CreateContractedServiceDto {
+
     @IsOptional()
     @IsObject()
     @ValidateNested()
-    @Type(() => ServicioDto,)
-    servicio:ServicioDto
+    @Type(() => ServicioObjectDto,)
+    servicio: ServicioObjectDto
 
     @IsOptional()
     @IsArray()
-    calendarizacion:Date[];
+    calendarizacion: Date[];
 
     @IsOptional()
-    cantidad:number;
+    cantidad: number;
 
     @IsString()
     @IsOptional()
-    observacion:string;
+    observacion: string;
 
     @IsOptional()
-    fechaInicio:Date;
+    fechaInicio: Date;
 
     @IsOptional()
-    fechaFinal:Date;
-
-    @IsNumber()
-    @IsInt()
-    @IsOptional()
-    versionesSpot:number;
-    
-    @IsNumber()
-    @IsInt()
-    @IsOptional()
-    impactosVersionSpot:number;
+    fechaFinal: Date;
 
     @IsNumber()
     @IsInt()
     @IsOptional()
-    numeroDiasSpot:number;
+    versionesSpot: number;
+
+    @IsNumber()
+    @IsInt()
+    @IsOptional()
+    impactosVersionSpot: number;
+
+    @IsNumber()
+    @IsInt()
+    @IsOptional()
+    numeroDiasSpot: number;
 
     @IsOptional()
-    carteleraId:string;
+    carteleraId: string;
 
     @IsUUID()
     @IsOptional()
-    ordenId:string;
+    ordenId: string;
 
     @IsString()
     uniqueId: string;

@@ -5,88 +5,84 @@ import { Column, CreateDateColumn, Entity, Generated, ManyToOne, PrimaryColumn, 
 export class Renovacion {
     @PrimaryColumn('uuid')
     @Generated('uuid')
-    id:string;
+    id: string;
 
     @Column({
-        name:'descripcion_del_servicio',
+        name: 'descripcion_del_servicio',
     })
-    descripcionDelServicio:string;
+    descripcionDelServicio: string;
 
     @Column({
-        name:'caracteristicas_del_servicio',
-        type:'json',
-        nullable:false,
-        default:{}
+        name: 'caracteristicas_del_servicio',
+        type: 'json',
+        nullable: false,
+        default: {}
     })
-    caracteristicasDelServicio:Object;
+    caracteristicasDelServicio: Object;
 
     @Column({
-        name:'tarifa_unitaria',
-        type:'decimal',
-        default:0.0000,
-        scale:4,
-        nullable:false
+        name: 'tarifa_unitaria',
+        nullable: false,
+        default: "0"
     })
-    tarifaUnitaria:number;
+    tarifaUnitaria: string;
 
     @Column({
-        name:'iva',
-        type:'decimal',
-        default:0.0000,
-        scale:4,
-        nullable:false
+        name: 'iva',
+        default: "0",
+        nullable: false
     })
-    iva:number;
+    iva: string;
 
     @Column({
-        name:'iva_incluido',
-        type:'boolean',
-        nullable:false,
-        default:false
+        name: 'iva_incluido',
+        type: 'boolean',
+        nullable: false,
+        default: false
     })
-    ivaIncluido:boolean;
+    ivaIncluido: boolean;
 
     @Column({
-        name:'iva_frontera',
-        type:'boolean',
-        nullable:false,
-        default:false
+        name: 'iva_frontera',
+        type: 'boolean',
+        nullable: false,
+        default: false
     })
-    ivaFrontera:boolean;
-
-    @Column({   
-        name:'fecha_de_creacion',
-        type:'date',
-        nullable:false,
-    })
-    fechaDeCreacion:Date;
+    ivaFrontera: boolean;
 
     @Column({
-        name:'estatus',
-        type:'boolean',
-        nullable:false,
-        default:true
+        name: 'fecha_de_creacion',
+        type: 'date',
+        nullable: false,
     })
-    estatus:boolean;
+    fechaDeCreacion: Date;
 
     @Column({
-        name:'es_ultima_renovacion',
-        type:'boolean',
-        nullable:false,
-        default:true
-    }) 
-    esUltimaRenovacion:boolean;
+        name: 'estatus',
+        type: 'boolean',
+        nullable: false,
+        default: true
+    })
+    estatus: boolean;
 
-    @ManyToOne(()=> Servicio,(servicio) => servicio.renovaciones)
-    servicio:Servicio;
+    @Column({
+        name: 'es_ultima_renovacion',
+        type: 'boolean',
+        nullable: false,
+        default: true
+    })
+    esUltimaRenovacion: boolean;
+
+    @ManyToOne(() => Servicio, (servicio) => servicio.renovaciones)
+    servicio: Servicio;
 
     @CreateDateColumn({
-        name:'creado_en'
+        name: 'creado_en'
     })
-    creadoEn:Date;
+    creadoEn: Date;
 
     @UpdateDateColumn({
-        name:'actualizado_en'
+        name: 'actualizado_en'
     })
-    actualizadoEn:Date;
+    actualizadoEn: Date;
 }

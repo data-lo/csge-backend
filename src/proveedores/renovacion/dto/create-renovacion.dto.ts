@@ -1,33 +1,30 @@
-import { Type} from "class-transformer";
+import { Type } from "class-transformer";
 import { IsBoolean, IsNumber, IsOptional, IsString, Min, IsObject, ValidateNested, IsUUID, isBoolean } from 'class-validator';
 import { CaracteristicasDelServicioDto } from "./caracteristicas-del-servicio.dto";
 
 export class CreateRenovacionDto {
-    
+
     @IsString()
-    descripcionDelServicio:string;
+    description: string;
 
-    @IsNumber({maxDecimalPlaces:4})
-    @Min(0.0001)
-    tarifaUnitaria:number;
+    @IsString()
+    unitPrice: string;
 
-    @IsNumber({maxDecimalPlaces:4})
     @IsOptional()
-    @Min(0.0001)
-    iva:number;
+    tax: string;
 
     @IsBoolean()
-    ivaIncluido:boolean;
+    isTaxIncluded: boolean;
 
     @IsBoolean()
-    ivaFrontera:boolean;
+    isBorderTax: boolean;
 
     @IsObject()
     @ValidateNested()
     @Type(() => CaracteristicasDelServicioDto)
-    caracteristicasDelServicio:CaracteristicasDelServicioDto;
+    characteristicOfService: CaracteristicasDelServicioDto;
 
     @IsUUID()
     @IsString()
-    servicioId:string;
+    serviceId: string;
 }

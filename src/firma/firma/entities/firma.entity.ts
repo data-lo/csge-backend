@@ -1,8 +1,9 @@
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
-import { Column, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { ESTATUS_DE_FIRMA } from "../interfaces/estatus-de-firma.enum";
 import { TIPO_DE_DOCUMENTO } from "src/administracion/usuarios/interfaces/usuarios.tipo-de-documento";
 import { SignedBy } from "../interfaces/signed-by";
+import { SIGNATURE_ACTION_ENUM } from "../enums/signature-action-enum";
 
 @Entity('documentos_firma')
 export class Firma {
@@ -14,37 +15,37 @@ export class Firma {
 
     @Column({
         type: 'uuid',
-        name: 'orden_o_factura_id',
+        name: 'document_id',
         nullable: false,
-        unique: true
     })
-    ordenOFacturaId: string;
+    documentId: string;
 
     @Column({
-        name: 'tipo_de_documento',
+        name: 'document_type',
         type: 'enum',
         enum: TIPO_DE_DOCUMENTO
     })
-    tipoDeDocumento: TIPO_DE_DOCUMENTO
+    documentType: TIPO_DE_DOCUMENTO
 
     @Column({
         type: 'boolean',
-        name: 'esta_firmado',
+        name: 'is_signed',
         nullable: false,
         default: false
     })
-    estaFirmado: boolean;
+    isSigned: boolean;
 
     @Column({
         type: 'enum',
+        name: 'signature_status',
         enum: ESTATUS_DE_FIRMA,
         nullable: false,
         default: ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA
     })
-    estatusDeFirma: ESTATUS_DE_FIRMA;
+    signatureStatus: ESTATUS_DE_FIRMA;
 
     @Column({
-        name: 'url_documento_firmamex',
+        name: 'firmamex_document_url',
         nullable: false,
         default: 'sin_url'
     })
@@ -66,6 +67,33 @@ export class Firma {
         type: 'jsonb'
     })
     signedBy: SignedBy;
+
+    @Column({
+        name: 'activation_id',
+        nullable: true,
+        default: null,
+    })
+    activationId: string;
+
+    @Column({
+        name: 'signature_action',
+        type: 'enum',
+        enum: SIGNATURE_ACTION_ENUM,
+        default: SIGNATURE_ACTION_ENUM.APPROVE,
+        nullable: false,
+    })
+    signatureAction: SIGNATURE_ACTION_ENUM;
+    
+
+    @CreateDateColumn({
+        name: 'created_at',
+    })
+    createdAt: Date;
+
+    @UpdateDateColumn({
+        name: 'update_at',
+    })
+    updateAt: Date;
 
     @ManyToMany(
         () => Usuario,

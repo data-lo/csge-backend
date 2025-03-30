@@ -3,10 +3,9 @@ import { CreateRenovacionDto } from './dto/create-renovacion.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Renovacion } from './entities/renovacion.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { IvaGetter } from 'src/helpers/iva.getter';
 import { Servicio } from '../servicio/entities/servicio.entity';
-import { Console, error } from 'console';
 
 @Injectable()
 export class RenovacionService {
@@ -20,49 +19,60 @@ export class RenovacionService {
     private readonly servicioRepository: Repository<Servicio>
   ) { }
 
-  async create(createRenovacionDto: CreateRenovacionDto) {
+  async create(createRenovationDto: CreateRenovacionDto) {
     try {
+      let { isBorderTax, isTaxIncluded, tax, serviceId, unitPrice, characteristicOfService, description } = createRenovationDto;
 
-      let { tarifaUnitaria, ivaFrontera, servicioId, iva, ...rest } = createRenovacionDto;
-
-      if (!servicioId) throw new BadRequestException('¡El ID del servicio es obligatorio!');
-
-      const service = await this.servicioRepository.findOne({ where: { id: servicioId }, });
-
-      if (!service) throw new NotFoundException('¡Servicio no encontrado!');
-
-      if (createRenovacionDto.ivaIncluido) {
-        const ivaDesglosado = await this.ivaGetter.desglosarIva(tarifaUnitaria, ivaFrontera);
-        tarifaUnitaria = ivaDesglosado.tarifa,
-          iva = ivaDesglosado.iva
+      if (!serviceId) {
+        throw new BadRequestException('¡El ID del servicio es obligatorio!');
       }
 
-      if (!createRenovacionDto.ivaIncluido) {
-        iva = await this.ivaGetter.obtenerIva(tarifaUnitaria, ivaFrontera);
-      }
-
-      if (!(await this.esPrimerRenovacion(servicioId))) {
-        await this.hayNuevaRenovacion(servicioId);
-      }
-
-
-      const renovacion = this.renovacionRepository.create({
-        servicio: service,
-        tarifaUnitaria: tarifaUnitaria,
-        fechaDeCreacion: new Date(),
-        iva: iva,
-        esUltimaRenovacion: true,
-        ...rest
+      // Buscar el servicio
+      const service = await this.servicioRepository.findOne({
+        where: { id: serviceId }
       });
 
-      await this.renovacionRepository.save(renovacion);
-      
-      delete renovacion.servicio;
+      if (!service) {
+        throw new NotFoundException(`¡El servicio con ID: ${serviceId} no fue encontrado!`);
+      }
 
-      return renovacion;
+      // Calcular IVA
+      if (isTaxIncluded) {
+        const taxAmount = await this.ivaGetter.calculateTaxBreakdown(unitPrice, isBorderTax);
+        unitPrice = taxAmount.unitPrice;
+        tax = taxAmount.tax;
+      } else {
+        tax = (await this.ivaGetter.getTax(unitPrice, isBorderTax)).toString();
+      }
+
+      // Verificar si es la primera renovación
+      const isFirstTime = await this.isFirstRenovation(serviceId);
+
+      if (!isFirstTime) {
+        await this.newRenovation(serviceId);
+      }
+
+      const renovacion = {
+        servicio: service,
+        caracteristicasDelServicio: characteristicOfService,
+        tarifaUnitaria: unitPrice,
+        fechaDeCreacion: new Date(),
+        iva: tax,
+        esUltimaRenovacion: true,
+        descripcionDelServicio: description
+      };
+
+      await this.renovacionRepository.save(renovacion);
+
+      // Devolver sin la relación de servicio
+      const renovacionSinServicio = { ...renovacion };
+
+      delete renovacionSinServicio.servicio;
+
+      return renovacionSinServicio;
 
     } catch (error: any) {
-      handleExceptions(error)
+      handleExceptions(error);
     }
   }
 
@@ -99,28 +109,34 @@ export class RenovacionService {
     }
   }
 
-  async obtenerRenovaciones(servicioId: string) {
+  async getRenovations(servicioId: string) {
     try {
-      const servicioDb = await this.servicioRepository.findOne({
+      const service = await this.servicioRepository.findOne({
         where: { id: servicioId },
         relations: {
           renovaciones: true
         }
       });
-      if (!servicioDb) throw new BadRequestException('El servicio no se encuentra');
-      return servicioDb.renovaciones;
+
+      if (!service) {
+        throw new BadRequestException('El servicio no se encuentra');
+      }
+
+      return service.renovaciones;
 
     } catch (error: any) {
       handleExceptions(error);
     }
   }
 
-  async esPrimerRenovacion(servicioId: string) {
+  async isFirstRenovation(servicioId: string) {
     try {
-      const renovaciones = await this.obtenerRenovaciones(servicioId);
-      if (renovaciones.length < 1) {
+      const renovations = await this.getRenovations(servicioId);
+
+      if (renovations.length < 1) {
         return true;
       }
+
       return false;
     } catch (error) {
       ;
@@ -137,12 +153,15 @@ export class RenovacionService {
           renovaciones: true
         }
       });
+
       const renovacion = servicioDb.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion === true) {
           return renovacion;
         }
       });
+
       renovacion.estatus = true;
+
       await this.renovacionRepository.save(renovacion);
       return;
     } catch (error: any) {
@@ -179,28 +198,32 @@ export class RenovacionService {
     }
   }
 
-  async hayNuevaRenovacion(servicioId: string) {
+  async newRenovation(servicioId: string) {
     try {
-      const servicioDb = await this.servicioRepository.findOne({
+      const service = await this.servicioRepository.findOne({
         where: { id: servicioId },
         relations: {
           renovaciones: true
         }
       });
 
-      if (!servicioDb) throw new BadRequestException('No hay renovaciones para este servicio');
+      if (!service) {
+        throw new BadRequestException('No hay renovaciones para este servicio')
+      }
 
-      const renovacion = servicioDb.renovaciones.find((renovacion) => {
+      const renovation = service.renovaciones.find((renovacion) => {
         if (renovacion.esUltimaRenovacion === true) {
           return renovacion;
         }
       });
 
-      renovacion.estatus = false;
-      renovacion.esUltimaRenovacion = false;
-      await this.renovacionRepository.save(renovacion);
-      return;
+      renovation.estatus = false;
 
+      renovation.esUltimaRenovacion = false;
+
+      await this.renovacionRepository.save(renovation);
+
+      return;
     } catch (error: any) {
       handleExceptions(error)
     }

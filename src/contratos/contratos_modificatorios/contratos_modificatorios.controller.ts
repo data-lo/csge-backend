@@ -26,7 +26,7 @@ export class ContratosModificatoriosController {
   @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.contratosModificatoriosService.obtenerEstatus(id);
+    return this.contratosModificatoriosService.getStatus(id);
   }
 
   @Auth(...CONTRACT_USER_ROLESModificatorios)
@@ -50,7 +50,7 @@ export class ContratosModificatoriosController {
   @Auth(...CONTRACT_USER_ROLESModificatorios)
   @Patch('desactivar-cancelar/:id')
   desactivarCancelar(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoModificatorioDto) {
-    return this.contratosModificatoriosService.desactivarCancelarContrato(id, updateContratoDto);
+    return this.contratosModificatoriosService.cancellContract(id, updateContratoDto);
   }
 
   @Auth(...CONTRACT_USER_ROLESModificatorios)

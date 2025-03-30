@@ -14,7 +14,6 @@ console.log(error)
   }
 
   if (error instanceof QueryFailedError) {
-    console.log("Ok")
     if (error.message.includes('Provided "skip" value is not a number')) {
       throw new BadRequestException({
         message: "El parámetro 'skip' debe ser un número válido.",

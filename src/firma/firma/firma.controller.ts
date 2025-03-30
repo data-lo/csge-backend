@@ -8,57 +8,52 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
+import { SIGNATURE_ACTION_ENUM } from './enums/signature-action-enum';
 
 @Controller('firma')
 export class FirmaController {
-  constructor(private readonly firmaService: FirmaService) { }
+  constructor(private readonly signatureService: FirmaService) { }
   private readonly logger = new LoggerService(FirmaController.name);
 
   @Auth(...rolesFirma)
   @Post()
   create(@Body() createFirmaDto: CreateFirmaDto) {
-    return this.firmaService.create(createFirmaDto);
+    return this.signatureService.create(createFirmaDto);
   }
 
   @Auth(...rolesFirma)
-  @Get('firmar-documento/:documentoId')
-  firmarDocumento(
-    @Param('documentoId', ParseUUIDPipe) documentoId: string,
-    @GetUser() usuario: Usuario
+  @Get('sign-document/:documentId')
+  signDocument(
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Query('signatureAction') signatureAction: SIGNATURE_ACTION_ENUM,
+    @GetUser() user: Usuario
   ) {
-    return this.firmaService.documentSigning(usuario.id, documentoId);
+    return this.signatureService.documentSigning(user.id, documentId);
   }
-
-  // @Auth(...rolesFirma)
-  // @Get('firmar-campania/:campaniaId')
-  // firmarCampania(
-  //   @Param('campaniaId', ParseUUIDPipe) campaniaId: string,
-  //   @GetUser() usuario: Usuario
-  // ) {
-  //   return this.firmaService.firmarCampania(usuario.id, campaniaId);
-  // }
 
   @Auth(...rolesFirma)
   @Get('documentos-firmamex')
   findAllDocumentosFirmamex() {
-    return this.firmaService.obtenerDocumentosDeFrimamex();
+    return this.signatureService.obtenerDocumentosDeFrimamex();
   }
 
   @Auth(...rolesFirma)
   @Get('verify-sent-for-signing/:id')
   verifyIfOrderOrInvoiceWasSentForSigning(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('activationId') activationId?: string,
+
   ) {
-    return this.firmaService.checkOrderOrInvoiceSentForSigning(id);
+    return this.signatureService.checkDocumentSentForSigning(id, activationId);
   }
 
   @Auth(...rolesFirma)
   @Get('descargar-documento/:id')
   descargarDocumentoDeFirmamex(
-    @Param('id', ParseUUIDPipe) ordenOFacturaId: string,
-    @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) tipoDeDocumento: TIPO_DE_DOCUMENTO
+    @Param('id', ParseUUIDPipe) documentId: string,
+    @Query('tipo-de-documento', new ParseEnumPipe(TIPO_DE_DOCUMENTO)) documentType: TIPO_DE_DOCUMENTO
   ) {
-    return this.firmaService.descargarDocumento(ordenOFacturaId, tipoDeDocumento);
+    return this.signatureService.downloadFile(documentId, documentType);
   }
 
   @Auth(...rolesFirma)
@@ -66,15 +61,13 @@ export class FirmaController {
   findAllOrdebes(
     @GetUser() usuario: Usuario
   ) {
-    return this.firmaService.findAllOrdenes(usuario.id);
+    return this.signatureService.findAllOrdenes(usuario.id);
   }
 
   @Auth(...rolesFirma)
   @Get('facturas')
-  findAllFacturas(
-    @GetUser() usuario: Usuario
-  ) {
-    return this.firmaService.findAllFacturas(usuario.id);
+  findAllInvoices(@GetUser() user: Usuario) {
+    return this.signatureService.getPendingSignedInvoiceDocuments(user.id);
   }
 
   @Auth(...rolesFirma)
@@ -82,24 +75,14 @@ export class FirmaController {
   findAllCampanias(
     @GetUser() usuario: Usuario
   ) {
-    return this.firmaService.findAllCampanias(usuario.id);
+    return this.signatureService.findAllCampanias(usuario.id);
   }
 
-  @Auth(...rolesFirma)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFirmaDto: UpdateFirmaDto) {
-    return this.firmaService.update(+id, updateFirmaDto);
-  }
 
   @Auth(...rolesFirma)
   @Delete('eliminar-de-firmamex/:id')
   removeDocumentoFirmamex(@Param('id', ParseUUIDPipe) id: string) {
-    return this.firmaService.eliminarDocumentoDeFimrmamex(id);
+    return this.signatureService.eliminarDocumentoDeFimrmamex(id);
   }
 
-  @Auth(...rolesFirma)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.firmaService.remove(+id);
-  }
 }

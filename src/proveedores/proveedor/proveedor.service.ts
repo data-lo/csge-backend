@@ -33,33 +33,41 @@ export class ProveedorService {
   async create(createProviderDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
       const { rfc } = createProviderDto;
-
-      if (rfc.length < 12) {
+  
+      // Validación de longitud del RFC
+      if (!rfc || rfc.length < 12) {
         throw new BadRequestException('¡El RFC debe contener al menos 12 caracteres!');
       }
-
-      if (rfc.length <= 13) {
-        const existingProvider = await this.findByRfc(rfc);
-        if (existingProvider) {
-          return existingProvider;
-        }
+  
+      // Validación de longitud máxima (opcional, si aplica)
+      if (rfc.length > 13) {
+        throw new BadRequestException('¡El RFC no puede contener más de 13 caracteres!');
       }
-
+  
+      // Verificar si ya existe un proveedor con el mismo RFC
+      const existingProvider = await this.findByRfc(rfc);
+      if (existingProvider) {
+        throw new BadRequestException(`¡Ya existe un proveedor registrado con el RFC: ${rfc}!`);
+      }
+  
       const provider = this.providerRepository.create(createProviderDto);
-
       await this.providerRepository.save(provider);
-
+  
       return provider;
     } catch (error) {
       handleExceptions(error);
     }
   }
+  
 
 
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter()
-      const proveedores = this.providerRepository.find({
+      const proveedores = await this.providerRepository.find({
+        order: {
+          estatus: 'DESC',
+        },
         skip: paginationSetter.getSkipElements(pagina),
         take: paginationSetter.castPaginationLimit(),
       });
@@ -132,7 +140,7 @@ export class ProveedorService {
         .andWhere('servicio.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
         .andWhere('renovaciones.estatus = :estatus', { estatus })
         .getMany();
-      console.log(proveedores[0].estaciones)
+      // console.log(proveedores[0].estaciones)
       return proveedores;
 
 

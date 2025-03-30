@@ -14,6 +14,7 @@ import { DocumentoEvent } from 'src/ordenes/interfaces/documento-event';
 import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-orden-de-servicio';
 import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
 import { INVOICE_STATUS } from 'src/ordenes/factura/interfaces/estatus-factura';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 @Injectable()
 export class WebhooksService {
@@ -54,25 +55,42 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      const documentoId = document.ordenOFacturaId;
+      const documentId = document.documentId;
 
-      if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        this.eventEmitter.emit('modify-contract-amounts', { orderId: documentoId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
+      if (document.documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
-        this.eventEmitter.emit('modified-order-status', { orderId: documentoId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
+        if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+          this.eventEmitter.emit('update-contract-amounts-from-order', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_APPROVED });
 
-      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
-        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentoId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+          this.eventEmitter.emit('update-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.ACTIVA });
+        } else {
+          this.eventEmitter.emit('update-contract-amounts-from-order', { orderId: documentId, eventType: TYPE_EVENT_ORDER.ORDER_CANCELLED });
 
-      } else if (document.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
-        this.eventEmitter.emit('modified-campaign-status', { campaignId: documentoId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
+          this.eventEmitter.emit('update-order-status', { orderId: documentId, orderStatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA });
+        }
 
-        this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentoId });
+
+
+      } else if (document.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+        this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
+
+      } else if (document.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+
+        if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+          this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.APROBADA });
+
+          this.eventEmitter.emit('approval-campaign-orders', { campaignId: documentId });
+
+        } else if (document.signatureAction === SIGNATURE_ACTION_ENUM.CANCEL) {
+          this.eventEmitter.emit('modified-campaign-status', { campaignId: documentId, campaignStatus: CAMPAIGN_STATUS.CANCELADA });
+
+          this.eventEmitter.emit('cancelled-campaign-orders', { campaignId: documentId });
+        }
       }
 
-      document.estaFirmado = true;
+      document.isSigned = true;
 
-      document.estatusDeFirma = ESTATUS_DE_FIRMA.APROBADA;
+      document.signatureStatus = ESTATUS_DE_FIRMA.APROBADA;
 
       await this.signatureRepository.save(document);
 
@@ -89,21 +107,21 @@ export class WebhooksService {
         ticket: firmamex_id
       });
 
-      const documentId = signatureDocument.ordenOFacturaId;
+      const documentId = signatureDocument.documentId;
 
-      if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
-        signatureDocument.estaFirmado = false;
+        signatureDocument.isSigned = false;
 
-        signatureDocument.estatusDeFirma = ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA;
+        signatureDocument.signatureStatus = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
 
         await this.signatureRepository.save(signatureDocument);
 
         this.eventEmitter.emit('invoice-status-modified', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
 
-        this.eventEmitter.emit('invoice-approval-or-cancellation', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+        this.eventEmitter.emit('invoice-update-contract-amounts-from-order', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED });
 
-      } else if (signatureDocument.tipoDeDocumento === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+      } else if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
 
         const values = {
           signedAt: new Date().toISOString(),
@@ -124,22 +142,24 @@ export class WebhooksService {
   private async handleDocumentRejected(webhook: DocumentRejected) {
     try {
       const { firmamex_id } = webhook;
+
       const documentoDeFirma = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
       });
 
-      const documentoId = documentoDeFirma.ordenOFacturaId;
-      const tipoDeDocumento = documentoDeFirma.tipoDeDocumento;
+      const documentoId = documentoDeFirma.documentId;
 
-      if (tipoDeDocumento === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
+      const documentType = documentoDeFirma.documentType;
 
-        documentoDeFirma.estaFirmado = true;
+      if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
 
-        documentoDeFirma.estatusDeFirma = ESTATUS_DE_FIRMA.CANCELADA;
+        documentoDeFirma.isSigned = true;
+
+        documentoDeFirma.signatureStatus = ESTATUS_DE_FIRMA.CANCELADA;
 
         this.emitter(documentoId, 'cancelacion.orden');
 
-      } else if (tipoDeDocumento === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
+      } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
         this.emitter(documentoId, 'cancelacion.factura');
       }

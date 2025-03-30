@@ -5,6 +5,7 @@ import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { CONTRACT_USER_ROLES } from './valid-contratos-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { ESTATUS_DE_CONTRATO } from '../interfaces/estatus-de-contrato';
 
 @Controller('contratos/contratos')
 export class ContratosController {
@@ -58,9 +59,9 @@ export class ContratosController {
 
   @Auth(...CONTRACT_USER_ROLES)
   @Patch('modificar-estatus/:id')
-  modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() updateContratoDto: UpdateContratoDto) {
+  modificarEstatus(@Param('id', ParseUUIDPipe) id: string, @Body() newStatus: ESTATUS_DE_CONTRATO) {
     this.logger.log('Modificar Estatus del Contrato');
-    return this.contratosService.modificarEstatus(id, updateContratoDto);
+    return this.contratosService.changeStatus(id, newStatus);
   }
 
   @Auth(...CONTRACT_USER_ROLES)

@@ -21,14 +21,14 @@ import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
-  
+
   @Generated('uuid')
   @PrimaryColumn('uuid')
   id: string;
 
   @Generated('increment')
   @Column()
-  indice:number;
+  indice: number;
 
   @Column({
     type: 'enum',
@@ -68,30 +68,32 @@ export class Orden {
 
   @Column({
     name: 'subtotal_orden_de_servicio',
-    type: 'decimal',
-    default: 0.0,
-    scale: 4,
     nullable: false,
+    default: "0"
   })
-  subtotal: number;
+  subtotal: string;
+
+  @Column({
+    name: 'number_of_activation',
+    type: 'int',
+    nullable: false,
+    default: 1
+  })
+  numberOfActivation: number;
 
   @Column({
     name: 'iva_orden_de_servicio',
-    type: 'decimal',
-    default: 0.0,
-    scale: 4,
     nullable: false,
+    default: "0"
   })
-  iva: number;
+  iva: string;
 
   @Column({
     name: 'total',
-    type: 'decimal',
-    default: 0.0,
-    scale: 4,
     nullable: false,
+    default: "0"
   })
-  total: number;
+  total: string;
 
   @Column({
     name: 'iva_incluido',
@@ -117,11 +119,11 @@ export class Orden {
   motivoDeCancelacion: string;
 
   @Column({
-    name:'cotizada_en_campania',
-    nullable:false,
-    default:false,
+    name: 'cotizada_en_campania',
+    nullable: false,
+    default: false,
   })
-  esCampania:boolean
+  esCampania: boolean
 
   @CreateDateColumn({
     name: 'creado_en',
@@ -154,20 +156,4 @@ export class Orden {
     }
   )
   serviciosContratados: ServicioContratado[];
-
-  // @BeforeInsert()
-  // localeTimeZoneInsert() {
-  //   const value = new Date();
-  //   this.creadoEn = formatToLocalTime(value);
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeEmision = formatToLocalTime(value);
-  // }
-
-  // @BeforeUpdate()
-  // localeTimeZoneUpdate(){
-  //   const value = new Date();
-  //   this.actualizadoEn = formatToLocalTime(value);
-  //   this.fechaDeAprobacion = formatToLocalTime(this.fechaDeAprobacion);
-  // }
-  
 }

@@ -1,6 +1,5 @@
 import { VALID_ROLES } from "src/administracion/usuarios/interfaces/usuarios.roles";
 
-
 export const rolesFactura = [
     VALID_ROLES.AGENTE,
     VALID_ROLES.DIRECCION,

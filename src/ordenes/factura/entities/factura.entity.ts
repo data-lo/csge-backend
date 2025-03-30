@@ -15,10 +15,11 @@ import { INVOICE_STATUS } from '../interfaces/estatus-factura';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { formatToLocalTime } from 'src/helpers/format-to-local-time';
+import { PaymentRegister } from '../interfaces/payment-register';
 
 @Entity('facturas')
 export class Factura {
-  
+
   @PrimaryColumn('uuid')
   id: string;
 
@@ -96,6 +97,14 @@ export class Factura {
   fechaDePago: Date;
 
   @Column({
+    name: 'payment_register',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'::jsonb",
+  })
+  paymentRegister: PaymentRegister[];
+
+  @Column({
     name: 'estatus_de_factura',
     type: 'enum',
     enum: INVOICE_STATUS,
@@ -132,7 +141,7 @@ export class Factura {
   }
 
   @BeforeUpdate()
-  localeTimeZoneUpdate(){
+  localeTimeZoneUpdate() {
     this.fechaDePago = formatToLocalTime(this.fechaDePago);
     this.fechaAprobacion = formatToLocalTime(this.fechaAprobacion);
   }

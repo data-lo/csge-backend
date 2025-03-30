@@ -34,20 +34,18 @@ export class CreateContratoDto {
   @IsString()
   objetoContrato: string;
 
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 4 })
   montoMinimoContratado: number;
 
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 4 })
   montoMaximoContratado: number;
 
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 4 })
   ivaMontoMinimoContratado: number;
 
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 4 })
   ivaMontoMaximoContratado: number;
 
   @IsOptional()
@@ -64,7 +62,7 @@ export class CreateContratoDto {
   
   @IsString()
   @IsOptional()
-  motivoCancelacion: string;
+  cancellationReason: string;
 
   @IsString()
   @IsOptional()
