@@ -326,29 +326,18 @@ export class ContratosService {
     }
   }
 
-  async update(id: string, updateContratoDto: UpdateContratoDto) {
+  async update(masterContractId: string, updateContratoDto: UpdateContratoDto) {
     try {
-      const contratos: Contrato[] = [];
-      const contratoMaestroDb = await this.masterContractRepository.findOne({
-        where: { id: id },
-        relations: {
-          contratos: true,
-          proveedor: true,
-        },
+
+      const { estatusDeContrato, linkContrato } = updateContratoDto
+
+      const masterContract = await this.masterContractRepository.findOne({
+        where: { id: masterContractId },
       });
 
-      if (!contratoMaestroDb) {
-        throw new BadRequestException('No se encuentra el contrato');
+      if (!masterContract) {
+        throw new NotFoundException(`¡El contrato con ID '${masterContract.id}' no se encuentra!`);
       }
-
-      const {
-        linkContrato,
-        tipoDeServicios,
-        montoMaximoContratado,
-        ivaMontoMaximoContratado,
-        ...rest
-      } = updateContratoDto;
-      const { estatusDeContrato } = contratoMaestroDb;
 
       const validStatus = [
         ESTATUS_DE_CONTRATO.PENDIENTE,
@@ -356,51 +345,15 @@ export class ContratosService {
         ESTATUS_DE_CONTRATO.LIBERADO
       ];
 
-      if (!validStatus.includes(estatusDeContrato)) {
-        throw new BadRequestException(
-          'EL CONTRATO DEBE DE ENCONTRARSE ADJUDICADO O PENDIENTE PARA MODIFICARSE',
-        );
+      if (!validStatus.includes(masterContract.estatusDeContrato)) {
+        throw new BadRequestException("¡El contrato debe estar en estatus 'Adjudicado' o 'Pendiente' para poder ser modificado!");
       }
 
-      if (estatusDeContrato === ESTATUS_DE_CONTRATO.ADJUDICADO) {
-        contratoMaestroDb.linkContrato = linkContrato;
-        await this.masterContractRepository.save(contratoMaestroDb);
-        return { message: 'Link del contrato actuzlizado exitosamente' };
-      }
-
-      if (tipoDeServicios) {
-        for (const contrato of contratoMaestroDb.contratos) {
-          await this.contractRepository.remove(contrato);
-        }
-
-        for (const typeService of tipoDeServicios) {
-          const contrato = this.contractRepository.create({
-            tipoDeServicio: typeService,
-            contratoMaestro: contratoMaestroDb,
-            numeroDeContrato: contratoMaestroDb.numeroDeContrato,
-          });
-          await this.contractRepository.save(contrato);
-          contratos.push(contrato);
-        }
-      }
-
-      const proveedorDb = await this.providerRepository.findOneBy({
-        id: rest.proveedorId,
-      });
-      const montoDisponible = montoMaximoContratado + ivaMontoMaximoContratado;
-
-      Object.assign(contratoMaestroDb, {
-        ...rest,
-        montoDisponible: montoDisponible,
-        montoMaximoContratado: montoMaximoContratado,
-        ivaMontoMaximoContratado: ivaMontoMaximoContratado,
-        linkContrato: linkContrato,
-        contratos: contratos,
-        proveedor: proveedorDb,
-
+      await this.masterContractRepository.update(masterContractId, {
+        estatusDeContrato: estatusDeContrato,
+        linkContrato: linkContrato
       });
 
-      await this.masterContractRepository.save(contratoMaestroDb);
       return { message: 'contrato actualizado con exito' };
     } catch (error) {
       handleExceptions(error);
