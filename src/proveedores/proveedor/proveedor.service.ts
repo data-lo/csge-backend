@@ -3,7 +3,7 @@ import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { Proveedor } from './entities/proveedor.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
@@ -13,6 +13,7 @@ import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
+import { PROVIDER_TYPE_ENUM } from './enums/provider-type-enum';
 
 @Injectable()
 export class ProveedorService {
@@ -33,49 +34,73 @@ export class ProveedorService {
   async create(createProviderDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
       const { rfc } = createProviderDto;
-  
+
       // Validación de longitud del RFC
       if (!rfc || rfc.length < 12) {
         throw new BadRequestException('¡El RFC debe contener al menos 12 caracteres!');
       }
-  
+
       // Validación de longitud máxima (opcional, si aplica)
       if (rfc.length > 13) {
         throw new BadRequestException('¡El RFC no puede contener más de 13 caracteres!');
       }
-  
+
       // Verificar si ya existe un proveedor con el mismo RFC
       const existingProvider = await this.findByRfc(rfc);
       if (existingProvider) {
         throw new BadRequestException(`¡Ya existe un proveedor registrado con el RFC: ${rfc}!`);
       }
-  
+
       const provider = this.providerRepository.create(createProviderDto);
       await this.providerRepository.save(provider);
-  
+
       return provider;
     } catch (error) {
       handleExceptions(error);
     }
   }
-  
 
-
-  async findAll(pagina: number) {
+  async findAll(page: number) {
     try {
-      const paginationSetter = new PaginationSetter()
+      const paginationSetter = new PaginationSetter();
+
       const proveedores = await this.providerRepository.find({
         order: {
           estatus: 'DESC',
         },
-        skip: paginationSetter.getSkipElements(pagina),
+        skip: paginationSetter.getSkipElements(page),
         take: paginationSetter.castPaginationLimit(),
       });
+
       return proveedores;
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+  async getProvidersWithFilters(parameters?: string, providerType?: PROVIDER_TYPE_ENUM, status?: string,) {
+
+    try {
+      const where: Record<string, any> = {};
+
+      if (parameters) {
+        where.rfc = ILike(`%${parameters}%`);
+      }
+
+      if (providerType) {
+        where.tipoProveedor = providerType;
+      }
+
+      const providers = await this.providerRepository.find({
+        where,
+      });
+
+      return providers;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
 
   async findAllBusqueda() {
     try {
