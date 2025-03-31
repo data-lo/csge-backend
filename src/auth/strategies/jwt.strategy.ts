@@ -6,7 +6,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { Usuario } from "src/administracion/usuarios/entities/usuario.entity";
-import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
+
 
 @Injectable()
 
@@ -16,8 +16,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         @InjectRepository(Usuario)
         private readonly usuarioRepository: Repository<Usuario>,
 
-        @Inject(CACHE_MANAGER)
-        private cacheManager: Cache,
 
         configService: ConfigService
     ) {
@@ -27,18 +25,34 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
+    // async validate(payload: JwtPayload): Promise<Usuario> {
+    //     const { id } = payload;
+    //     let usuario: Usuario = await this.cacheManager.get(id);
+    //     if (!usuario) {
+    //         usuario = await this.usuarioRepository.findOneBy({ id });
+    //         if (!usuario) {
+    //             throw new UnauthorizedException('El token no es valido');
+    //         }
+    //         if (!usuario.estatus)
+    //             throw new UnauthorizedException('El usuario se encuentra desactivado');
+    //         await this.cacheManager.set(id, usuario, 1800000);
+    //     }
+    //     return usuario;
+    // }
+
     async validate(payload: JwtPayload): Promise<Usuario> {
         const { id } = payload;
-        let usuario: Usuario = await this.cacheManager.get(id);
+      
+        const usuario = await this.usuarioRepository.findOneBy({ id });
         if (!usuario) {
-            usuario = await this.usuarioRepository.findOneBy({ id });
-            if (!usuario) {
-                throw new UnauthorizedException('El token no es valido');
-            }
-            if (!usuario.estatus)
-                throw new UnauthorizedException('El usuario se encuentra desactivado');
-            await this.cacheManager.set(id, usuario, 1800000);
+          throw new UnauthorizedException('¡El token no es válido!');
         }
+      
+        if (!usuario.estatus) {
+          throw new UnauthorizedException('¡El usuario se encuentra desactivado!');
+        }
+      
         return usuario;
-    }
+      }
+      
 }
