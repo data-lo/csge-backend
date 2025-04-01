@@ -232,7 +232,7 @@ export class ContratosService {
   }
 
 
-  async getContractsWithFilters(numberOfContract?: string, year?: string, canAccessHistory = false) {
+  async getContractsWithFilters(canAccessHistory = false, parameters?: string, year?: string, status?: ESTATUS_DE_CONTRATO) {
 
     const resolvedYear = getResolvedYear(year, canAccessHistory);
 
@@ -265,12 +265,17 @@ export class ContratosService {
           'contratosModificatorios.montoDisponible',
         ]);
 
-      if (numberOfContract) {
+      if (parameters) {
         query.andWhere(
           `(contratoMaestro.numeroDeContrato ILIKE :search OR proveedor.rfc ILIKE :search)`,
-          { search: `%${numberOfContract}%` }
+          { search: `%${parameters}%` }
         );
       }
+
+      if (status) {
+        query.andWhere('contratoMaestro.estatusDeContrato = :status', { status });
+      }
+
 
       // Filtro por año resuelto (ya sea el actual o el proporcionado con permiso)
       if (resolvedYear) {

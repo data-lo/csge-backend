@@ -16,7 +16,7 @@ export class CronJobsService {
   // 🕖 Cron job: Ejecuta esta tarea automáticamente todos los días a las 7:00 AM
   // Expresión cron: '0 7 * * *' → Minuto 0, Hora 7, cualquier día del mes, cualquier mes, cualquier día de la semana
   // Nota: La hora depende del huso horario del servidor (o del valor 'timeZone' si se especifica)
-  @Cron('45 * * * * *')
+  @Cron('0 7 * * *')
   async Contracts() {
     await this.contractsService.checkContractsExpiration();
     await this.contractsService.disableProvidersWithoutActiveContracts();
