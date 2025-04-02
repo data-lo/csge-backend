@@ -42,11 +42,11 @@ export class ProveedorController {
   }
 
   @Auth(...rolesProveedores)
-  @Get('search-provider')
+  @Get('filters')
   getProvidersWithFilters(
     @Query('pageParam') pageParam: number,
-    @Query('parameters') parameters?: string) {
-    return this.providerService.getProvidersWithFilters(pageParam, parameters);
+    @Query('searchParams') searchParams?: string) {
+    return this.providerService.getProvidersWithFilters(pageParam, searchParams);
   }
 
   @Auth(...rolesProveedores)

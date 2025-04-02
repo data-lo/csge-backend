@@ -78,12 +78,12 @@ export class ProveedorService {
     }
   }
 
-  async getProvidersWithFilters(pageParam: number, parameters?: string) {
+  async getProvidersWithFilters(pageParam: number, searchParams?: string) {
     try {
       const where: Record<string, any> = {};
 
-      if (parameters) {
-        where.rfc = ILike(`%${parameters}%`);
+      if (searchParams) {
+        where.rfc = ILike(`%${searchParams}%`);
       }
 
       const paginationSetter = new PaginationSetter();

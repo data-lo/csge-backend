@@ -36,16 +36,16 @@ export class ContratosController {
   }
 
   @Auth(...CONTRACT_USER_ROLES)
-  @Get('search-contract')
+  @Get('filters')
   getContractsWithFilters(
     @GetUser() user: Usuario,
     @Query('pageParam') pageParam: number,
-    @Query('parameters') parameters?: string,
+    @Query('searchParams') searchParams?: string,
     @Query('year') year?: string,
     @Query('status') status?: ESTATUS_DE_CONTRATO,
   ) {
     const canAccessHistory = user.permisos?.includes(ValidPermises.HISTORICO);
-    return this.contractService.getContractsWithFilters(pageParam, canAccessHistory, parameters, year, status as ESTATUS_DE_CONTRATO);
+    return this.contractService.getContractsWithFilters(pageParam, canAccessHistory, searchParams, year, status as ESTATUS_DE_CONTRATO);
   }
 
   @Auth(...CONTRACT_USER_ROLES)

@@ -8,6 +8,9 @@ import { CAMPAIGN_STATUS } from './interfaces/estatus-campaña.enum';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { CAMPAIGN_ROLES } from '../valid-modules-campanias-roles.ob';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
+import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
 
 @Controller('campanias/campanias')
 export class CampañasController {
@@ -40,6 +43,19 @@ export class CampañasController {
   @Get('busqueda')
   findAllBusqueda() {
     return this.campañasService.findAllBusuqueda();
+  }
+
+  @Auth(...CAMPAIGN_ROLES)
+  @Get('filters')
+  getCampaignsWithFilters(
+    @GetUser() user: Usuario,
+    @Query('pageParam') pageParam: number,
+    @Query('searchParams') searchParams?: string,
+    @Query('year') year?: string,
+    @Query('status') status?: CAMPAIGN_STATUS,
+  ) {
+    const canAccessHistory = user.permisos?.includes(ValidPermises.HISTORICO);
+    return this.campañasService.getCampaignsWithFilters(pageParam, canAccessHistory, searchParams, year, status);
   }
 
   @Auth(...CAMPAIGN_ROLES)

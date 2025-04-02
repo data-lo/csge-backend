@@ -22,6 +22,7 @@ import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuari
 import { Partida } from '../partida/entities/partida.entity';
 import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 @Injectable()
 export class CampañasService {
@@ -143,6 +144,58 @@ export class CampañasService {
       handleExceptions(error);
     }
   }
+
+  async getCampaignsWithFilters(pageParam: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: CAMPAIGN_STATUS) {
+    const resolvedYear = getResolvedYear(year, canAccessHistory);
+
+    try {
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.campaignRepository
+        .createQueryBuilder('campaña')
+        .leftJoinAndSelect('campaña.dependencias', 'dependencias')
+        .leftJoinAndSelect('campaña.activaciones', 'activaciones')
+        .select([
+          'campaña.id',
+          'campaña.nombre',
+          'campaña.campaignStatus',
+          'campaña.creadoEn',
+          'dependencias.id',
+          'dependencias.nombre',
+          'activaciones.fechaDeAprobacion',
+          'activaciones.fechaDeCierre',
+          'activaciones.fechaDeCreacion',
+          'activaciones.fechaDeInicio',
+        ]);
+
+      if (searchParams) {
+        query.andWhere(
+          `(campaña.nombre ILIKE :search OR campaña.codigo ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (status) {
+        query.andWhere('campaña.campaignStatus = :status', { status });
+      }
+
+      if (resolvedYear) {
+        query.andWhere("EXTRACT(YEAR FROM campaña.creadoEn) = :year", {
+          year: resolvedYear,
+        });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const campañas = await query.getMany();
+      return campañas;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
 
   async findOne(campaignId: string) {
     try {
@@ -418,7 +471,7 @@ export class CampañasService {
   }
 
 
-  async checkCampaignsExpiration  () {
+  async checkCampaignsExpiration() {
 
     const today = new Date();
 
@@ -431,7 +484,7 @@ export class CampañasService {
       }
     });
 
-    for(const campaign of campaignsEndsToday){
+    for (const campaign of campaignsEndsToday) {
 
       const lastActivation = await this.activationService.getLastActivation(campaign.id)
 
