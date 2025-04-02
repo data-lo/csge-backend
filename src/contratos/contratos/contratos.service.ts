@@ -232,11 +232,13 @@ export class ContratosService {
   }
 
 
-  async getContractsWithFilters(canAccessHistory = false, parameters?: string, year?: string, status?: ESTATUS_DE_CONTRATO) {
+  async getContractsWithFilters(pageParam: number, canAccessHistory = false, parameters?: string, year?: string, status?: ESTATUS_DE_CONTRATO) {
 
     const resolvedYear = getResolvedYear(year, canAccessHistory);
 
     try {
+      const paginationSetter = new PaginationSetter();
+
       const query = this.masterContractRepository
         .createQueryBuilder('contratoMaestro')
         .leftJoinAndSelect('contratoMaestro.proveedor', 'proveedor')
@@ -276,14 +278,16 @@ export class ContratosService {
         query.andWhere('contratoMaestro.estatusDeContrato = :status', { status });
       }
 
-
-      // Filtro por año resuelto (ya sea el actual o el proporcionado con permiso)
       if (resolvedYear) {
         query.andWhere("EXTRACT(YEAR FROM contratoMaestro.creadoEn) = :year", {
           year: resolvedYear,
         });
-
       }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
       const masterContracts = await query.getMany();
 
       masterContracts.forEach((masterContract) => {

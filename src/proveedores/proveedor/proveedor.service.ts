@@ -78,8 +78,7 @@ export class ProveedorService {
     }
   }
 
-  async getProvidersWithFilters(parameters?: string, providerType?: PROVIDER_TYPE_ENUM, status?: string,) {
-
+  async getProvidersWithFilters(pageParam: number, parameters?: string) {
     try {
       const where: Record<string, any> = {};
 
@@ -87,12 +86,12 @@ export class ProveedorService {
         where.rfc = ILike(`%${parameters}%`);
       }
 
-      if (providerType) {
-        where.tipoProveedor = providerType;
-      }
+      const paginationSetter = new PaginationSetter();
 
       const providers = await this.providerRepository.find({
         where,
+        skip: paginationSetter.getSkipElements(pageParam),
+        take: paginationSetter.castPaginationLimit(),
       });
 
       return providers;
@@ -100,6 +99,7 @@ export class ProveedorService {
       handleExceptions(error);
     }
   }
+
 
 
   async findAllBusqueda() {

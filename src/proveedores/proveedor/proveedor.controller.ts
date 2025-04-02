@@ -41,13 +41,12 @@ export class ProveedorController {
     return this.providerService.findAll(+pagina);
   }
 
-
   @Auth(...rolesProveedores)
   @Get('search-provider')
   getProvidersWithFilters(
-    @Query('parameters') parameters?: string,
-    @Query('tipoDeProveedor') tipoDeProveedor?: PROVIDER_TYPE_ENUM) {
-    return this.providerService.getProvidersWithFilters(parameters, tipoDeProveedor);
+    @Query('pageParam') pageParam: number,
+    @Query('parameters') parameters?: string) {
+    return this.providerService.getProvidersWithFilters(pageParam, parameters);
   }
 
   @Auth(...rolesProveedores)
