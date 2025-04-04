@@ -118,15 +118,19 @@ export class ProveedorService {
   }
 
   async findByRfc(rfc: string) {
+    console.log(rfc)
     try {
-      const provider = await this.providerRepository.createQueryBuilder('proveedor')
-        .where('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
-        .getMany();
+      const where: Record<string, any> = {};
 
-      if (provider.length === 0) {
-        return undefined;
-      };
-      return provider;
+      if (rfc) {
+        where.rfc = ILike(`%${rfc}%`);
+      }
+
+      const providers = await this.providerRepository.find({
+        where,
+      });
+
+      return providers;
     } catch (error) {
       handleExceptions(error);
     }

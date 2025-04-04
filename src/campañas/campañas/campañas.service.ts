@@ -19,7 +19,6 @@ import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { FirmaService } from 'src/firma/firma/firma.service';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
-import { Partida } from '../partida/entities/partida.entity';
 import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
@@ -100,28 +99,25 @@ export class CampañasService {
 
   async findAll(pagina: number) {
     try {
+      const currentYear = new Date().getFullYear();
+  
       const paginationSetter = new PaginationSetter();
-      const campañas = await this.campaignRepository.find({
-        take: paginationSetter.castPaginationLimit(),
-        skip: paginationSetter.getSkipElements(pagina),
-        relations: {
-          dependencias: true,
-          activaciones: true,
-        },
-        select: {
-          activaciones: {
-            fechaDeAprobacion: true,
-            fechaDeCierre: true,
-            fechaDeCreacion: true,
-            fechaDeInicio: true,
-          },
-        },
-      });
+  
+      const query = this.campaignRepository
+        .createQueryBuilder('campaña')
+        .leftJoinAndSelect('campaña.dependencias', 'dependencias')
+        .leftJoinAndSelect('campaña.activaciones', 'activaciones')
+        .where('EXTRACT(YEAR FROM campaña.creadoEn) = :year', { year: currentYear })
+        .take(paginationSetter.castPaginationLimit())
+        .skip(paginationSetter.getSkipElements(pagina));
+  
+      const campañas = await query.getMany();
       return campañas;
     } catch (error) {
       handleExceptions(error);
     }
   }
+  
 
   async findAllBusuqueda() {
     try {
@@ -146,9 +142,10 @@ export class CampañasService {
   }
 
   async getCampaignsWithFilters(pageParam: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: CAMPAIGN_STATUS) {
-    const resolvedYear = getResolvedYear(year, canAccessHistory);
-
     try {
+      console.log(searchParams)
+      const resolvedYear = getResolvedYear(year, canAccessHistory);
+
       const paginationSetter = new PaginationSetter();
 
       const query = this.campaignRepository
@@ -160,6 +157,8 @@ export class CampañasService {
           'campaña.nombre',
           'campaña.campaignStatus',
           'campaña.creadoEn',
+          'campaña.creadoEn',
+          'campaña.tipoDeCampaña',
           'dependencias.id',
           'dependencias.nombre',
           'activaciones.fechaDeAprobacion',
@@ -170,7 +169,7 @@ export class CampañasService {
 
       if (searchParams) {
         query.andWhere(
-          `(campaña.nombre ILIKE :search OR campaña.codigo ILIKE :search)`,
+          `(campaña.nombre ILIKE :search)`,
           { search: `%${searchParams}%` }
         );
       }
@@ -454,14 +453,14 @@ export class CampañasService {
 
       const lastActivation = await this.activationService.getLastActivation(campaignId);
 
+      await this.campaignRepository.update(campaignId, { campaignStatus: campaignStatus });
+
       if (campaignStatus == CAMPAIGN_STATUS.APROBADA) {
         await this.activationRepository.update(lastActivation.id, { fechaDeAprobacion: new Date() });
-
-      } else if (campaignStatus == CAMPAIGN_STATUS.CANCELADA) {
-        await this.closeCampaign(campaignId, lastActivation.id);
       }
-
-      await this.campaignRepository.update(campaignId, { campaignStatus: campaignStatus });
+      //  else if (campaignStatus == CAMPAIGN_STATUS.CANCELADA) {
+      //   await this.closeCampaign(campaignId, lastActivation.id);
+      // }
 
       return { message: "¡El estatus de la campaña se ha actualizado correctamente!", };
 

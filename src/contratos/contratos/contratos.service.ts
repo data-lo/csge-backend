@@ -159,6 +159,7 @@ export class ContratosService {
   async findAll(pagina: number) {
     try {
       const currentYear = new Date().getFullYear();
+      
       const paginationSetter = new PaginationSetter();
 
       const masterContracts = await this.masterContractRepository

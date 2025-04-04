@@ -9,6 +9,9 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
+import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
 
 
 @Controller('ordenes/ordenes-de-servicio')
@@ -25,7 +28,7 @@ export class OrdenController {
   @Post('mandar-aprobar/:id')
   sendToSigningOrder(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() signatureAction: {signatureAction :string}
+    @Body() signatureAction: { signatureAction: string }
   ) {
     console.log(signatureAction)
     return this.ordenService.sendToSigningOrder(id, signatureAction.signatureAction as SIGNATURE_ACTION_ENUM);
@@ -36,6 +39,19 @@ export class OrdenController {
   @Get()
   findAll(@Query('pagina') pagina: string) {
     return this.ordenService.findAll(+pagina);
+  }
+
+  @Auth(...rolesOrdenes)
+  @Get('filters')
+  getOrdersWithFilters(
+    @GetUser() user: Usuario,
+    @Query('pageParam') pageParam: number,
+    @Query('searchParams') searchParams?: string,
+    @Query('year') year?: string,
+    @Query('status') status?: ESTATUS_ORDEN_DE_SERVICIO,
+  ) {
+    const canAccessHistory = user.permisos?.includes(ValidPermises.HISTORICO);
+    return this.ordenService.getOrdersWithFilters(pageParam, canAccessHistory, searchParams, year, status);
   }
 
   @Auth(...rolesOrdenes)
@@ -64,7 +80,7 @@ export class OrdenController {
     return this.ordenService.obtenerEstatusOrden(id);
   }
 
-  
+
 
   @Auth(...rolesOrdenes)
   @Get('pdf/:id')
@@ -88,7 +104,7 @@ export class OrdenController {
   async getCampaignOrdersInPDF(
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string
-    
+
   ) {
     const pdfUint8Array = await this.ordenService.generateCampaignOrdersInPDF(id);
 
@@ -115,7 +131,7 @@ export class OrdenController {
   GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
     return this.ordenService.getActiveOrdersByCampaignAndActivation(id);
   }
-  
+
   @Auth(...rolesOrdenes)
   @Patch('cancelar/:id')
   cancelarOrden(@Param('id', ParseUUIDPipe) id: string) {
