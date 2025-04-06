@@ -13,13 +13,12 @@ import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
-import { PROVIDER_TYPE_ENUM } from './enums/provider-type-enum';
+import { transformProvidersToServiceItems } from './functions/transform-providers-to-service-items';
 
 @Injectable()
 export class ProveedorService {
 
   constructor(
-    private eventEmitter: EventEmitter2,
 
     @InjectRepository(Proveedor)
     private providerRepository: Repository<Proveedor>,
@@ -157,27 +156,84 @@ export class ProveedorService {
     }
   }
 
-  async findByService(TIPO_DE_SERVICIO: string) {
+  async getServicesByType(pageParam: number, TIPO_DE_SERVICIO: string) {
     try {
-      const estatus: boolean = true;
-      const proveedores = await this.providerRepository
+      const paginationSetter = new PaginationSetter();
+
+      const status: boolean = true;
+
+      const query = await this.providerRepository
         .createQueryBuilder('proveedor')
         .leftJoinAndSelect('proveedor.estaciones', 'estacion')
         .leftJoinAndSelect('estacion.servicios', 'servicio')
         .leftJoinAndSelect('servicio.renovaciones', 'renovaciones')
-        .where('proveedor.estatus = :estatus', { estatus })
+        .where('proveedor.estatus = :status', { status })
         .andWhere('servicio.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
-        .andWhere('renovaciones.estatus = :estatus', { estatus })
-        .getMany();
-      // console.log(proveedores[0].estaciones)
-      return proveedores;
+        .andWhere('renovaciones.estatus = :status', { status })
 
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
 
+      const result = await query.getMany();
+
+      if (result.length === 0) {
+        return [];
+      }
+
+      const newData = transformProvidersToServiceItems(result);
+
+      return newData;
 
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+
+  async getServicesWithFilter(pageParam: number, serviceType: TIPO_DE_SERVICIO, searchParams?: string, placeOfOperation?: string) {
+    try {
+      const paginationSetter = new PaginationSetter();
+      const status: boolean = true;
+      const query = this.providerRepository
+        .createQueryBuilder('proveedor')
+        .leftJoinAndSelect('proveedor.estaciones', 'estacion')
+        .leftJoinAndSelect('estacion.servicios', 'servicio')
+        .leftJoinAndSelect('servicio.renovaciones', 'renovacion')
+        .leftJoin('estacion.municipios', 'municipio')
+        .andWhere('renovacion.estatus = :status', { status })
+        .andWhere('servicio.TIPO_DE_SERVICIO = :serviceType', { serviceType });
+
+      if (searchParams) {
+        query.andWhere(
+          `(proveedor.rfc ILIKE :search OR estacion.nombreEstacion ILIKE :search OR servicio.nombreDeServicio ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (placeOfOperation) {
+        query.andWhere('municipio.id = :placeOfOperation', { placeOfOperation });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const result = await query.getMany();
+
+      if (result.length === 0) {
+        return [];
+      }
+
+      const newData = transformProvidersToServiceItems(result);
+
+      return newData;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+
 
   async update(id: string, updateProveedorDto: UpdateProveedorDto) {
     try {
@@ -278,14 +334,5 @@ export class ProveedorService {
       handleExceptions(error);
     }
   }
-
-
-
-  // async emitter(proveedor: Proveedor, evento: string) {
-  //   this.eventEmitter.emit(
-  //     `proveedor.${evento}`,
-  //     new ProveedorEvent({ proveedor }),
-  //   )
-  // }
 
 }

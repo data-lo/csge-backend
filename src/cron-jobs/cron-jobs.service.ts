@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { CampañasService } from 'src/campañas/campañas/campañas.service';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';

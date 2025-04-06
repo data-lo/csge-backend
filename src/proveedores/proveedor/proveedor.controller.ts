@@ -4,17 +4,13 @@ import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
-import { LoggerService } from 'src/logger/logger.service';
 import { rolesProveedores } from './valid-proveedores-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
-import { PROVIDER_TYPE_ENUM } from './enums/provider-type-enum';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
 
   constructor(private readonly providerService: ProveedorService) { }
-
-  private readonly logger = new LoggerService(ProveedorController.name);
 
   @Auth(...rolesProveedores)
   @Post()
@@ -59,9 +55,20 @@ export class ProveedorController {
 
   @Auth(...rolesProveedores)
   @Get('servicios')
-  findManyByServices(
-    @Query('TIPO_DE_SERVICIO', new ParseEnumPipe(TIPO_DE_SERVICIO)) TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
-    return this.providerService.findByService(TIPO_DE_SERVICIO);
+  getServicesByType(
+    @Query('pageParam') pageParam: number,
+    @Query('serviceType', new ParseEnumPipe(TIPO_DE_SERVICIO)) serviceType: TIPO_DE_SERVICIO) {
+    return this.providerService.getServicesByType(pageParam, serviceType);
+  }
+
+  @Auth(...rolesProveedores)
+  @Get('service-filters')
+  getServicesWithFilter(
+    @Query('pageParam') pageParam: number,
+    @Query('serviceType') serviceType: TIPO_DE_SERVICIO,
+    @Query('searchParams') searchParams?: string,
+    @Query('placeOfOperation') placeOfOperation?: string) {
+    return this.providerService.getServicesWithFilter(pageParam, serviceType, searchParams, placeOfOperation);
   }
 
   @Auth(...rolesProveedores)

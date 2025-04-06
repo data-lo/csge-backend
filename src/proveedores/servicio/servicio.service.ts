@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { EstacionService } from '../estacion/estacion.service';
-import { flattenCaracteristica } from 'src/helpers/flattenCaracterisitcas.function';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ServicioEvent } from './interfaces/servicio-event';
 import { Proveedor } from '../proveedor/entities/proveedor.entity';
@@ -17,7 +16,7 @@ export class ServicioService {
 
   constructor(
     @InjectRepository(Servicio)
-    private servicioRepository: Repository<Servicio>,
+    private serviceRepository: Repository<Servicio>,
 
     @InjectRepository(Proveedor)
     private proveedorRepository: Repository<Proveedor>,
@@ -34,12 +33,12 @@ export class ServicioService {
 
       const station = await this.stationService.getStation(createServicioDto.estacionId);
 
-      const servicio = this.servicioRepository.create({
+      const servicio = this.serviceRepository.create({
         estacion: station,
         ...rest
       });
 
-      await this.servicioRepository.save(servicio);
+      await this.serviceRepository.save(servicio);
 
       return servicio;
 
@@ -79,10 +78,11 @@ export class ServicioService {
     }
   }
 
+
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter()
-      const servicios = await this.servicioRepository.find({
+      const servicios = await this.serviceRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina),
         relations: { renovaciones: true }
@@ -95,7 +95,7 @@ export class ServicioService {
 
   async findOne(id: string) {
     try {
-      const service = await this.servicioRepository.findOne({
+      const service = await this.serviceRepository.findOne({
         where: { id: id },
         relations: {
           renovaciones: true
@@ -129,11 +129,11 @@ export class ServicioService {
 
   async disableService(serviceId: string) {
     try {
-      const servicio = await this.servicioRepository.findOneBy({ id: serviceId });
+      const servicio = await this.serviceRepository.findOneBy({ id: serviceId });
 
       if (!servicio) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(serviceId, {
+      await this.serviceRepository.update(serviceId, {
         estatus: false
       });
 
@@ -147,11 +147,11 @@ export class ServicioService {
   async disableMultiplyServices(typeServicesId: string[]) {
     for (const serviceId of typeServicesId) {
 
-      const service = await this.servicioRepository.findOneBy({ id: serviceId });
+      const service = await this.serviceRepository.findOneBy({ id: serviceId });
 
       if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(serviceId, {
+      await this.serviceRepository.update(serviceId, {
         estatus: false
       });
     }
@@ -160,11 +160,11 @@ export class ServicioService {
   async enableMultiplyServices(typeServicesId: string[]) {
     for (const serviceId of typeServicesId) {
 
-      const service = await this.servicioRepository.findOneBy({ id: serviceId });
+      const service = await this.serviceRepository.findOneBy({ id: serviceId });
 
       if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(serviceId, {
+      await this.serviceRepository.update(serviceId, {
         estatus: true
       });
     }
@@ -174,11 +174,11 @@ export class ServicioService {
   async updateService(updateServiceDto: UpdateServicioDto, id: string) {
 
     try {
-      const service = await this.servicioRepository.findOneBy({ id: id });
+      const service = await this.serviceRepository.findOneBy({ id: id });
 
       if (!service) throw new NotFoundException('¡El servicio no fue encontrado!');
 
-      await this.servicioRepository.update(
+      await this.serviceRepository.update(
         id, {
         nombreDeServicio: updateServiceDto.nombreDeServicio,
         tipoDeServicio: updateServiceDto.tipoDeServicio
@@ -192,10 +192,10 @@ export class ServicioService {
 
   async activarServicio(id: string) {
     try {
-      const servicio = await this.servicioRepository.findOneBy({ id: id });
+      const servicio = await this.serviceRepository.findOneBy({ id: id });
       if (!servicio) throw new NotFoundException('No se encuentra el servicio');
       servicio.estatus = true;
-      await this.servicioRepository.save(servicio);
+      await this.serviceRepository.save(servicio);
       await this.emitter(servicio.id, 'servicio.activado');
       return { message: 'Servicio activado correctamente' };
     } catch (error) {

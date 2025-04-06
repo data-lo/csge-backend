@@ -1,5 +1,6 @@
 import { Servicio } from "src/proveedores/servicio/entities/servicio.entity";
 import { Column, CreateDateColumn, Entity, Generated, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { ServiceCharacteristics } from "../interfaces/service-characteristics-interface";
 
 @Entity('renovaciones')
 export class Renovacion {
@@ -18,7 +19,7 @@ export class Renovacion {
         nullable: false,
         default: {}
     })
-    caracteristicasDelServicio: Object;
+    caracteristicasDelServicio: ServiceCharacteristics;
 
     @Column({
         name: 'tarifa_unitaria',
