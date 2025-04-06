@@ -100,9 +100,9 @@ export class CampañasService {
   async findAll(pagina: number) {
     try {
       const currentYear = new Date().getFullYear();
-  
+
       const paginationSetter = new PaginationSetter();
-  
+
       const query = this.campaignRepository
         .createQueryBuilder('campaña')
         .leftJoinAndSelect('campaña.dependencias', 'dependencias')
@@ -110,14 +110,14 @@ export class CampañasService {
         .where('EXTRACT(YEAR FROM campaña.creadoEn) = :year', { year: currentYear })
         .take(paginationSetter.castPaginationLimit())
         .skip(paginationSetter.getSkipElements(pagina));
-  
+
       const campañas = await query.getMany();
       return campañas;
     } catch (error) {
       handleExceptions(error);
     }
   }
-  
+
 
   async findAllBusuqueda() {
     try {
@@ -299,7 +299,7 @@ export class CampañasService {
 
   async remove(campaniaId: string) {
     try {
-      const campaignId = await this.campaignRepository.findOne({
+      const campaign = await this.campaignRepository.findOne({
         where: {
           id: campaniaId,
         },
@@ -309,18 +309,28 @@ export class CampañasService {
           },
         },
       });
-      if (!campaignId)
-        throw new Error(`La Campaña con ID: ${campaignId} no se encontró.`);
-      if (
-        campaignId.campaignStatus === CAMPAIGN_STATUS.CREADA ||
-        campaignId.campaignStatus === CAMPAIGN_STATUS.COTIZANDO
-      ) {
-        await this.campaignRepository.remove(campaignId);
-        return { message: 'Campaña eliminada existosamente' };
+
+      if (!campaign) {
+        throw new Error(`¡La campaña con ID: ${campaniaId} no fue encontrada!`);
       }
-      throw new BadRequestException(
-        'Estatus de campaña no valido para eliminar, cancelar campaña',
-      );
+
+      const validStatus = [
+        CAMPAIGN_STATUS.CREADA,
+        CAMPAIGN_STATUS.COTIZANDO
+      ];
+
+      const isRemovable = validStatus.includes(campaign.campaignStatus)
+
+      if (!isRemovable) {
+        throw new BadRequestException(
+          '¡El estatus de la campaña no permite eliminarla! Debe estar en estado "CREADA" o "COTIZANDO".'
+        );
+      }
+
+      await this.campaignRepository.remove(campaign);
+
+      return { message: '¡Campaña eliminada exitosamente!' };
+
     } catch (error) {
       handleExceptions(error);
     }

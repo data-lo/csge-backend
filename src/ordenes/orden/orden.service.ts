@@ -615,11 +615,11 @@ export class OrdenService {
 
       await this.signatureService.create(signatureObject);
 
-      order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
+      // order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
 
-      await this.orderRepository.save(order);
+      // await this.orderRepository.save(order);
 
-      return { message: '¡La campaña ha sido enviada al módulo de firma!' };
+      return { message: '¡La orden ha sido enviada al módulo de firma!' };
 
     } catch (error) {
       handleExceptions(error);
