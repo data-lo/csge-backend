@@ -11,6 +11,7 @@ import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-en
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
+import { CAMPAIGN_TYPE_REPORT } from './reports/campaign-type-report-enum';
 
 @Controller('campanias/campanias')
 export class CampañasController {
@@ -32,6 +33,7 @@ export class CampañasController {
   ) {
     return this.campaignService.sendToSigningCampaign(campaignId, signatureAction);
   }
+
 
   @Auth(...CAMPAIGN_ROLES)
   @Get()
@@ -58,6 +60,13 @@ export class CampañasController {
     return this.campaignService.getCampaignsWithFilters(pageParam, canAccessHistory, searchParams, year, status);
   }
 
+
+  @Get("reports/excel/:type")
+  async downloadExcel(@Param("type") type: CAMPAIGN_TYPE_REPORT, @Res() res: Response) {
+    return this.campaignService.getReportInExcel(res, type);
+  }
+
+  
   @Auth(...CAMPAIGN_ROLES)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {

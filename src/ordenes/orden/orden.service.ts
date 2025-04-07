@@ -343,12 +343,14 @@ export class OrdenService {
         orderStatus: order.estatus,
 
         acquiredServices: order.serviciosContratados.map((service) => ({
+          serviceType: order.tipoDeServicio,
           observations: service.observacion,
           quantity: service.cantidad,
           serviceId: service.id,
           serviceName: service.servicio.nombreDeServicio,
           unitPrice: service.servicio.tarifaUnitaria,
           tax: service.servicio.iva,
+          isBorderTax: service.servicio.ivaFrontera,
           description: service.servicio.descripcionDelServicio,
           numberOfDays: service.calendarizacion,
           spotDetails: {
@@ -371,7 +373,6 @@ export class OrdenService {
   }
 
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
-    console.log("Proband. update de CAM")
     try {
 
       const {

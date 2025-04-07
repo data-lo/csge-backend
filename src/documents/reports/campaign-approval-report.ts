@@ -79,7 +79,7 @@ export const campaignDocumentStructure = async (data: Props) => {
         }),
         content: [
             textoDeRecepcionSection(description),
-            firmasDeRecepcionSection(),
+            firmasDeRecepcionSection(data.signatureAction),
         ],
     };
     return documentDefinition;

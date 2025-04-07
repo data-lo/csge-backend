@@ -6,6 +6,7 @@ import { textoDeRecepcionSection } from "./aprobacion-de-factura-sections/texto-
 import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-de-proveedor-section";
 import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
 import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
+import { SIGNATURE_ACTION_ENUM } from "src/firma/firma/enums/signature-action-enum";
 
 
 interface AprobacionDeFacturaOptions {
@@ -78,7 +79,7 @@ export const aprobacionDeFacturaPdf = async (factura: AprobacionDeFacturaOptions
         content: [
             textoDeRecepcionSection(textoDeRecepcion),
             tablaDeProveedorSection(proveedor.razonSocial, folio, total),
-            firmasDeRecepcionSection(),
+            firmasDeRecepcionSection(SIGNATURE_ACTION_ENUM.APPROVE),
             notaDeFacturaSection(notaDeRecepcion),
             notaDeFacturaSection(notaDeRecepcion2),
         ],

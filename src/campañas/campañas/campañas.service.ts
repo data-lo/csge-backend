@@ -22,6 +22,13 @@ import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuari
 import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
+import { AmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/query-response';
+import { FilteredAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/filtered-data-response';
+import * as XLSX from "xlsx";
+import { transformAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/transform-amounts-tracking-by-provider';
+import { Response } from "express";
+import { CAMPAIGN_TYPE_REPORT } from './reports/campaign-type-report-enum';
+
 
 @Injectable()
 export class CampañasService {
@@ -486,7 +493,7 @@ export class CampañasService {
 
     today.setHours(0, 0, 0, 0);
 
-    // Obtener contratos que finalizan hoy con sus relaciones
+    // Obtener campaigns que finalizan hoy con sus relaciones
     const campaignsEndsToday = await this.campaignRepository.find({
       where: {
         activaciones: { fechaDeCierre: LessThan(today) },
@@ -498,6 +505,134 @@ export class CampañasService {
       const lastActivation = await this.activationService.getLastActivation(campaign.id)
 
       await this.closeCampaign(campaign.id, lastActivation.id);
+    }
+  }
+
+  // Indicadores Camapaña, Filtro Seguimiento de monntos por proveedor
+  async amountsTrackingByProvider(): Promise<AmountsTrackingByProvider[]> {
+    try {
+      const data = await this.campaignRepository
+        .createQueryBuilder("campaña")
+        .innerJoin("campaña.ordenes", "orden")
+        .leftJoin("orden.proveedor", "proveedor")
+        .leftJoin("orden.contratoMaestro", "contrato")
+        .select([
+          // 📁 Campaign (campaña)
+          "campaña.id AS campaign_id",
+          "campaña.nombre AS campaign_name",
+          "campaña.campaignStatus AS campaign_status",
+          "campaña.tipoDeCampaña AS campaign_type",
+          "campaña.creadoEn AS campaign_created_at",
+          "campaña.actualizadoEn AS campaign_updated_at",
+
+          // 📁 Order (orden)
+          "orden.id AS order_id",
+          "orden.indice AS order_index",
+          "orden.estatus AS order_status",
+          "orden.folio AS order_folio",
+          "orden.tipoDeServicio AS order_service_type",
+          "orden.fechaDeEmision AS order_emission_date",
+          "orden.fechaDeAprobacion AS order_approval_date",
+          "orden.subtotal AS order_subtotal",
+          "orden.numberOfActivation AS order_activation_number",
+          "orden.iva AS order_tax",
+          "orden.total AS order_total",
+          "orden.ivaIncluido AS order_tax_included",
+          "orden.ordenAnteriorCancelada AS order_previous_canceled_id",
+          "orden.motivoDeCancelacion AS order_cancel_reason",
+          "orden.esCampania AS order_from_campaign",
+          "orden.creadoEn AS order_created_at",
+          "orden.actualizadoEn AS order_updated_at",
+          "orden.contratoMaestroId AS order_contract_id",
+          "orden.campañaId AS order_campaign_id",
+          "orden.partidaId AS order_partida_id",
+          "orden.proveedorId AS order_provider_id",
+
+          // 📁 Provider (proveedor)
+          "proveedor.id AS provider_id",
+          "proveedor.numeroProveedor AS provider_number",
+          "proveedor.representanteLegal AS provider_legal_representative",
+          "proveedor.nombreComercial AS provider_commercial_name",
+          "proveedor.tipoProveedor AS provider_type",
+          "proveedor.rfc AS provider_rfc",
+          "proveedor.razonSocial AS provider_business_name",
+          "proveedor.domicilioFiscal AS provider_fiscal_address",
+          "proveedor.observacionesProveedor AS provider_observations",
+          "proveedor.estatus AS provider_status",
+          "proveedor.creadoEn AS provider_created_at",
+          "proveedor.actualizadoEn AS provider_updated_at",
+
+          // 📁 Contract (contrato)
+          "contrato.id AS contract_id",
+          "contrato.numeroDeContrato AS contract_number",
+          "contrato.estatusDeContrato AS contract_status",
+          "contrato.tipoDeContrato AS contract_type",
+          "contrato.objetoContrato AS contract_purpose",
+          "contrato.montoMinimoContratado AS contract_min_amount",
+          "contrato.ivaMontoMinimoContratado AS contract_min_tax",
+          "contrato.montoMaximoContratado AS contract_max_amount",
+          "contrato.ivaMontoMaximoContratado AS contract_max_tax",
+          "contrato.committedAmount AS contract_reserved_amount",
+          "contrato.montoDisponible AS contract_available_amount",
+          "contrato.montoPagado AS contract_paid_amount",
+          "contrato.montoEjercido AS contract_spent_amount",
+          "contrato.montoActivo AS contract_active_amount",
+          "contrato.contractBreakdownByOrder AS contract_breakdown",
+          "contrato.fechaInicial AS contract_start_date",
+          "contrato.fechaFinal AS contract_end_date",
+          "contrato.cancellationReason AS contract_cancel_reason",
+          "contrato.linkContrato AS contract_link",
+          "contrato.ivaFrontera AS contract_border_tax",
+          "contrato.creadoEn AS contract_created_at",
+          "contrato.actualizadoEn AS contract_updated_at",
+          "contrato.proveedorId AS contract_provider_id"
+        ])
+        .getRawMany();
+
+
+      return data
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  async getReportInExcel(res: Response, typeCampaignReport: CAMPAIGN_TYPE_REPORT) {
+    console.log(typeCampaignReport)
+    try {
+
+      let dataToExport: any = [];
+
+      let fileName: string = "";
+
+      switch (typeCampaignReport) {
+        case CAMPAIGN_TYPE_REPORT.AMOUNTS_TRACKING_BY_PROVIDER:
+
+          const rawData: AmountsTrackingByProvider[] = await this.amountsTrackingByProvider();
+
+          dataToExport = await transformAmountsTrackingByProvider(rawData);
+
+          fileName = "REPORTE_SEGUIMIENTO_DE_MONTOS_POR_PROVEDOR.xlsx";
+
+          break;
+
+        default:
+          throw new BadRequestException('¡El tipo de reporte solicitado no existe!');
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error al generar Excel:", error);
+      throw error;
     }
   }
 }
