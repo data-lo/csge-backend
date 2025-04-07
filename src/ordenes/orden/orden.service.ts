@@ -51,7 +51,6 @@ import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-en
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
 import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
-import { CAMPAIGN_STATUS } from 'src/campañas/campañas/interfaces/estatus-campaña.enum';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 
@@ -221,7 +220,7 @@ export class OrdenService {
     try {
       const resolvedYear = getResolvedYear(year, canAccessHistory);
       const paginationSetter = new PaginationSetter();
-  
+
       const query = this.orderRepository
         .createQueryBuilder('orden')
         .leftJoinAndSelect('orden.proveedor', 'proveedor')
@@ -239,34 +238,34 @@ export class OrdenService {
           'campaña.nombre',
         ])
         .where('orden.esCampania = false');
-  
+
       if (searchParams) {
         query.andWhere(
           `(orden.folio ILIKE :search OR proveedor.rfc ILIKE :search)`,
           { search: `%${searchParams}%` }
-        );        
+        );
       }
-  
+
       if (resolvedYear) {
         query.andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', {
           year: resolvedYear,
         });
       }
-  
+
       if (status) {
         query.andWhere('orden.estatus = :status', { status });
       }
-  
+
       query.orderBy('orden.fechaDeEmision', 'DESC');
-  
+
       query
         .skip(paginationSetter.getSkipElements(pageNumber))
         .take(paginationSetter.castPaginationLimit());
-  
+
       const ordenes = await query.getMany();
-      return ordenes;
 
       return ordenes;
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -307,7 +306,7 @@ export class OrdenService {
 
   async findOne(id: string) {
     try {
-      const orden = await this.orderRepository.findOne({
+      const order = await this.orderRepository.findOne({
         where: { id },
         relations: {
           proveedor: true,
@@ -317,11 +316,54 @@ export class OrdenService {
         },
       });
 
-      if (!orden) {
+      if (!order) {
         throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
       }
+      const newData = {
+        campaign: {
+          campaignId: order.campaña.id,
+          campaignName: order.campaña.nombre
+        },
+        provider: {
+          providerId: order.proveedor.id,
+          providerName: order.proveedor.razonSocial,
+          providerRFC: order.proveedor.rfc,
+          providerType: order.proveedor.tipoProveedor
+        },
+        masterContract: {
+          masterContractId: order.contratoMaestro.id,
+        },
+        orderId: order.id,
+        tax: order.iva,
+        folio: order.folio,
+        createdAt: order.fechaDeEmision,
+        approvedAt: order.fechaDeAprobacion,
+        isCampaign: order.esCampania,
+        serviceType: order.tipoDeServicio,
+        orderStatus: order.estatus,
 
-      return orden;
+        acquiredServices: order.serviciosContratados.map((service) => ({
+          observations: service.observacion,
+          quantity: service.cantidad,
+          serviceId: service.id,
+          serviceName: service.servicio.nombreDeServicio,
+          unitPrice: service.servicio.tarifaUnitaria,
+          tax: service.servicio.iva,
+          description: service.servicio.descripcionDelServicio,
+          numberOfDays: service.calendarizacion,
+          spotDetails: {
+            versions: service.versionesSpot,
+            impacts: service.impactosVersionSpot,
+            numberOfDays: service.numeroDiasSpot,
+          },
+          govermentBillboard: service.cartelera
+
+        })),
+      };
+
+
+      console.log(newData)
+      return newData;
 
     } catch (error) {
       handleExceptions(error);
@@ -526,8 +568,8 @@ export class OrdenService {
 
   async obtenerEstatusOrden(id: string) {
     try {
-      const orden = await this.findOne(id);
-      return { ordenId: orden.id, estatus: orden.estatus };
+      const order = await this.findOne(id);
+      return { ordenId: order.orderId, estatus: order.orderStatus };
     } catch (error) {
       handleExceptions(error);
     }
@@ -536,7 +578,7 @@ export class OrdenService {
   async cancelarOrden(id: string) {
     try {
       const orden = await this.findOne(id);
-      if (orden.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
+      if (orden.orderStatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         await this.orderRepository.update(id, {
           estatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA,
         });

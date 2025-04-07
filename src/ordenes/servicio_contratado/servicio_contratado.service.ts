@@ -36,12 +36,19 @@ export class ServicioContratadoService {
       const orden = await this.ordenRepository.findOneBy({ id: ordenId });
       if (!orden) throw new NotFoundException('No se encuentra la orden');
 
+      console.log(rest.servicio)
       const servicioContratado = this.servicioContratadoRepository.create({
+        ...rest, // primero todo lo que venga
         cantidad: Number(cantidad),
-        cartelera: cartelera,
+        cartelera,
         ordenDeServicio: orden,
-        ...rest
+        servicio: {
+          ...rest.servicio,
+          tarifaUnitaria: Number(rest.servicio.tarifaUnitaria),
+        },
       });
+      
+
       await this.servicioContratadoRepository.save(servicioContratado);
       return servicioContratado;
 
