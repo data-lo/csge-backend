@@ -116,7 +116,7 @@ export class OrdenService {
         return {
           status: "NOT_CREATED",
           data: {
-            amount: amountDetails.subtotal.toString(),
+            amount: amountDetails.total.toString(),
             providerName: provider.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
@@ -347,6 +347,7 @@ export class OrdenService {
           observations: service.observacion,
           quantity: service.cantidad,
           serviceId: service.id,
+          formatType: service.servicio.tipoFormato,
           serviceName: service.servicio.nombreDeServicio,
           unitPrice: service.servicio.tarifaUnitaria,
           tax: service.servicio.iva,
@@ -363,8 +364,6 @@ export class OrdenService {
         })),
       };
 
-
-      console.log(newData)
       return newData;
 
     } catch (error) {
@@ -395,7 +394,7 @@ export class OrdenService {
         });
 
       if (!currentlyOrder) {
-        throw new NotFoundException('No se encuentra la orden');
+        throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
       }
 
       if (campaniaId) {
@@ -410,10 +409,44 @@ export class OrdenService {
 
       Object.assign(currentlyOrder, { ...rest },);
 
-      if (currentlyOrder.serviciosContratados) {
-        for (const servicioContratado of currentlyOrder.serviciosContratados) {
-          await this.contractedServiceService.remove(servicioContratado.id);
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
+
+      await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+        committedAmount: new Decimal(currentlyOrder.contratoMaestro.montoMaximoContratado).minus(currentlyOrder.total).toNumber()
+      });
+
+      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).
+        minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
+
+      if (new Decimal(currentlyOrder.total).lessThan(availableFunds)) {
+        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+          committedAmount: new Decimal(currentlyOrder.total).toNumber()
+        });
+
+        if (currentlyOrder.serviciosContratados) {
+          await Promise.all(
+            currentlyOrder.serviciosContratados.map(acquiredServices =>
+              this.contractedServiceService.remove(acquiredServices.id)
+            )
+          );
+
         }
+      } else {
+        const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
+          quantity: cantidad,
+          serviceName: servicio.nombreDeServicio,
+          uniqueId: uniqueId
+        }));
+
+        return {
+          status: "NOT_CREATED",
+          data: {
+            amount: amountDetails.total.toString(),
+            providerName: currentlyOrder.proveedor.razonSocial,
+            serviceType: tipoDeServicio,
+            services: formattedServices,
+          }
+        };
       }
 
       if (serviciosContratados) {
@@ -428,19 +461,6 @@ export class OrdenService {
 
         currentlyOrder.serviciosContratados = newServices;
       }
-      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
-
-
-      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
-
-      if (amountDetails.total.lessThan(availableFunds)) {
-        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
-          committedAmount: amountDetails.total.toNumber()
-        });
-      } else {
-        throw new NotFoundException('¡No se pudo actualizar la orden debido a insuficiencia de fondos en los contratos!');
-      }
-
 
       currentlyOrder.iva = amountDetails.tax.toString();
 
