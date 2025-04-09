@@ -268,8 +268,7 @@ export class FacturaService {
       throw new Error('Error al procesar el archivo XML');
     }
   }
-
-
+  
   //Canela la factura ingresada
   async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
     try {
@@ -282,12 +281,12 @@ export class FacturaService {
         );
 
       factura.motivoCancelacion = motivoDeCancelacion;
-      const { message, value } = await this.minioService.eliminarArchivos(id);
+      // const { message, value } = await this.minioService.eliminarArchivos(id);
 
-      if (value) {
+      // if (value) {
         await this.invoiceRepository.save(factura);
-        return { message: `Factura cancelada correctamente, ${message}` };
-      }
+        return { message: `Factura cancelada correctamente,` };
+      // }
     } catch (error) {
       handleExceptions(error);
     }

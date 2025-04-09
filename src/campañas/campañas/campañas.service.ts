@@ -270,6 +270,7 @@ export class CampañasService {
   }
 
   async closeCampaign(campaignId: string, activationId: string) {
+
     const validStatus = [
       CAMPAIGN_STATUS.APROBADA,
       CAMPAIGN_STATUS.CANCELADA,
@@ -493,10 +494,21 @@ export class CampañasService {
 
     today.setHours(0, 0, 0, 0);
 
+    // Estatus válidos para desactivación
+    const validStatus = [
+      CAMPAIGN_STATUS.APROBADA,
+      CAMPAIGN_STATUS.CANCELADA,
+      CAMPAIGN_STATUS.REACTIVADA,
+      CAMPAIGN_STATUS.CREADA,
+      CAMPAIGN_STATUS.COTIZANDO
+    ];
+
+
     // Obtener campaigns que finalizan hoy con sus relaciones
     const campaignsEndsToday = await this.campaignRepository.find({
       where: {
         activaciones: { fechaDeCierre: LessThan(today) },
+        campaignStatus: In(validStatus)
       }
     });
 
@@ -628,8 +640,11 @@ export class CampañasService {
       const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
       res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
       res.send(buffer);
+      
     } catch (error) {
       console.error("Error al generar Excel:", error);
       throw error;
