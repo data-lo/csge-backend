@@ -354,8 +354,6 @@ export class FirmaService {
         relations: { usuariosFirmadores: true },
       });
 
-      console.log(document);
-
       // Si el usuario no existe, lanzar una excepción
       if (!user) {
         throw new NotFoundException('¡No se encuentra el usuario!');
