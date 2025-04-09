@@ -46,7 +46,8 @@ export class ProveedorService {
 
       // Verificar si ya existe un proveedor con el mismo RFC
       const existingProvider = await this.findByRfc(rfc);
-      if (existingProvider) {
+
+      if (existingProvider.length > 0) {
         throw new BadRequestException(`¡Ya existe un proveedor registrado con el RFC: ${rfc}!`);
       }
 
@@ -117,7 +118,6 @@ export class ProveedorService {
   }
 
   async findByRfc(rfc: string) {
-    console.log(rfc)
     try {
       const where: Record<string, any> = {};
 

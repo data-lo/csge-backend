@@ -149,7 +149,7 @@ export class OrdenService {
         numberOfActivation: numberOfActivation,
         iva: amountDetails.tax.toString(),
         total: amountDetails.total.toString(),
-        subtotal: amountDetails.total.toString(),
+        subtotal: amountDetails.subtotal.toString(),
         ...rest,
       });
 

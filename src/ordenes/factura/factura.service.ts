@@ -143,7 +143,7 @@ export class FacturaService {
     } catch (error) {
       handleExceptions(error);
     }
-  } d
+  }
 
   async findAllBusqueda() {
     try {

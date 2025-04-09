@@ -77,10 +77,11 @@ export class MinioService {
   }
 
   async subirArchivosAMinio(files: MinioFileI[]) {
+    console.log(files)
     try {
       const minioClient = this.getMinioClient();
 
-      const bucket = this.getBucketByType('logos');
+      const bucket = this.getBucketByType('invoices');
 
       const exists = await minioClient.bucketExists(bucket);
 
