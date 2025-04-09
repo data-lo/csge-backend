@@ -2,6 +2,7 @@ import axios from 'axios';
 import { Content } from 'pdfmake/interfaces';
 import sharp from 'sharp';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
+import { FILE_STATUS } from 'src/minio/enums/file-status-enum';
 import { MinioService } from 'src/minio/minio.service';
 
 interface HeaderOptions {
@@ -11,17 +12,24 @@ interface HeaderOptions {
   folio: string;
 }
 
-const fetchImaageFromUrl = async () => {
+const getDocumentImage = async () => {
   try {
     const minioService = new MinioService();
-    const minioImageUrl = await minioService.obtenerImagen();
-    const imagen = await axios.get(minioImageUrl, {
-      responseType: 'arraybuffer',
-    });
 
-    const buffer = Buffer.from(imagen.data);
+    const image = await minioService.getImage();
 
-    return buffer;
+    if (image.status === FILE_STATUS.FILE_FOUND) {
+      const response = await axios.get(image.url, {
+        responseType: 'arraybuffer',
+      });
+
+      const buffer = Buffer.from(response.data);
+
+      return buffer
+    }
+
+    return FILE_STATUS.FILE_NOT_FOUND
+
   } catch (error) {
     return null;
   }
@@ -45,16 +53,17 @@ const dividirTextoPorEspacios = (texto: string, longitud: number): string => {
 };
 
 
-export const headerSection = async (
-  options: HeaderOptions,
-): Promise<Content> => {
+export const headerSection = async (options: HeaderOptions,): Promise<Content> => {
   try {
     let logo: Content = null;
+
     const { showTitle, showLogo, textoEncabezado, folio } = options;
 
     if (showLogo) {
-      const imageBuffer = await fetchImaageFromUrl();
-      if (imageBuffer) {
+
+      const imageBuffer = await getDocumentImage();
+
+      if (imageBuffer !== FILE_STATUS.FILE_NOT_FOUND) {
         const metadata = await sharp(imageBuffer).metadata();
         const maxWidth = 150;
         const maxheight = 100;
@@ -92,7 +101,7 @@ export const headerSection = async (
           stack: [logo],
           alignment: 'left',
         },
-       
+
         {
           width: '*',
           stack: [headerText],

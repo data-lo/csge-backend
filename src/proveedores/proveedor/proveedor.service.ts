@@ -3,7 +3,7 @@ import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { Proveedor } from './entities/proveedor.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
@@ -13,12 +13,12 @@ import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
+import { transformProvidersToServiceItems } from './functions/transform-providers-to-service-items';
 
 @Injectable()
 export class ProveedorService {
 
   constructor(
-    private eventEmitter: EventEmitter2,
 
     @InjectRepository(Proveedor)
     private providerRepository: Repository<Proveedor>,
@@ -33,49 +33,74 @@ export class ProveedorService {
   async create(createProviderDto: CreateProveedorDto | ProveedorParcialDto) {
     try {
       const { rfc } = createProviderDto;
-  
+
       // Validación de longitud del RFC
       if (!rfc || rfc.length < 12) {
         throw new BadRequestException('¡El RFC debe contener al menos 12 caracteres!');
       }
-  
+
       // Validación de longitud máxima (opcional, si aplica)
       if (rfc.length > 13) {
         throw new BadRequestException('¡El RFC no puede contener más de 13 caracteres!');
       }
-  
+
       // Verificar si ya existe un proveedor con el mismo RFC
       const existingProvider = await this.findByRfc(rfc);
-      if (existingProvider) {
+
+      if (existingProvider.length > 0) {
         throw new BadRequestException(`¡Ya existe un proveedor registrado con el RFC: ${rfc}!`);
       }
-  
+
       const provider = this.providerRepository.create(createProviderDto);
       await this.providerRepository.save(provider);
-  
+
       return provider;
     } catch (error) {
       handleExceptions(error);
     }
   }
-  
 
-
-  async findAll(pagina: number) {
+  async findAll(page: number) {
     try {
-      const paginationSetter = new PaginationSetter()
+      const paginationSetter = new PaginationSetter();
+
       const proveedores = await this.providerRepository.find({
         order: {
           estatus: 'DESC',
         },
-        skip: paginationSetter.getSkipElements(pagina),
+        skip: paginationSetter.getSkipElements(page),
         take: paginationSetter.castPaginationLimit(),
       });
+
       return proveedores;
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+  async getProvidersWithFilters(pageParam: number, searchParams?: string) {
+    try {
+      const where: Record<string, any> = {};
+
+      if (searchParams) {
+        where.rfc = ILike(`%${searchParams}%`);
+      }
+
+      const paginationSetter = new PaginationSetter();
+
+      const providers = await this.providerRepository.find({
+        where,
+        skip: paginationSetter.getSkipElements(pageParam),
+        take: paginationSetter.castPaginationLimit(),
+      });
+
+      return providers;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+
 
   async findAllBusqueda() {
     try {
@@ -94,14 +119,17 @@ export class ProveedorService {
 
   async findByRfc(rfc: string) {
     try {
-      const provider = await this.providerRepository.createQueryBuilder('proveedor')
-        .where('proveedor.rfc LIKE :rfc', { rfc: `${rfc.toUpperCase()}%` })
-        .getMany();
+      const where: Record<string, any> = {};
 
-      if (provider.length === 0) {
-        return undefined;
-      };
-      return provider;
+      if (rfc) {
+        where.rfc = ILike(`%${rfc}%`);
+      }
+
+      const providers = await this.providerRepository.find({
+        where,
+      });
+
+      return providers;
     } catch (error) {
       handleExceptions(error);
     }
@@ -128,27 +156,84 @@ export class ProveedorService {
     }
   }
 
-  async findByService(TIPO_DE_SERVICIO: string) {
+  async getServicesByType(pageParam: number, TIPO_DE_SERVICIO: string) {
     try {
-      const estatus: boolean = true;
-      const proveedores = await this.providerRepository
+      const paginationSetter = new PaginationSetter();
+
+      const status: boolean = true;
+
+      const query = await this.providerRepository
         .createQueryBuilder('proveedor')
         .leftJoinAndSelect('proveedor.estaciones', 'estacion')
         .leftJoinAndSelect('estacion.servicios', 'servicio')
         .leftJoinAndSelect('servicio.renovaciones', 'renovaciones')
-        .where('proveedor.estatus = :estatus', { estatus })
+        .where('proveedor.estatus = :status', { status })
         .andWhere('servicio.TIPO_DE_SERVICIO = :TIPO_DE_SERVICIO', { TIPO_DE_SERVICIO })
-        .andWhere('renovaciones.estatus = :estatus', { estatus })
-        .getMany();
-      // console.log(proveedores[0].estaciones)
-      return proveedores;
+        .andWhere('renovaciones.estatus = :status', { status })
 
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
 
+      const result = await query.getMany();
+
+      if (result.length === 0) {
+        return [];
+      }
+
+      const newData = transformProvidersToServiceItems(result);
+
+      return newData;
 
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+
+  async getServicesWithFilter(pageParam: number, serviceType: TIPO_DE_SERVICIO, searchParams?: string, placeOfOperation?: string) {
+    try {
+      const paginationSetter = new PaginationSetter();
+      const status: boolean = true;
+      const query = this.providerRepository
+        .createQueryBuilder('proveedor')
+        .leftJoinAndSelect('proveedor.estaciones', 'estacion')
+        .leftJoinAndSelect('estacion.servicios', 'servicio')
+        .leftJoinAndSelect('servicio.renovaciones', 'renovacion')
+        .leftJoin('estacion.municipios', 'municipio')
+        .andWhere('renovacion.estatus = :status', { status })
+        .andWhere('servicio.TIPO_DE_SERVICIO = :serviceType', { serviceType });
+
+      if (searchParams) {
+        query.andWhere(
+          `(proveedor.rfc ILIKE :search OR estacion.nombreEstacion ILIKE :search OR servicio.nombreDeServicio ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (placeOfOperation) {
+        query.andWhere('municipio.id = :placeOfOperation', { placeOfOperation });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const result = await query.getMany();
+
+      if (result.length === 0) {
+        return [];
+      }
+
+      const newData = transformProvidersToServiceItems(result);
+
+      return newData;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+
 
   async update(id: string, updateProveedorDto: UpdateProveedorDto) {
     try {
@@ -251,12 +336,5 @@ export class ProveedorService {
   }
 
 
-
-  // async emitter(proveedor: Proveedor, evento: string) {
-  //   this.eventEmitter.emit(
-  //     `proveedor.${evento}`,
-  //     new ProveedorEvent({ proveedor }),
-  //   )
-  // }
 
 }

@@ -29,7 +29,7 @@ export class ContractEventsService {
 
       await this.contractService.updateContractAmountByOrder(
         payload.orderId,
-        order.contratoMaestro.id,
+        order.masterContract.masterContractId,
         payload.eventType
       );
 
@@ -104,7 +104,7 @@ export class ContractEventsService {
 
 
   @OnEvent('cancelled-campaign-orders', { async: true })
-  async cancelDiscountsForMultipleContracts(payload: { campaignId: string}) {
+  async cancelDiscountsForMultipleContracts(payload: { campaignId: string }) {
     this.logger.log(`🔄 Iniciando evento "cancelled-campaign-orders" para la Campaña: ${payload.campaignId}`);
 
     try {

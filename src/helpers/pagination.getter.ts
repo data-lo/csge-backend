@@ -1,5 +1,5 @@
 export class PaginationSetter{
-    castPaginationLimit( ){
+    castPaginationLimit(){
         const paginationLimit = 35;
         return paginationLimit;
     }

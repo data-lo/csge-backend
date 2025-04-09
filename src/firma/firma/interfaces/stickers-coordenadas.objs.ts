@@ -5,7 +5,7 @@ export const coordenadasOrden = {
     ty: 700,
 }
 
-export const coordenadasCotejador = {
+export const COSIGNER_COORDINATES = {
     lx: 120,
     ly: 80,
     tx: 320,

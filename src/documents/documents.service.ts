@@ -36,7 +36,7 @@ export class DocumentsService {
   ) { }
 
 
-  async buildOrderDocument(orderId: string, isCampaign?: boolean, isFromCampaign?: boolean, activationId?: string) {
+  async buildOrderDocument(orderId: string, isCampaign?: boolean, requestFromCampaignModule?: boolean, activationId?: string) {
 
     try {
       const order = await this.ordenDeServicioRepository.findOne({
@@ -70,14 +70,15 @@ export class DocumentsService {
 
       const textoEncabezado = await this.textosService.obtenerEncabezado();
       const textoPieDePagina = await this.textosService.obtenerPieDePagina();
+
       const definicionDeOrden = await ordenDeServicioPdf({
         ordenDeServicio: order,
         textoEncabezado: textoEncabezado.texto,
         textoPieDePagina: textoPieDePagina.texto,
-        qrCode
+        qrCode,
       });
 
-      if (isCampaign && isFromCampaign) {
+      if (isCampaign && requestFromCampaignModule) {
         const pdfDoc = this.printerService.createPdf(definicionDeOrden);
 
         const pdfBytes = await new Promise<Uint8Array>((resolve, reject) => {

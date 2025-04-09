@@ -143,7 +143,7 @@ export class FacturaService {
     } catch (error) {
       handleExceptions(error);
     }
-  } d
+  }
 
   async findAllBusqueda() {
     try {
@@ -242,7 +242,7 @@ export class FacturaService {
           .TotalImpuestosTrasladados;
 
       let conceptos = facturaXml['cfdi:Comprobante']['cfdi:Conceptos'];
-      
+
       if (!Array.isArray(conceptos)) {
         conceptos = [conceptos];
       }
@@ -269,7 +269,6 @@ export class FacturaService {
     }
   }
 
-
   //Canela la factura ingresada
   async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
     try {
@@ -282,12 +281,12 @@ export class FacturaService {
         );
 
       factura.motivoCancelacion = motivoDeCancelacion;
-      const { message, value } = await this.minioService.eliminarArchivos(id);
+      // const { message, value } = await this.minioService.eliminarArchivos(id);
 
-      if (value) {
-        await this.invoiceRepository.save(factura);
-        return { message: `Factura cancelada correctamente, ${message}` };
-      }
+      // if (value) {
+      await this.invoiceRepository.save(factura);
+      return { message: `Factura cancelada correctamente,` };
+      // }
     } catch (error) {
       handleExceptions(error);
     }
@@ -352,9 +351,12 @@ export class FacturaService {
 
   async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
     try {
+      console.log(file)
 
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+
       const sheetName = workbook.SheetNames[0];
+
       const worksheet = workbook.Sheets[sheetName];
 
       const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -409,7 +411,9 @@ export class FacturaService {
 
         const newStatus = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
 
-        const existingPayments = invoice.paymentRegister || [];
+        console.log('📦 paymentRegister:', invoice.paymentRegister);
+
+        const existingPayments = Array.isArray(invoice.paymentRegister) ? invoice.paymentRegister : [];
 
         const alreadyRegistered = existingPayments.some(item =>
           new Date(item.paymentRegisteredAt).getTime() === new Date(row.accountingDate).getTime() &&
@@ -433,7 +437,6 @@ export class FacturaService {
         });
 
         paidInvoiceCount += 1;
-
       }
 
       return {
@@ -445,6 +448,7 @@ export class FacturaService {
       };
 
     } catch (error) {
+      console.log(error)
       throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }

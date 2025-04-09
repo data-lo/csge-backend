@@ -12,89 +12,94 @@ export class IvaService {
 
   constructor(
     @InjectRepository(Iva)
-    private ivaRepositroy:Repository<Iva>
-  ){}
-  
-  
+    private taxRepository: Repository<Iva>
+  ) { }
+
+
   async create(createIvaDto: CreateIvaDto) {
-    try{
-      const iva = this.ivaRepositroy.create(createIvaDto);
-      await this.ivaRepositroy.save(iva);
+    try {
+      const iva = this.taxRepository.create(createIvaDto);
+      await this.taxRepository.save(iva);
       return {
-        "id":iva.id,
-        "porcentaje":(iva.porcentaje*100),
-        "territorio":iva.territorio
+        "id": iva.id,
+        "porcentaje": (iva.porcentaje * 100),
+        "territorio": iva.territorio
       };
-    }catch(error){
+    } catch (error) {
       handleExceptions(error);
     }
   }
 
   async findAll() {
-    try{
-      let ivas = await this.ivaRepositroy.find();
+    try {
+      let ivas = await this.taxRepository.find();
       ivas.forEach(iva => {
-        iva.porcentaje = (iva.porcentaje*100)
+        iva.porcentaje = (iva.porcentaje * 100)
       });
       return ivas;
-    }catch(error){
+    } catch (error) {
       handleExceptions(error);
     }
   }
 
   async findOne(id: string) {
-    try{
-      const iva = await this.ivaRepositroy.findOneBy({id:id});
-      if(iva){
+    try {
+      const iva = await this.taxRepository.findOneBy({ id: id });
+      if (iva) {
         return {
-          "id":iva.id,
-          "porcentaje":(iva.porcentaje*100),
-          "territorio":iva.territorio
+          "id": iva.id,
+          "porcentaje": (iva.porcentaje * 100),
+          "territorio": iva.territorio
         };
       }
       throw new NotFoundException('El Iva no existe');
-    }catch(error){
+    } catch (error) {
       handleExceptions(error);
     }
   }
 
-  async update(id: string, updateIvaDto: UpdateIvaDto) {
-    try{
-      const iva = this.findOne(id);
-      if(iva){
-        const ivaActualizado = await this.ivaRepositroy.update(id,updateIvaDto);
-        if(ivaActualizado.affected === 0){
-          throw new NotFoundException('No se encontro IVA');
-        }
-        return this.findOne(id);
+  async update(taxId: string, values: UpdateIvaDto) {
+    console.log(values)
+    try {
+      const tax = await this.findOne(taxId);
+
+      if (!tax) {
+        throw new NotFoundException(`¡No se encontró el IVA con ID '${taxId}'!`);
       }
-    }catch(error){
+
+      await this.taxRepository.update(taxId, {
+        porcentaje: values.porcentaje
+      });
+    
+      return this.findOne(taxId);
+      
+    } catch (error) {
       handleExceptions(error);
     }
   }
 
-  async obtenerIvaNacional(){
-    try{
-      let iva = await this.ivaRepositroy.findOneBy({territorio:Territorio.NACIONAL})
+  async obtenerIvaNacional() {
+    try {
+      let iva = await this.taxRepository.findOneBy({ territorio: Territorio.NACIONAL })
       return {
-        "id":iva.id,
-        "porcentaje":(iva.porcentaje*100),
-        "territorio":iva.territorio
+        "id": iva.id,
+        "porcentaje": (iva.porcentaje * 100),
+        "territorio": iva.territorio
       }
-    }catch(error){
+    } catch (error) {
       handleExceptions(error);
     }
   }
 
-  async obtenerIvaFrontera(){
-    try{
-      let iva = await this.ivaRepositroy.findOneBy({territorio:Territorio.FRONTERA})
+  async obtenerIvaFrontera() {
+    try {
+      let iva = await this.taxRepository.findOneBy({ territorio: Territorio.FRONTERA })
       return {
-        "id":iva.id,
-        "porcentaje":(iva.porcentaje*100),
-        "territorio":iva.territorio
+        "id": iva.id,
+        "porcentaje": (iva.porcentaje * 100),
+        "territorio": iva.territorio
       }
-    }catch(error){
+    } catch (error) {
       handleExceptions(error);
     }
   }

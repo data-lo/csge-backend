@@ -37,11 +37,11 @@ export class FacturaEventosService {
                     orderStatus = ESTATUS_ORDEN_DE_SERVICIO.CANCELADA
                 }
 
-                await this.orderService.updateOrderStatus(order.id, orderStatus);
+                await this.orderService.updateOrderStatus(order.orderId, orderStatus);
 
                 await this.contractService.updateContractAmountByOrder(
-                    order.id,
-                    order.contratoMaestro.id,
+                    order.orderId,
+                    order.masterContract.masterContractId,
                     payload.eventType
                 );
             }

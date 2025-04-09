@@ -51,6 +51,7 @@ import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-en
 import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
 import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 
 /**
@@ -115,7 +116,7 @@ export class OrdenService {
         return {
           status: "NOT_CREATED",
           data: {
-            amount: amountDetails.subtotal.toString(),
+            amount: amountDetails.total.toString(),
             providerName: provider.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
@@ -148,7 +149,7 @@ export class OrdenService {
         numberOfActivation: numberOfActivation,
         iva: amountDetails.tax.toString(),
         total: amountDetails.total.toString(),
-        subtotal: amountDetails.total.toString(),
+        subtotal: amountDetails.subtotal.toString(),
         ...rest,
       });
 
@@ -183,41 +184,93 @@ export class OrdenService {
   async findAll(pagina: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const ordenes = await this.orderRepository.find({
-        take: paginationSetter.castPaginationLimit(),
-        skip: paginationSetter.getSkipElements(pagina),
-        relations: {
-          proveedor: true,
-          campaña: true,
-        },
-        select: {
-          id: true,
-          folio: true,
-          tipoDeServicio: true,
-          fechaDeEmision: true,
-          fechaDeAprobacion: true,
-          estatus: true,
-          esCampania: true,
-          campaña: {
-            nombre: true,
-          },
-          proveedor: {
-            nombreComercial: true,
-            razonSocial: true,
-          },
-        },
-        where: {
-          esCampania: false
-        },
-        order: {
-          fechaDeEmision: 'DESC',
-        },
-      });
+
+      const currentYear = new Date().getFullYear();
+
+      const ordenes = await this.orderRepository
+        .createQueryBuilder('orden')
+        .leftJoinAndSelect('orden.proveedor', 'proveedor')
+        .leftJoinAndSelect('orden.campaña', 'campaña')
+        .select([
+          'orden.id',
+          'orden.folio',
+          'orden.tipoDeServicio',
+          'orden.fechaDeEmision',
+          'orden.fechaDeAprobacion',
+          'orden.estatus',
+          'orden.esCampania',
+          'proveedor.nombreComercial',
+          'proveedor.razonSocial',
+          'campaña.nombre',
+        ])
+        .where('orden.esCampania = false')
+        .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year: currentYear })
+        .orderBy('orden.fechaDeEmision', 'DESC')
+        .take(paginationSetter.castPaginationLimit())
+        .skip(paginationSetter.getSkipElements(pagina))
+        .getMany();
+
       return ordenes;
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+  async getOrdersWithFilters(pageNumber: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: ESTATUS_ORDEN_DE_SERVICIO) {
+    try {
+      const resolvedYear = getResolvedYear(year, canAccessHistory);
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.orderRepository
+        .createQueryBuilder('orden')
+        .leftJoinAndSelect('orden.proveedor', 'proveedor')
+        .leftJoinAndSelect('orden.campaña', 'campaña')
+        .select([
+          'orden.id',
+          'orden.folio',
+          'orden.tipoDeServicio',
+          'orden.fechaDeEmision',
+          'orden.fechaDeAprobacion',
+          'orden.estatus',
+          'orden.esCampania',
+          'proveedor.nombreComercial',
+          'proveedor.razonSocial',
+          'campaña.nombre',
+        ])
+        .where('orden.esCampania = false');
+
+      if (searchParams) {
+        query.andWhere(
+          `(orden.folio ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (resolvedYear) {
+        query.andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', {
+          year: resolvedYear,
+        });
+      }
+
+      if (status) {
+        query.andWhere('orden.estatus = :status', { status });
+      }
+
+      query.orderBy('orden.fechaDeEmision', 'DESC');
+
+      query
+        .skip(paginationSetter.getSkipElements(pageNumber))
+        .take(paginationSetter.castPaginationLimit());
+
+      const ordenes = await query.getMany();
+
+      return ordenes;
+
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
 
   async findAllBusqueda() {
     try {
@@ -253,7 +306,7 @@ export class OrdenService {
 
   async findOne(id: string) {
     try {
-      const orden = await this.orderRepository.findOne({
+      const order = await this.orderRepository.findOne({
         where: { id },
         relations: {
           proveedor: true,
@@ -263,11 +316,55 @@ export class OrdenService {
         },
       });
 
-      if (!orden) {
+      if (!order) {
         throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
       }
+      const newData = {
+        campaign: {
+          campaignId: order.campaña.id,
+          campaignName: order.campaña.nombre
+        },
+        provider: {
+          providerId: order.proveedor.id,
+          providerName: order.proveedor.razonSocial,
+          providerRFC: order.proveedor.rfc,
+          providerType: order.proveedor.tipoProveedor
+        },
+        masterContract: {
+          masterContractId: order.contratoMaestro.id,
+        },
+        orderId: order.id,
+        tax: order.iva,
+        folio: order.folio,
+        createdAt: order.fechaDeEmision,
+        approvedAt: order.fechaDeAprobacion,
+        isCampaign: order.esCampania,
+        serviceType: order.tipoDeServicio,
+        orderStatus: order.estatus,
 
-      return orden;
+        acquiredServices: order.serviciosContratados.map((service) => ({
+          serviceType: order.tipoDeServicio,
+          observations: service.observacion,
+          quantity: service.cantidad,
+          serviceId: service.id,
+          formatType: service.servicio.tipoFormato,
+          serviceName: service.servicio.nombreDeServicio,
+          unitPrice: service.servicio.tarifaUnitaria,
+          tax: service.servicio.iva,
+          isBorderTax: service.servicio.ivaFrontera,
+          description: service.servicio.descripcionDelServicio,
+          numberOfDays: service.calendarizacion,
+          spotDetails: {
+            versions: service.versionesSpot,
+            impacts: service.impactosVersionSpot,
+            numberOfDays: service.numeroDiasSpot,
+          },
+          govermentBillboard: service.cartelera
+
+        })),
+      };
+
+      return newData;
 
     } catch (error) {
       handleExceptions(error);
@@ -275,7 +372,6 @@ export class OrdenService {
   }
 
   async update(id: string, updateOrdenDto: UpdateOrdenDto) {
-    console.log("Proband. update de CAM")
     try {
 
       const {
@@ -298,7 +394,7 @@ export class OrdenService {
         });
 
       if (!currentlyOrder) {
-        throw new NotFoundException('No se encuentra la orden');
+        throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
       }
 
       if (campaniaId) {
@@ -313,10 +409,44 @@ export class OrdenService {
 
       Object.assign(currentlyOrder, { ...rest },);
 
-      if (currentlyOrder.serviciosContratados) {
-        for (const servicioContratado of currentlyOrder.serviciosContratados) {
-          await this.contractedServiceService.remove(servicioContratado.id);
+      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
+
+      await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+        committedAmount: new Decimal(currentlyOrder.contratoMaestro.montoMaximoContratado).minus(currentlyOrder.total).toNumber()
+      });
+
+      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).
+        minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
+
+      if (new Decimal(currentlyOrder.total).lessThan(availableFunds)) {
+        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
+          committedAmount: new Decimal(currentlyOrder.total).toNumber()
+        });
+
+        if (currentlyOrder.serviciosContratados) {
+          await Promise.all(
+            currentlyOrder.serviciosContratados.map(acquiredServices =>
+              this.contractedServiceService.remove(acquiredServices.id)
+            )
+          );
+
         }
+      } else {
+        const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
+          quantity: cantidad,
+          serviceName: servicio.nombreDeServicio,
+          uniqueId: uniqueId
+        }));
+
+        return {
+          status: "NOT_CREATED",
+          data: {
+            amount: amountDetails.total.toString(),
+            providerName: currentlyOrder.proveedor.razonSocial,
+            serviceType: tipoDeServicio,
+            services: formattedServices,
+          }
+        };
       }
 
       if (serviciosContratados) {
@@ -331,19 +461,6 @@ export class OrdenService {
 
         currentlyOrder.serviciosContratados = newServices;
       }
-      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
-
-
-      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
-
-      if (amountDetails.total.lessThan(availableFunds)) {
-        await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
-          committedAmount: amountDetails.total.toNumber()
-        });
-      } else {
-        throw new NotFoundException('¡No se pudo actualizar la orden debido a insuficiencia de fondos en los contratos!');
-      }
-      
 
       currentlyOrder.iva = amountDetails.tax.toString();
 
@@ -472,8 +589,8 @@ export class OrdenService {
 
   async obtenerEstatusOrden(id: string) {
     try {
-      const orden = await this.findOne(id);
-      return { ordenId: orden.id, estatus: orden.estatus };
+      const order = await this.findOne(id);
+      return { ordenId: order.orderId, estatus: order.orderStatus };
     } catch (error) {
       handleExceptions(error);
     }
@@ -482,7 +599,7 @@ export class OrdenService {
   async cancelarOrden(id: string) {
     try {
       const orden = await this.findOne(id);
-      if (orden.estatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
+      if (orden.orderStatus !== ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE) {
         await this.orderRepository.update(id, {
           estatus: ESTATUS_ORDEN_DE_SERVICIO.CANCELADA,
         });
@@ -541,37 +658,37 @@ export class OrdenService {
   }
 
   async sendToSigningOrder(orderId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
-      try {
-        const order = await this.orderRepository.findOne({
-          where: { id: orderId }
-        });
-  
-        if (!order) {
-          throw new NotFoundException(`¡La campaña con ID ${orderId} no fue encontrada!`);
-        }
-  
-        // await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
-  
-        const signatureObject = {
-          isSigned: false,
-          documentId: orderId,
-          documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
-          signatureAction: signatureAction
-        };
-  
-        await this.signatureService.create(signatureObject);
-  
-        order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
-  
-        await this.orderRepository.save(order);
-  
-        return { message: '¡La campaña ha sido enviada al módulo de firma!' };
-  
-      } catch (error) {
-        handleExceptions(error);
+    try {
+      const order = await this.orderRepository.findOne({
+        where: { id: orderId }
+      });
+
+      if (!order) {
+        throw new NotFoundException(`¡La campaña con ID ${orderId} no fue encontrada!`);
       }
+
+      // await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
+
+      const signatureObject = {
+        isSigned: false,
+        documentId: orderId,
+        documentType: TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO,
+        signatureAction: signatureAction
+      };
+
+      await this.signatureService.create(signatureObject);
+
+      // order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
+
+      // await this.orderRepository.save(order);
+
+      return { message: '¡La orden ha sido enviada al módulo de firma!' };
+
+    } catch (error) {
+      handleExceptions(error);
     }
-  
+  }
+
 
   async getOrderInPDF(orderId: string) {
 

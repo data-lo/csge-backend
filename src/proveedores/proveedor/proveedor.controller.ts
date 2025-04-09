@@ -4,37 +4,45 @@ import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
-import { LoggerService } from 'src/logger/logger.service';
 import { rolesProveedores } from './valid-proveedores-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
-  constructor(private readonly proveedorService: ProveedorService) { }
-  private readonly logger = new LoggerService(ProveedorController.name);
+
+  constructor(private readonly providerService: ProveedorService) { }
 
   @Auth(...rolesProveedores)
   @Post()
   create(@Body() createProveedorDto: CreateProveedorDto | ProveedorParcialDto) {
-    return this.proveedorService.create(createProveedorDto);
+    return this.providerService.create(createProveedorDto);
   }
 
   @Auth(...rolesProveedores)
   @Patch('desactivar')
   desactivarProveedor(@Body('proveedorId', ParseUUIDPipe) proveedorId: string) {
-    return this.proveedorService.desactivateProvider(proveedorId);
+    return this.providerService.desactivateProvider(proveedorId);
   }
 
   @Auth(...rolesProveedores)
   @Patch('activar')
   activarProveedor(@Body('proveedorId', ParseUUIDPipe) proveedorId: string) {
-    return this.proveedorService.activateProvider(proveedorId);
+    return this.providerService.activateProvider(proveedorId);
   }
 
   @Auth(...rolesProveedores)
   @Get()
-  findAll(@Query('pagina') pagina: string) {
-    return this.proveedorService.findAll(+pagina);
+  findAll(
+    @Query('pageParam') pagina: string,) {
+    return this.providerService.findAll(+pagina);
+  }
+
+  @Auth(...rolesProveedores)
+  @Get('filters')
+  getProvidersWithFilters(
+    @Query('pageParam') pageParam: number,
+    @Query('searchParams') searchParams?: string) {
+    return this.providerService.getProvidersWithFilters(pageParam, searchParams);
   }
 
   @Auth(...rolesProveedores)
@@ -42,20 +50,31 @@ export class ProveedorController {
   obtenerTIPO_DE_CONTRATO(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('TIPO_DE_SERVICIO', new ParseEnumPipe(TIPO_DE_SERVICIO)) TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
-    return this.proveedorService.obtenerContartoDelProveedor(id, TIPO_DE_SERVICIO);
+    return this.providerService.obtenerContartoDelProveedor(id, TIPO_DE_SERVICIO);
   }
 
   @Auth(...rolesProveedores)
   @Get('servicios')
-  findManyByServices(
-    @Query('TIPO_DE_SERVICIO', new ParseEnumPipe(TIPO_DE_SERVICIO)) TIPO_DE_SERVICIO: TIPO_DE_SERVICIO) {
-    return this.proveedorService.findByService(TIPO_DE_SERVICIO);
+  getServicesByType(
+    @Query('pageParam') pageParam: number,
+    @Query('serviceType', new ParseEnumPipe(TIPO_DE_SERVICIO)) serviceType: TIPO_DE_SERVICIO) {
+    return this.providerService.getServicesByType(pageParam, serviceType);
+  }
+
+  @Auth(...rolesProveedores)
+  @Get('service-filters')
+  getServicesWithFilter(
+    @Query('pageParam') pageParam: number,
+    @Query('serviceType') serviceType: TIPO_DE_SERVICIO,
+    @Query('searchParams') searchParams?: string,
+    @Query('placeOfOperation') placeOfOperation?: string) {
+    return this.providerService.getServicesWithFilter(pageParam, serviceType, searchParams, placeOfOperation);
   }
 
   @Auth(...rolesProveedores)
   @Get('busqueda')
   findAllBusqueda() {
-    return this.proveedorService.findAllBusqueda();
+    return this.providerService.findAllBusqueda();
   }
 
   @Auth(...rolesProveedores)
@@ -63,30 +82,30 @@ export class ProveedorController {
   findByRfc(
     @Query('rfc') rfc: string
   ) {
-    return this.proveedorService.findByRfc(rfc);
+    return this.providerService.findByRfc(rfc);
   }
 
   @Auth(...rolesProveedores)
   @Get('estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.proveedorService.obtenerEstatus(id);
+    return this.providerService.obtenerEstatus(id);
   }
 
   @Auth(...rolesProveedores)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.proveedorService.findOne(id);
+    return this.providerService.findOne(id);
   }
 
   @Auth(...rolesProveedores)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateProveedorDto: UpdateProveedorDto) {
-    return this.proveedorService.update(id, updateProveedorDto);
+    return this.providerService.update(id, updateProveedorDto);
   }
 
   @Auth(...rolesProveedores)
   @Delete(':id')
   delete(@Param('id', ParseUUIDPipe) id: string) {
-    return this.proveedorService.delete(id);
+    return this.providerService.delete(id);
   }
 }

@@ -15,6 +15,7 @@ import { CAMPAIGN_STATUS } from '../interfaces/estatus-campaña.enum';
 import { Dependencia } from 'src/campañas/dependencia/entities/dependencia.entity';
 import { Activacion } from 'src/campañas/activacion/entities/activacion.entity';
 import { TipoCampaña } from '../interfaces/tipo-campaña.enum';
+import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 
 @Entity('campanias')
 export class Campaña {
@@ -64,4 +65,9 @@ export class Campaña {
     name: 'actualizado_en',
   })
   actualizadoEn: Date;
+
+
+@OneToMany(() => Orden, (orden) => orden.campaña)
+ordenes: Orden[];
+
 }

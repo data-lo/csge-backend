@@ -19,9 +19,16 @@ import { CreateActivacionDto } from '../activacion/dto/create-activacion.dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { FirmaService } from 'src/firma/firma/firma.service';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
-import { Partida } from '../partida/entities/partida.entity';
 import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
+import { AmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/query-response';
+import { FilteredAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/filtered-data-response';
+import * as XLSX from "xlsx";
+import { transformAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/transform-amounts-tracking-by-provider';
+import { Response } from "express";
+import { CAMPAIGN_TYPE_REPORT } from './reports/campaign-type-report-enum';
+
 
 @Injectable()
 export class CampañasService {
@@ -99,28 +106,25 @@ export class CampañasService {
 
   async findAll(pagina: number) {
     try {
+      const currentYear = new Date().getFullYear();
+
       const paginationSetter = new PaginationSetter();
-      const campañas = await this.campaignRepository.find({
-        take: paginationSetter.castPaginationLimit(),
-        skip: paginationSetter.getSkipElements(pagina),
-        relations: {
-          dependencias: true,
-          activaciones: true,
-        },
-        select: {
-          activaciones: {
-            fechaDeAprobacion: true,
-            fechaDeCierre: true,
-            fechaDeCreacion: true,
-            fechaDeInicio: true,
-          },
-        },
-      });
+
+      const query = this.campaignRepository
+        .createQueryBuilder('campaña')
+        .leftJoinAndSelect('campaña.dependencias', 'dependencias')
+        .leftJoinAndSelect('campaña.activaciones', 'activaciones')
+        .where('EXTRACT(YEAR FROM campaña.creadoEn) = :year', { year: currentYear })
+        .take(paginationSetter.castPaginationLimit())
+        .skip(paginationSetter.getSkipElements(pagina));
+
+      const campañas = await query.getMany();
       return campañas;
     } catch (error) {
       handleExceptions(error);
     }
   }
+
 
   async findAllBusuqueda() {
     try {
@@ -143,6 +147,61 @@ export class CampañasService {
       handleExceptions(error);
     }
   }
+
+  async getCampaignsWithFilters(pageParam: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: CAMPAIGN_STATUS) {
+    try {
+      console.log(searchParams)
+      const resolvedYear = getResolvedYear(year, canAccessHistory);
+
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.campaignRepository
+        .createQueryBuilder('campaña')
+        .leftJoinAndSelect('campaña.dependencias', 'dependencias')
+        .leftJoinAndSelect('campaña.activaciones', 'activaciones')
+        .select([
+          'campaña.id',
+          'campaña.nombre',
+          'campaña.campaignStatus',
+          'campaña.creadoEn',
+          'campaña.creadoEn',
+          'campaña.tipoDeCampaña',
+          'dependencias.id',
+          'dependencias.nombre',
+          'activaciones.fechaDeAprobacion',
+          'activaciones.fechaDeCierre',
+          'activaciones.fechaDeCreacion',
+          'activaciones.fechaDeInicio',
+        ]);
+
+      if (searchParams) {
+        query.andWhere(
+          `(campaña.nombre ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (status) {
+        query.andWhere('campaña.campaignStatus = :status', { status });
+      }
+
+      if (resolvedYear) {
+        query.andWhere("EXTRACT(YEAR FROM campaña.creadoEn) = :year", {
+          year: resolvedYear,
+        });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const campañas = await query.getMany();
+      return campañas;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
 
   async findOne(campaignId: string) {
     try {
@@ -211,6 +270,7 @@ export class CampañasService {
   }
 
   async closeCampaign(campaignId: string, activationId: string) {
+
     const validStatus = [
       CAMPAIGN_STATUS.APROBADA,
       CAMPAIGN_STATUS.CANCELADA,
@@ -247,7 +307,7 @@ export class CampañasService {
 
   async remove(campaniaId: string) {
     try {
-      const campaignId = await this.campaignRepository.findOne({
+      const campaign = await this.campaignRepository.findOne({
         where: {
           id: campaniaId,
         },
@@ -257,18 +317,28 @@ export class CampañasService {
           },
         },
       });
-      if (!campaignId)
-        throw new Error(`La Campaña con ID: ${campaignId} no se encontró.`);
-      if (
-        campaignId.campaignStatus === CAMPAIGN_STATUS.CREADA ||
-        campaignId.campaignStatus === CAMPAIGN_STATUS.COTIZANDO
-      ) {
-        await this.campaignRepository.remove(campaignId);
-        return { message: 'Campaña eliminada existosamente' };
+
+      if (!campaign) {
+        throw new Error(`¡La campaña con ID: ${campaniaId} no fue encontrada!`);
       }
-      throw new BadRequestException(
-        'Estatus de campaña no valido para eliminar, cancelar campaña',
-      );
+
+      const validStatus = [
+        CAMPAIGN_STATUS.CREADA,
+        CAMPAIGN_STATUS.COTIZANDO
+      ];
+
+      const isRemovable = validStatus.includes(campaign.campaignStatus)
+
+      if (!isRemovable) {
+        throw new BadRequestException(
+          '¡El estatus de la campaña no permite eliminarla! Debe estar en estado "CREADA" o "COTIZANDO".'
+        );
+      }
+
+      await this.campaignRepository.remove(campaign);
+
+      return { message: '¡Campaña eliminada exitosamente!' };
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -401,14 +471,14 @@ export class CampañasService {
 
       const lastActivation = await this.activationService.getLastActivation(campaignId);
 
+      await this.campaignRepository.update(campaignId, { campaignStatus: campaignStatus });
+
       if (campaignStatus == CAMPAIGN_STATUS.APROBADA) {
         await this.activationRepository.update(lastActivation.id, { fechaDeAprobacion: new Date() });
-
-      } else if (campaignStatus == CAMPAIGN_STATUS.CANCELADA) {
-        await this.closeCampaign(campaignId, lastActivation.id);
       }
-
-      await this.campaignRepository.update(campaignId, { campaignStatus: campaignStatus });
+      //  else if (campaignStatus == CAMPAIGN_STATUS.CANCELADA) {
+      //   await this.closeCampaign(campaignId, lastActivation.id);
+      // }
 
       return { message: "¡El estatus de la campaña se ha actualizado correctamente!", };
 
@@ -418,24 +488,166 @@ export class CampañasService {
   }
 
 
-  async checkCampaignsExpiration  () {
+  async checkCampaignsExpiration() {
 
     const today = new Date();
 
     today.setHours(0, 0, 0, 0);
 
-    // Obtener contratos que finalizan hoy con sus relaciones
+    // Estatus válidos para desactivación
+    const validStatus = [
+      CAMPAIGN_STATUS.APROBADA,
+      CAMPAIGN_STATUS.CANCELADA,
+      CAMPAIGN_STATUS.REACTIVADA,
+      CAMPAIGN_STATUS.CREADA,
+      CAMPAIGN_STATUS.COTIZANDO
+    ];
+
+
+    // Obtener campaigns que finalizan hoy con sus relaciones
     const campaignsEndsToday = await this.campaignRepository.find({
       where: {
         activaciones: { fechaDeCierre: LessThan(today) },
+        campaignStatus: In(validStatus)
       }
     });
 
-    for(const campaign of campaignsEndsToday){
+    for (const campaign of campaignsEndsToday) {
 
       const lastActivation = await this.activationService.getLastActivation(campaign.id)
 
       await this.closeCampaign(campaign.id, lastActivation.id);
+    }
+  }
+
+  // Indicadores Camapaña, Filtro Seguimiento de monntos por proveedor
+  async amountsTrackingByProvider(): Promise<AmountsTrackingByProvider[]> {
+    try {
+      const data = await this.campaignRepository
+        .createQueryBuilder("campaña")
+        .innerJoin("campaña.ordenes", "orden")
+        .leftJoin("orden.proveedor", "proveedor")
+        .leftJoin("orden.contratoMaestro", "contrato")
+        .select([
+          // 📁 Campaign (campaña)
+          "campaña.id AS campaign_id",
+          "campaña.nombre AS campaign_name",
+          "campaña.campaignStatus AS campaign_status",
+          "campaña.tipoDeCampaña AS campaign_type",
+          "campaña.creadoEn AS campaign_created_at",
+          "campaña.actualizadoEn AS campaign_updated_at",
+
+          // 📁 Order (orden)
+          "orden.id AS order_id",
+          "orden.indice AS order_index",
+          "orden.estatus AS order_status",
+          "orden.folio AS order_folio",
+          "orden.tipoDeServicio AS order_service_type",
+          "orden.fechaDeEmision AS order_emission_date",
+          "orden.fechaDeAprobacion AS order_approval_date",
+          "orden.subtotal AS order_subtotal",
+          "orden.numberOfActivation AS order_activation_number",
+          "orden.iva AS order_tax",
+          "orden.total AS order_total",
+          "orden.ivaIncluido AS order_tax_included",
+          "orden.ordenAnteriorCancelada AS order_previous_canceled_id",
+          "orden.motivoDeCancelacion AS order_cancel_reason",
+          "orden.esCampania AS order_from_campaign",
+          "orden.creadoEn AS order_created_at",
+          "orden.actualizadoEn AS order_updated_at",
+          "orden.contratoMaestroId AS order_contract_id",
+          "orden.campañaId AS order_campaign_id",
+          "orden.partidaId AS order_partida_id",
+          "orden.proveedorId AS order_provider_id",
+
+          // 📁 Provider (proveedor)
+          "proveedor.id AS provider_id",
+          "proveedor.numeroProveedor AS provider_number",
+          "proveedor.representanteLegal AS provider_legal_representative",
+          "proveedor.nombreComercial AS provider_commercial_name",
+          "proveedor.tipoProveedor AS provider_type",
+          "proveedor.rfc AS provider_rfc",
+          "proveedor.razonSocial AS provider_business_name",
+          "proveedor.domicilioFiscal AS provider_fiscal_address",
+          "proveedor.observacionesProveedor AS provider_observations",
+          "proveedor.estatus AS provider_status",
+          "proveedor.creadoEn AS provider_created_at",
+          "proveedor.actualizadoEn AS provider_updated_at",
+
+          // 📁 Contract (contrato)
+          "contrato.id AS contract_id",
+          "contrato.numeroDeContrato AS contract_number",
+          "contrato.estatusDeContrato AS contract_status",
+          "contrato.tipoDeContrato AS contract_type",
+          "contrato.objetoContrato AS contract_purpose",
+          "contrato.montoMinimoContratado AS contract_min_amount",
+          "contrato.ivaMontoMinimoContratado AS contract_min_tax",
+          "contrato.montoMaximoContratado AS contract_max_amount",
+          "contrato.ivaMontoMaximoContratado AS contract_max_tax",
+          "contrato.committedAmount AS contract_reserved_amount",
+          "contrato.montoDisponible AS contract_available_amount",
+          "contrato.montoPagado AS contract_paid_amount",
+          "contrato.montoEjercido AS contract_spent_amount",
+          "contrato.montoActivo AS contract_active_amount",
+          "contrato.contractBreakdownByOrder AS contract_breakdown",
+          "contrato.fechaInicial AS contract_start_date",
+          "contrato.fechaFinal AS contract_end_date",
+          "contrato.cancellationReason AS contract_cancel_reason",
+          "contrato.linkContrato AS contract_link",
+          "contrato.ivaFrontera AS contract_border_tax",
+          "contrato.creadoEn AS contract_created_at",
+          "contrato.actualizadoEn AS contract_updated_at",
+          "contrato.proveedorId AS contract_provider_id"
+        ])
+        .getRawMany();
+
+
+      return data
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  async getReportInExcel(res: Response, typeCampaignReport: CAMPAIGN_TYPE_REPORT) {
+    console.log(typeCampaignReport)
+    try {
+
+      let dataToExport: any = [];
+
+      let fileName: string = "";
+
+      switch (typeCampaignReport) {
+        case CAMPAIGN_TYPE_REPORT.AMOUNTS_TRACKING_BY_PROVIDER:
+
+          const rawData: AmountsTrackingByProvider[] = await this.amountsTrackingByProvider();
+
+          dataToExport = await transformAmountsTrackingByProvider(rawData);
+
+          fileName = "REPORTE_SEGUIMIENTO_DE_MONTOS_POR_PROVEDOR.xlsx";
+
+          break;
+
+        default:
+          throw new BadRequestException('¡El tipo de reporte solicitado no existe!');
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error("Error al generar Excel:", error);
+      throw error;
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { TipoProveedor } from "../interfaces/tipo-proveedor.interface";
-import { Contrato } from "src/contratos/contratos/entities/contrato.entity";
+
 import { Contacto } from "src/proveedores/contacto/entities/contacto.entity";
 import { Estacion } from "src/proveedores/estacion/entities/estacion.entity";
 import { ContratoMaestro } from "src/contratos/contratos/entities/contrato.maestro.entity";

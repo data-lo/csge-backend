@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -8,7 +9,7 @@ import {
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
-import { In, LessThan, LessThanOrEqual, Repository } from 'typeorm';
+import { ILike, In, LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
@@ -24,6 +25,7 @@ import { Decimal } from 'decimal.js'
 import { ContratoModificatorio } from '../contratos_modificatorios/entities/contratos_modificatorio.entity';
 import { EXTENSION_TYPE_ENUM } from '../contratos_modificatorios/enums/extension-type-enum';
 import { addTimeToDate } from 'src/functions/add-time-to-date';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 
 @Injectable()
@@ -156,7 +158,10 @@ export class ContratosService {
 
   async findAll(pagina: number) {
     try {
+      const currentYear = new Date().getFullYear();
+      
       const paginationSetter = new PaginationSetter();
+
       const masterContracts = await this.masterContractRepository
         .createQueryBuilder('contratoMaestro')
         .leftJoinAndSelect('contratoMaestro.proveedor', 'proveedor')
@@ -176,19 +181,19 @@ export class ContratosService {
           'contratos.id',
           'contratos.tipoDeServicio',
           'proveedor.razonSocial',
+
+          'contratosModificatorios.id',
           'contratosModificatorios.committedAmount',
           'contratosModificatorios.estatusDeContrato',
-          'contratosModificatorios.id',
           'contratosModificatorios.montoActivo',
           'contratosModificatorios.montoEjercido',
           'contratosModificatorios.montoPagado',
           'contratosModificatorios.montoDisponible',
         ])
+        .where("EXTRACT(YEAR FROM contratoMaestro.creadoEn) = :year", { year: currentYear })
         .skip(paginationSetter.getSkipElements(pagina))
         .take(paginationSetter.castPaginationLimit())
         .getMany();
-
-
 
       for (const masterContract of masterContracts) {
         let globalActiveAmount = new Decimal(masterContract.montoActivo || 0);
@@ -199,23 +204,130 @@ export class ContratosService {
 
         if (masterContract.contratosModificatorios) {
           for (const modificatoryContract of masterContract.contratosModificatorios) {
-            if (modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO && modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS) {
-              globalActiveAmount = globalActiveAmount.plus(new Decimal(modificatoryContract.montoActivo || 0));
-              globalExecutedAmount = globalExecutedAmount.plus(new Decimal(modificatoryContract.montoEjercido || 0));
-              globalPaidAmount = globalPaidAmount.plus(new Decimal(modificatoryContract.montoPagado || 0));
-              globalAvailableAmount = globalAvailableAmount.plus(new Decimal(modificatoryContract.montoDisponible || 0));
+            const isValid =
+              modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO &&
+              modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS;
+
+            if (isValid) {
+              globalActiveAmount = globalActiveAmount.plus(modificatoryContract.montoActivo || 0);
+              globalExecutedAmount = globalExecutedAmount.plus(modificatoryContract.montoEjercido || 0);
+              globalPaidAmount = globalPaidAmount.plus(modificatoryContract.montoPagado || 0);
+              globalAvailableAmount = globalAvailableAmount.plus(modificatoryContract.montoDisponible || 0);
             }
           }
         }
 
         (masterContract as any).globalAmounts = {
           active: globalActiveAmount.toNumber(),
-          execute: globalExecutedAmount.toNumber(),
+          executed: globalExecutedAmount.toNumber(),
           paid: globalPaidAmount.toNumber(),
           available: globalAvailableAmount.toNumber(),
           committed: globalCommittedAmount.toNumber(),
         };
       }
+
+      return masterContracts;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+
+  async getContractsWithFilters(pageParam: number, canAccessHistory = false, searchParams?: string, year?: string, status?: ESTATUS_DE_CONTRATO) {
+
+    const resolvedYear = getResolvedYear(year, canAccessHistory);
+
+    try {
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.masterContractRepository
+        .createQueryBuilder('contratoMaestro')
+        .leftJoinAndSelect('contratoMaestro.proveedor', 'proveedor')
+        .leftJoinAndSelect('contratoMaestro.contratos', 'contratos')
+        .leftJoinAndSelect('contratoMaestro.contratosModificatorios', 'contratosModificatorios')
+        .select([
+          'contratoMaestro.id',
+          'contratoMaestro.numeroDeContrato',
+          'contratoMaestro.tipoDeContrato',
+          'contratoMaestro.montoActivo',
+          'contratoMaestro.montoEjercido',
+          'contratoMaestro.montoPagado',
+          'contratoMaestro.montoDisponible',
+          'contratoMaestro.committedAmount',
+          'contratoMaestro.estatusDeContrato',
+          'contratos.id',
+          'contratos.tipoDeServicio',
+          'proveedor.razonSocial',
+          'proveedor.rfc',
+          'contratosModificatorios.id',
+          'contratosModificatorios.committedAmount',
+          'contratosModificatorios.estatusDeContrato',
+          'contratosModificatorios.montoActivo',
+          'contratosModificatorios.montoEjercido',
+          'contratosModificatorios.montoPagado',
+          'contratosModificatorios.montoDisponible',
+        ]);
+
+      if (searchParams) {
+        query.andWhere(
+          `(contratoMaestro.numeroDeContrato ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (status) {
+        query.andWhere('contratoMaestro.estatusDeContrato = :status', { status });
+      }
+
+      if (resolvedYear) {
+        query.andWhere("EXTRACT(YEAR FROM contratoMaestro.creadoEn) = :year", {
+          year: resolvedYear,
+        });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const masterContracts = await query.getMany();
+
+      masterContracts.forEach((masterContract) => {
+        const {
+          montoActivo = 0,
+          montoEjercido = 0,
+          montoPagado = 0,
+          montoDisponible = 0,
+          committedAmount = 0,
+          contratosModificatorios = [],
+        } = masterContract;
+
+        let globalActiveAmount = new Decimal(montoActivo);
+        let globalExecutedAmount = new Decimal(montoEjercido);
+        let globalPaidAmount = new Decimal(montoPagado);
+        let globalAvailableAmount = new Decimal(montoDisponible);
+        let globalCommittedAmount = new Decimal(committedAmount);
+
+        contratosModificatorios.forEach((modificatoryContract) => {
+          const isValid =
+            modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO &&
+            modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS;
+
+          if (isValid) {
+            globalActiveAmount = globalActiveAmount.plus(modificatoryContract.montoActivo || 0);
+            globalExecutedAmount = globalExecutedAmount.plus(modificatoryContract.montoEjercido || 0);
+            globalPaidAmount = globalPaidAmount.plus(modificatoryContract.montoPagado || 0);
+            globalAvailableAmount = globalAvailableAmount.plus(modificatoryContract.montoDisponible || 0);
+          }
+        });
+
+        (masterContract as any).globalAmounts = {
+          active: globalActiveAmount.toNumber(),
+          executed: globalExecutedAmount.toNumber(),
+          paid: globalPaidAmount.toNumber(),
+          available: globalAvailableAmount.toNumber(),
+          committed: globalCommittedAmount.toNumber(),
+        };
+      });
 
       return masterContracts;
     } catch (error) {

@@ -14,10 +14,12 @@ import { serviciosContratadosSection } from './orden-de-servicio-sections/servic
 import { TextoPlazoPagoSection } from './orden-de-servicio-sections/texto-plazo-pago.section';
 import { firmasDeRecepcionSection } from './aprobacion-de-factura-sections/firmas-de-recepcion-section';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
+import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 
 
 interface Props {
   ordenDeServicio: Orden;
+  signatureAction?: SIGNATURE_ACTION_ENUM
   textoEncabezado: string;
   textoPieDePagina: string;
   qrCode?: string;
@@ -94,7 +96,7 @@ export const ordenDeServicioPdf = async (orden: Props) => {
             {
               width: '*',
               alignment: 'right',
-              stack: [firmasDeRecepcionSection()],
+              stack: [firmasDeRecepcionSection(orden.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE ? "APROBACIÓN" : "CANCELACIÓN")],
             },
           ],
         },

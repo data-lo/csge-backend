@@ -27,7 +27,7 @@ import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-
 import {
   coordenadasAprobacionFactura,
   coordenadasCancelador,
-  coordenadasCotejador,
+  COSIGNER_COORDINATES,
   coordenadasOrden,
   COORDINATES_IN_DOCUMENT_CAMPAIGN,
 } from './interfaces/stickers-coordenadas.objs';
@@ -407,7 +407,6 @@ export class FirmaService {
       let document = null;
 
       if (documentType === TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO) {
-        console.log("Ok")
         document = await this.documentsService.buildOrderDocument(documentId, isCampaign, isFromCampaign, activationId);
 
       } else if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
@@ -423,7 +422,7 @@ export class FirmaService {
     }
   }
 
-  private async createStickers(usuarios: Usuario[], documentType: TIPO_DE_DOCUMENTO, usuariosFirmadores: Usuario[],): Promise<Sticker[]> {
+  private async createStickers(usuarios: Usuario[], documentType: TIPO_DE_DOCUMENTO, userSigners: Usuario[],): Promise<Sticker[]> {
     try {
       let rect = {};
 
@@ -433,22 +432,28 @@ export class FirmaService {
         rect = coordenadasOrden;
       }
 
+      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
+        rect = COORDINATES_IN_DOCUMENT_CAMPAIGN;
+      }
+
       if (documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
-        rect = coordenadasCotejador;
+
+        rect = COSIGNER_COORDINATES;
+
+        const approvalUser = userSigners.find((user) => {
+          return user.documentosDeFirma.includes(TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
+        });
+        
         const stickerAprobador = {
           authority: 'chihuahua',
           stickerType: 'rect',
           dataType: 'rfc',
-          data: usuariosFirmadores[0].rfc,
+          data: approvalUser.rfc,
           imageType: 'hash',
           page: 0,
           rect: coordenadasAprobacionFactura,
         };
         stickers.push(stickerAprobador);
-      }
-
-      if (documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
-        rect = COORDINATES_IN_DOCUMENT_CAMPAIGN;
       }
 
       for (const usuario of usuarios) {
@@ -533,7 +538,7 @@ export class FirmaService {
     return response;
   }
 
-  async downloadFile(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean, activationId? : string) {
+  async downloadFile(documentId: string, documentType: TIPO_DE_DOCUMENTO, isCampaign?: boolean, isFromCampaign?: boolean, activationId?: string) {
     try {
       let document: any;
 
@@ -541,7 +546,7 @@ export class FirmaService {
         const activation = await this.activationService.getLastActivation(documentId);
 
         const document = await this.checkDocumentSentForSigning(documentId, activation.id)
-        return  {
+        return {
           tipo: 'url',
           url: document.document.firmamexDocumentUrl
         };
@@ -551,9 +556,9 @@ export class FirmaService {
       const documentForSignature = await this.signatureRepository.findOne({
         where: { documentId: documentId },
       });
-      
+
       const signatureAction = documentForSignature ? documentForSignature.signatureAction : null;
-      
+
       if (!documentForSignature) {
         document = await this.buildPDF(documentId, documentType, signatureAction, isCampaign, isFromCampaign, activationId);
         return document;

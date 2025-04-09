@@ -6,6 +6,7 @@ import { CarteleraGobierno } from './entities/cartelera_gobierno.entity';
 import { Repository } from 'typeorm';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 @Injectable()
 export class CarteleraGobiernoService {
@@ -26,6 +27,7 @@ export class CarteleraGobiernoService {
   }
 
 
+
   findAll(pagina: number) {
     try {
       const pagiantionSetter = new PaginationSetter();
@@ -44,6 +46,34 @@ export class CarteleraGobiernoService {
       const cartelerasGobierno = this.carteleraGobiernoRepository.find();
       return cartelerasGobierno;
     } catch (error: any) {
+      handleExceptions(error);
+    }
+  }
+
+  async getBillboardWithFilters(pageParam: number, searchParams?: string) {
+    console.log(searchParams)
+    try {
+
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.carteleraGobiernoRepository
+        .createQueryBuilder('carteleras_gobierno_estado');
+
+      if (searchParams) {
+        query.andWhere(
+          `(carteleras_gobierno_estado.numeroDeInventario ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageParam))
+        .take(paginationSetter.castPaginationLimit());
+
+      const billboards = await query.getMany();
+
+      return billboards;
+    } catch (error) {
       handleExceptions(error);
     }
   }
