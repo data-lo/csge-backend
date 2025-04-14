@@ -667,8 +667,6 @@ export class OrdenService {
         throw new NotFoundException(`¡La campaña con ID ${orderId} no fue encontrada!`);
       }
 
-      // await this.validateCampaignStatusForSignatureAction(campaign.campaignStatus, signatureAction);
-
       const signatureObject = {
         isSigned: false,
         documentId: orderId,
@@ -678,9 +676,9 @@ export class OrdenService {
 
       await this.signatureService.create(signatureObject);
 
-      // order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
+      order.estatus = ESTATUS_ORDEN_DE_SERVICIO.PENDIENTE;
 
-      // await this.orderRepository.save(order);
+      await this.orderRepository.save(order);
 
       return { message: '¡La orden ha sido enviada al módulo de firma!' };
 

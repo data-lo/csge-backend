@@ -150,7 +150,7 @@ export class FacturaController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFacturaDto: UpdateFacturaDto,
   ) {
-    return this.facturaService.cancelarFactura(id, updateFacturaDto);
+    return this.facturaService.sendInvoiceToCancelSigning(id, updateFacturaDto);
   }
 
 

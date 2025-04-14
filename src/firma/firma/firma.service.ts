@@ -443,7 +443,7 @@ export class FirmaService {
         const approvalUser = userSigners.find((user) => {
           return user.documentosDeFirma.includes(TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
         });
-        
+
         const stickerAprobador = {
           authority: 'chihuahua',
           stickerType: 'rect',

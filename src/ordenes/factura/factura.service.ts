@@ -203,7 +203,7 @@ export class FacturaService {
       });
 
       return newData;
-      
+
     } catch (error: any) {
       handleExceptions(error);
     }
@@ -327,24 +327,29 @@ export class FacturaService {
     }
   }
 
-  //Canela la factura ingresada
-  async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
+
+  async sendInvoiceToCancelSigning(invoiceId: string, updateFacturaDto: UpdateFacturaDto) {
     try {
       const { motivoDeCancelacion } = updateFacturaDto;
-      const factura = await this.invoiceRepository.findOneBy({ id: id });
-      if (!factura) throw new NotFoundException('Factura no encontrada');
-      if (!motivoDeCancelacion)
-        throw new BadRequestException(
-          'Se debe de incluir el motivo de cancelación',
-        );
 
-      factura.motivoCancelacion = motivoDeCancelacion;
-      // const { message, value } = await this.minioService.eliminarArchivos(id);
+      const invoice = await this.invoiceRepository.findOneBy({
+        id: invoiceId
+      });
 
-      // if (value) {
-      await this.invoiceRepository.save(factura);
-      return { message: `Factura cancelada correctamente,` };
-      // }
+      if (!invoice){
+        throw new NotFoundException('¡Factura no encontrada!');
+      }
+
+      if (!motivoDeCancelacion){
+        throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
+      }
+
+      invoice.motivoCancelacion = motivoDeCancelacion;
+
+      await this.invoiceRepository.save(invoice);
+
+      return { message: '¡La factura ha sido cancelada correctamente!' };
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -464,7 +469,6 @@ export class FacturaService {
         if (!invoice) continue;
 
         const isProcessableStatus = [
-          INVOICE_STATUS.CONTEJADA,
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
         ].includes(invoice.status);
