@@ -83,7 +83,7 @@ export class UsuariosService {
           correo: true,
           permisos: true,
           documentosDeFirma: true,
-          tipoOrdenDeServicio:true,
+          tipoOrdenDeServicio: true,
           puesto: {
             nombre: true
           },
@@ -148,22 +148,22 @@ export class UsuariosService {
       usuarioDb.password = updatedPassword;
 
       await this.usuarioRepository.save(usuarioDb);
-      
+
       return { message: "CONTRASEÑA ACTUALIADA EXISTOSAMENTE" };
 
     } catch (error) {
       handleExceptions(error);
     }
-
   }
 
   async login(loginUserDto: LoginUserDto) {
     try {
       const { password, correo } = loginUserDto;
-      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo.toUpperCase() }));
+
+      const dbUser = (await this.usuarioRepository.findOneBy({ correo: correo }));
 
       if (!dbUser) {
-        throw new UnauthorizedException('¡Usuario no encontrado!')
+        throw new UnauthorizedException('¡Usuario no encontrado!');
       }
 
       if (await this.verificarPrimerInicioDeSesion(password, dbUser.password)) {
@@ -182,7 +182,7 @@ export class UsuariosService {
       }
 
       delete dbUser.password;
-      
+
       const currentTime = new Date();
 
       const gmtMinus6Offset = -6 * 60;

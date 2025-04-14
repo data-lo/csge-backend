@@ -19,6 +19,7 @@ export class MinioService {
   MINIO_HOST: any
   MINIO_PORT: any
   MINIO_API: any
+  MINIO_PUBLIC_HOST: any
 
   private setMinioClient() {
 
@@ -47,6 +48,8 @@ export class MinioService {
     this.MINIO_PORT = process.env.MINIO_PORT;
 
     this.MINIO_API = process.env.MINIO_API;
+
+    this.MINIO_PUBLIC_HOST = process.env.MINIO_PUBLIC_HOST;
 
     console.log(process.env.MINIO_API)
 
@@ -146,45 +149,6 @@ export class MinioService {
     }
   }
 
-  // async getImage(): Promise<{ status: FILE_STATUS; url: string }> {
-  //   try {
-  //     const minioClient = this.getMinioClient();
-
-  //     const bucket = this.LOGO_BUCKET;
-
-  //     const bucketExists = await minioClient.bucketExists(bucket);
-  //     if (!bucketExists) {
-  //       throw new NotFoundException('¡No se encontró el bucket de logos!');
-  //     }
-
-  //     const objectsStream = minioClient.listObjectsV2(bucket, '', true);
-
-  //     return new Promise((resolve, reject) => {
-  //       let found = false;
-
-  //       objectsStream.on('data', (object) => {
-  //         if (!found) {
-  //           found = true;
-  //           const url = `${this.MINIO_API}/${bucket}/${object.name}`;
-  //           resolve({ status: FILE_STATUS.FILE_FOUND, url });
-  //         }
-  //       });
-
-  //       objectsStream.on('end', () => {
-  //         if (!found) {
-  //           resolve({ status: FILE_STATUS.FILE_NOT_FOUND, url: '' });
-  //         }
-  //       });
-
-  //       objectsStream.on('error', (error) => {
-  //         reject(error);
-  //       });
-  //     });
-  //   } catch (error) {
-  //     handleExceptions(error);
-  //   }
-  // }
-
   async getImage(): Promise<{ status: FILE_STATUS; url: string }> {
     try {
       const minioClient = this.getMinioClient();
@@ -203,9 +167,13 @@ export class MinioService {
         try {
           await minioClient.statObject(bucket, fileName);
 
-          const signedUrl = await minioClient.presignedGetObject(bucket, fileName, 600);
+          const publicUrl = `${this.MINIO_API}/${bucket}/${fileName}`;
 
-          return { status: FILE_STATUS.FILE_FOUND, url: signedUrl };
+          return {
+            status: FILE_STATUS.FILE_FOUND,
+            url: publicUrl,
+          };
+          
         } catch (err) {
           continue;
         }

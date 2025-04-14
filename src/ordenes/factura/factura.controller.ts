@@ -82,7 +82,7 @@ export class FacturaController {
     @Param('id', ParseUUIDPipe) id: string,
     @GetUser() usuario: Usuario
   ) {
-    return this.facturaService.cotejarFactura(id, usuario);
+    return this.facturaService.checkInvoice(id, usuario);
   }
 
   @Auth(...rolesFactura)
