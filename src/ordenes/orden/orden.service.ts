@@ -371,7 +371,7 @@ export class OrdenService {
     }
   }
 
-  async update(id: string, updateOrdenDto: UpdateOrdenDto) {
+  async update(orderId: string, updateOrdenDto: UpdateOrdenDto) {
     try {
 
       const {
@@ -385,16 +385,15 @@ export class OrdenService {
 
       let newServices = [];
 
-      const currentlyOrder = await this.orderRepository.findOne(
-        {
-          where: {
-            id: id,
-          },
-          relations: { serviciosContratados: true }
-        });
+      const currentlyOrder = await this.orderRepository.findOne({
+        where: {
+          id: orderId,
+        },
+        relations: { serviciosContratados: true }
+      });
 
       if (!currentlyOrder) {
-        throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
+        throw new NotFoundException(`¡Orden con ID ${orderId} no encontrada!`);
       }
 
       if (campaniaId) {
@@ -409,18 +408,14 @@ export class OrdenService {
 
       Object.assign(currentlyOrder, { ...rest },);
 
-      const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
+      const committedAmountWithoutOrder = new Decimal(currentlyOrder.contratoMaestro.committedAmount).minus(new Decimal(currentlyOrder.total));
 
-      await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
-        committedAmount: new Decimal(currentlyOrder.contratoMaestro.montoMaximoContratado).minus(currentlyOrder.total).toNumber()
-      });
+      const newAmountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
-      const availableFunds = new Decimal(currentlyOrder.contratoMaestro.montoDisponible).
-        minus(new Decimal(currentlyOrder.contratoMaestro.committedAmount));
+      if (committedAmountWithoutOrder.lessThan(currentlyOrder.contratoMaestro.montoMaximoContratado)) {
 
-      if (new Decimal(currentlyOrder.total).lessThan(availableFunds)) {
         await this.masterContractRepository.update(currentlyOrder.contratoMaestro.id, {
-          committedAmount: new Decimal(currentlyOrder.total).toNumber()
+          committedAmount: committedAmountWithoutOrder.plus(newAmountDetails.total).toNumber()
         });
 
         if (currentlyOrder.serviciosContratados) {
@@ -441,7 +436,7 @@ export class OrdenService {
         return {
           status: "NOT_CREATED",
           data: {
-            amount: amountDetails.total.toString(),
+            amount: newAmountDetails.total.toString(),
             providerName: currentlyOrder.proveedor.razonSocial,
             serviceType: tipoDeServicio,
             services: formattedServices,
@@ -462,11 +457,11 @@ export class OrdenService {
         currentlyOrder.serviciosContratados = newServices;
       }
 
-      currentlyOrder.iva = amountDetails.tax.toString();
+      currentlyOrder.iva = newAmountDetails.tax.toString();
 
-      currentlyOrder.total = amountDetails.total.toString();
+      currentlyOrder.total = newAmountDetails.total.toString();
 
-      currentlyOrder.subtotal = amountDetails.subtotal.toString();
+      currentlyOrder.subtotal = newAmountDetails.subtotal.toString();
 
       await this.orderRepository.save(currentlyOrder);
 

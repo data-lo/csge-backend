@@ -27,6 +27,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import Decimal from 'decimal.js';
 import { PaymentRegister } from './interfaces/payment-register';
 import { string } from 'joi';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 @Injectable()
 export class FacturaService {
@@ -174,6 +175,60 @@ export class FacturaService {
     }
   }
 
+
+  async getInvoicesWithFilters(pageNumber: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: INVOICE_STATUS) {
+    try {
+      const resolvedYear = getResolvedYear(year, canAccessHistory);
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.invoiceRepository
+        .createQueryBuilder('factura')
+        .leftJoinAndSelect('factura.proveedor', 'proveedor')
+
+      if (searchParams) {
+        query.andWhere(
+          `(factura.folio ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (resolvedYear) {
+        query.andWhere('EXTRACT(YEAR FROM factura.fechaDeEmision) = :year', {
+          year: resolvedYear,
+        });
+      }
+
+      if (status) {
+        query.andWhere('factura.estatus = :status', { status });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageNumber))
+        .take(paginationSetter.castPaginationLimit());
+
+      const invoices = await query.getMany();
+
+      const newData = invoices.map((invoice) => {
+        return {
+          id: invoice.id,
+          total: invoice.total,
+          status: invoice.estatus,
+          folio: invoice.folio,
+          paymentCount: invoice.paymentRegister.length,
+          provider: {
+            name: invoice.proveedor.razonSocial,
+            rfc: invoice.proveedor.rfc,
+          },
+        };
+      });
+
+      return newData;
+
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
   async findAll(pagina: number) {
     try {
 
@@ -199,8 +254,9 @@ export class FacturaService {
             rfc: invoice.proveedor.rfc,
           },
         };
-
       });
+
+      console.log(newData)
 
       return newData;
 
@@ -241,7 +297,7 @@ export class FacturaService {
           ? invoice.paymentRegister.map((payment) => ({
             paidAmount: payment.paidAmount,
             checkNumber: payment.checkNumber,
-            registeredAt: payment.paymentRegisteredAt,
+            registeredAt: payment.registeredAt,
           }))
           : [],
         provider: {
@@ -336,11 +392,11 @@ export class FacturaService {
         id: invoiceId
       });
 
-      if (!invoice){
+      if (!invoice) {
         throw new NotFoundException('¡Factura no encontrada!');
       }
 
-      if (!motivoDeCancelacion){
+      if (!motivoDeCancelacion) {
         throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
       }
 
@@ -422,20 +478,138 @@ export class FacturaService {
     return url;
   }
 
+  // async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
+  //   try {
+  //     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+
+  //     const sheetName = workbook.SheetNames[0];
+
+  //     const worksheet = workbook.Sheets[sheetName];
+
+  //     const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  //     if (rawData.length < 2) {
+  //       throw new Error("El archivo no tiene suficientes filas");
+  //     }
+
+  //     const jsonData = rawData.slice(1).map(row => ({
+  //       policyId: Number(row[0]) || null,
+  //       batchNameGL: String(row[1] || ""),
+  //       invoiceNumber: String(row[2] || ""),
+  //       ineNumber: row[3] ? String(row[3]) : undefined,
+  //       travelActivities: row[4] ? String(row[4]) : undefined,
+  //       accountingDate: this.excelDateToJSDate(row[5]),
+  //       paidAmount: Number(row[6]) || 0,
+  //       batchName: String(row[7] || ""),
+  //       invoiceDate: this.excelDateToJSDate(row[8]),
+  //       providerName: String(row[9] || ""),
+  //       description: String(row[10] || ""),
+  //       invoiceAmount: Number(row[11]) || 0,
+  //       groupFolio: Number(row[12]) || null,
+  //       checkNumber: Number(row[13]) || null,
+  //       checkDate: this.excelDateToJSDate(row[14]),
+  //       bankAccount: String(row[15] || ""),
+  //       checkAmount: Number(row[16]) || 0,
+  //       accountingAccount: String(row[17] || ""),
+  //       debit: Number(row[18]) || 0,
+  //       credit: Number(row[19]) || 0
+  //     }));
+
+  //     let wasPaid: number = 0;
+
+  //     let paidInvoiceCount: number = 0;
+
+  //     let invoiceIds: string[] = [];
+
+  //     for (const row of jsonData) {
+  //       const invoice = await this.findOne(row.invoiceNumber, true);
+
+  //       if (!invoice) continue;
+
+  //       const isProcessableStatus = [
+  //         INVOICE_STATUS.APROBADA,
+  //         INVOICE_STATUS.PARTIAL_PAY
+  //       ].includes(invoice.status);
+
+  //       if (!isProcessableStatus) continue;
+
+  //       const totalInvoiceAmount = new Decimal(invoice.total);
+
+  //       const paidAmount = new Decimal(row.paidAmount);
+
+  //       const isFullyPaid = paidAmount.equals(totalInvoiceAmount);
+
+  //       const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
+
+  //       const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
+
+  //       const existingPayments = Array.isArray(invoice.payments) ? invoice.payments : [];
+
+  //       const alreadyRegistered = existingPayments.some(item =>
+  //         Number(item.paidAmount) === Number(row.paidAmount) &&
+  //         item.checkNumber === row.checkNumber
+  //       );
+
+  //       if (alreadyRegistered) {
+  //         wasPaid++;
+  //         continue
+  //       };
+
+  //       const newPayment: PaymentRegister = {
+  //         paidAmount: paidAmount.toString(),
+  //         checkNumber: row.checkNumber,
+  //         registeredAt: new Date()
+  //       };
+
+  //       const updatedPayments = [...existingPayments, newPayment];
+
+  //       await this.invoiceRepository.update(invoice.id, {
+  //         paymentRegister: updatedPayments,
+  //         estatus: newStatusInvoice
+  //       });
+        
+  //       for (const order of invoice.orders) {
+  //         await this.orderRepository.update(order.id, {
+  //           estatus: newStatusOrder
+  //         });
+  //       }
+
+  //       if (newStatusInvoice === INVOICE_STATUS.PAGADA) {
+  //         invoiceIds.push(invoice.id)
+  //       }
+
+  //       paidInvoiceCount += 1;
+  //     }
+
+
+  //     if (invoiceIds.length > 0) {
+  //       this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds: invoiceIds });
+  //     }
+
+  //     return {
+  //       message: '¡Archivo procesado correctamente! ',
+  //       data: {
+  //         notPaidInvoiceCout: jsonData.length - paidInvoiceCount - wasPaid,
+  //         paidInvoiceCount: paidInvoiceCount
+  //       }
+  //     };
+
+  //   } catch (error) {
+  //     throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
+  //   }
+  // }
+
   async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
     try {
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-
       const sheetName = workbook.SheetNames[0];
-
       const worksheet = workbook.Sheets[sheetName];
-
       const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
+  
       if (rawData.length < 2) {
         throw new Error("El archivo no tiene suficientes filas");
       }
-
+  
       const jsonData = rawData.slice(1).map(row => ({
         policyId: Number(row[0]) || null,
         batchNameGL: String(row[1] || ""),
@@ -458,86 +632,100 @@ export class FacturaService {
         debit: Number(row[18]) || 0,
         credit: Number(row[19]) || 0
       }));
-
-      let paidInvoiceCount: number = 0;
-
-      let invoiceIds: string[] = [];
-
+  
+      let wasPaid = 0;
+      let paidInvoiceCount = 0;
+      const invoiceIds: string[] = [];
+  
       for (const row of jsonData) {
         const invoice = await this.findOne(row.invoiceNumber, true);
-
         if (!invoice) continue;
-
+  
         const isProcessableStatus = [
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
         ].includes(invoice.status);
-
         if (!isProcessableStatus) continue;
-
+  
         const totalInvoiceAmount = new Decimal(invoice.total);
-
         const paidAmount = new Decimal(row.paidAmount);
-
-        const isFullyPaid = paidAmount.equals(totalInvoiceAmount);
-
-        const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
-
-        const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
-
         const existingPayments = Array.isArray(invoice.payments) ? invoice.payments : [];
-
+  
+        const currentPaidTotal = existingPayments.reduce(
+          (sum, payment) => sum.plus(payment.paidAmount),
+          new Decimal(0)
+        );
+  
+        // Si ya está completamente pagada
+        if (currentPaidTotal.greaterThanOrEqualTo(totalInvoiceAmount)) {
+          wasPaid++;
+          continue;
+        }
+  
+        // Si ya está registrado este pago exacto
         const alreadyRegistered = existingPayments.some(item =>
-          new Date(item.registeredAt).getTime() === new Date(row.accountingDate).getTime() &&
           Number(item.paidAmount) === Number(row.paidAmount) &&
           item.checkNumber === row.checkNumber
         );
-
-        if (alreadyRegistered) continue;
-
+  
+        if (alreadyRegistered) {
+          wasPaid++;
+          continue;
+        }
+  
+        // Registrar nuevo pago
         const newPayment: PaymentRegister = {
           paidAmount: paidAmount.toString(),
           checkNumber: row.checkNumber,
-          paymentRegisteredAt: new Date()
+          registeredAt: new Date()
         };
-
+  
         const updatedPayments = [...existingPayments, newPayment];
 
+        const updatedTotalPaid = currentPaidTotal.plus(paidAmount);
+
+        const isFullyPaid = updatedTotalPaid.greaterThanOrEqualTo(totalInvoiceAmount);
+  
+        const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
+        
+        const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
+  
         await this.invoiceRepository.update(invoice.id, {
           paymentRegister: updatedPayments,
           estatus: newStatusInvoice
         });
+  
         for (const order of invoice.orders) {
           await this.orderRepository.update(order.id, {
             estatus: newStatusOrder
           });
         }
-
-        if (newStatusInvoice === INVOICE_STATUS.PAGADA) {
-          invoiceIds.push(invoice.id)
+  
+        if (isFullyPaid) {
+          invoiceIds.push(invoice.id);
         }
-
-        paidInvoiceCount += 1;
+  
+        paidInvoiceCount++;
       }
-
-      console.log(invoiceIds)
-
+  
       if (invoiceIds.length > 0) {
-        this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds: invoiceIds });
+        this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds });
       }
-
+  
       return {
-        message: '¡Archivo procesado correctamente! ',
+        message: '¡Archivo procesado correctamente!',
         data: {
-          notPaidInvoiceCout: jsonData.length - paidInvoiceCount,
-          paidInvoiceCount: paidInvoiceCount
+          alreadyPaidInvoiceCount: wasPaid,
+          paidInvoiceCount,
+          notPaidInvoiceCount: jsonData.length - paidInvoiceCount - wasPaid
         }
       };
-
+  
     } catch (error) {
       throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }
+  
 
   private excelDateToJSDate(serial: number): Date | null {
     if (!serial || isNaN(serial)) return null;

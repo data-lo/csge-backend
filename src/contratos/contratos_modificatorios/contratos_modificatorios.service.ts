@@ -26,6 +26,7 @@ export class ContratosModificatoriosService {
   ) { }
 
   async create(createContratoModificatorioDto: CreateContratoModificatorioDto) {
+    console.log(createContratoModificatorioDto);
     try {
       const {
         montoMinimoContratado,
@@ -47,10 +48,10 @@ export class ContratosModificatoriosService {
       }
 
       if (masterContract.estatusDeContrato === ESTATUS_DE_CONTRATO.CANCELADO) {
-        throw new BadRequestException('¡El contrato principal fue cancelado! No se pueden crear contratos modificatorios.');
+        throw new BadRequestException('¡El contrato principal fue cancelado! No se pueden crear contratos modificatorios!');
       }
 
-      if (extensionType === EXTENSION_TYPE_ENUM.AMOUNTS) {
+      if (extensionType === EXTENSION_TYPE_ENUM.AMOUNTS || extensionType === EXTENSION_TYPE_ENUM.BOTH) {
         if (masterContractType === TIPO_DE_CONTRATO.CERRADO) {
           if (!montoMaximoContratado || !ivaMontoMaximoContratado) {
             throw new BadRequestException('¡Se deben incluir montos válidos para realizar una extensión de contrato por montos!');
@@ -63,7 +64,7 @@ export class ContratosModificatoriosService {
         }
       }
 
-      if (extensionType === EXTENSION_TYPE_ENUM.TIME) {
+      if (extensionType === EXTENSION_TYPE_ENUM.TIME || extensionType === EXTENSION_TYPE_ENUM.BOTH) {
         if (!fechaFinal || !fechaInicial) {
           throw new BadRequestException('¡Se deben incluir fechas válidas para realizar una extensión de contrato por tiempo!');
         }
@@ -93,8 +94,8 @@ export class ContratosModificatoriosService {
         montoActivo: activeAmount.toNumber(),
         montoEjercido: executedAmount.toNumber(),
         montoPagado: paidAmount.toNumber(),
-        fechaFinal: extensionType === EXTENSION_TYPE_ENUM.TIME && fechaFinal ? addTimeToDate(fechaFinal) : undefined,
-        fechaInicial: extensionType === EXTENSION_TYPE_ENUM.TIME && fechaInicial ? addTimeToDate(fechaInicial, 0, 0) : undefined,
+        fechaFinal: ((extensionType === EXTENSION_TYPE_ENUM.TIME || extensionType === EXTENSION_TYPE_ENUM.BOTH) && fechaFinal) ? addTimeToDate(fechaFinal) : undefined,
+        fechaInicial: ((extensionType === EXTENSION_TYPE_ENUM.TIME || extensionType === EXTENSION_TYPE_ENUM.BOTH) && fechaInicial) ? addTimeToDate(fechaInicial, 0, 0) : undefined,
         ...rest,
       });
 
