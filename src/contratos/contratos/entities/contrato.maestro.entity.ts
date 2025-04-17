@@ -315,16 +315,6 @@ export class ContratoMaestro {
     nullable: false,
   })
   montoActivo: number;
-
-  // 🧾 DESGLOSE POR ORDEN (ORDENES QUE USARON VARIOS CONTRATOS)
-  @Column({
-    name: 'contract_breakdown_by_order',
-    type: 'jsonb',
-    nullable: false,
-    default: () => "'{}'::jsonb",
-  })
-  contractBreakdownByOrder: OrderContractBreakdownMap;
-
   // 📆 FECHAS
   @Column({
     name: 'fecha_inicial',

@@ -52,6 +52,7 @@ import { ActivacionService } from 'src/campañas/activacion/activacion.service';
 import { ServicioObjectDto } from '../servicio_contratado/dto/servicio-object.dto';
 import { CreateContractedServiceDto } from '../servicio_contratado/dto/create-servicio_contratado.dto';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
+import { ContratoModificatorio } from 'src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity';
 
 
 /**
@@ -65,6 +66,9 @@ export class OrdenService {
 
     @InjectRepository(ContratoMaestro)
     private masterContractRepository: Repository<ContratoMaestro>,
+
+    @InjectRepository(ContratoModificatorio)
+    private amendmentContractRepository: Repository<ContratoModificatorio>,
 
     @Inject(IvaGetter)
     private readonly ivaGetter: IvaGetter,
@@ -99,12 +103,26 @@ export class OrdenService {
 
       const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
-      const availableFunds = new Decimal(masterContract.montoDisponible).minus(new Decimal(masterContract.committedAmount));
+      const response = await this.contractService.getAllAvailableAmounts(masterContract.id, amountDetails.total.toString());
 
-      if (amountDetails.total.lessThan(availableFunds)) {
-        await this.masterContractRepository.update(masterContract.id, {
-          committedAmount: amountDetails.total.toNumber()
-        });
+      console.log(response);
+
+      // const availableFunds = new Decimal(masterContract.montoDisponible).minus(new Decimal(masterContract.committedAmount));
+
+      if (response.isOrderFullyCovered) {
+
+        for (const item of response.availableContracts) {
+          if (item.contractType === 'MASTER_CONTRACT') {
+            await this.masterContractRepository.update(item.id, {
+              committedAmount: Number(item.newCommittedAmount)
+            });
+          } else {
+            await this.amendmentContractRepository.update(item.id, {
+              committedAmount: Number(item.newCommittedAmount)
+            });
+          }
+        }
+
       } else {
 
         const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({

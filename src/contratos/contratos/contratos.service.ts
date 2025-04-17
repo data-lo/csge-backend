@@ -9,7 +9,7 @@ import {
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
 import { Contrato } from './entities/contrato.entity';
-import { ILike, In, LessThan, LessThanOrEqual, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { handleExceptions } from '../../helpers/handleExceptions.function';
 import { PaginationSetter } from '../../helpers/pagination.getter';
@@ -26,6 +26,8 @@ import { ContratoModificatorio } from '../contratos_modificatorios/entities/cont
 import { EXTENSION_TYPE_ENUM } from '../contratos_modificatorios/enums/extension-type-enum';
 import { addTimeToDate } from 'src/functions/add-time-to-date';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
+import { AvailableContractType } from './types/available-contract-type';
+import { FundUsageType } from './types/fund-usage-type';
 
 
 @Injectable()
@@ -159,7 +161,7 @@ export class ContratosService {
   async findAll(pagina: number) {
     try {
       const currentYear = new Date().getFullYear();
-      
+
       const paginationSetter = new PaginationSetter();
 
       const masterContracts = await this.masterContractRepository
@@ -189,11 +191,17 @@ export class ContratosService {
           'contratosModificatorios.montoEjercido',
           'contratosModificatorios.montoPagado',
           'contratosModificatorios.montoDisponible',
+          'contratosModificatorios.extensionType'
         ])
         .where("EXTRACT(YEAR FROM contratoMaestro.creadoEn) = :year", { year: currentYear })
         .skip(paginationSetter.getSkipElements(pagina))
         .take(paginationSetter.castPaginationLimit())
         .getMany();
+
+      const validStatus = [
+        ESTATUS_DE_CONTRATO.LIBERADO,
+        ESTATUS_DE_CONTRATO.ADJUDICADO
+      ]
 
       for (const masterContract of masterContracts) {
         let globalActiveAmount = new Decimal(masterContract.montoActivo || 0);
@@ -203,16 +211,20 @@ export class ContratosService {
         let globalCommittedAmount = new Decimal(masterContract.committedAmount || 0);
 
         if (masterContract.contratosModificatorios) {
+
           for (const modificatoryContract of masterContract.contratosModificatorios) {
+
             const isValid =
-              modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO &&
-              modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS;
+              validStatus.includes(modificatoryContract.estatusDeContrato) &&
+              (modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS ||
+                modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.BOTH)
 
             if (isValid) {
               globalActiveAmount = globalActiveAmount.plus(modificatoryContract.montoActivo || 0);
               globalExecutedAmount = globalExecutedAmount.plus(modificatoryContract.montoEjercido || 0);
               globalPaidAmount = globalPaidAmount.plus(modificatoryContract.montoPagado || 0);
               globalAvailableAmount = globalAvailableAmount.plus(modificatoryContract.montoDisponible || 0);
+              globalCommittedAmount = globalCommittedAmount.plus(modificatoryContract.committedAmount || 0);
             }
           }
         }
@@ -266,6 +278,7 @@ export class ContratosService {
           'contratosModificatorios.montoEjercido',
           'contratosModificatorios.montoPagado',
           'contratosModificatorios.montoDisponible',
+          'contratosModificatorios.extensionType'
         ]);
 
       if (searchParams) {
@@ -301,6 +314,12 @@ export class ContratosService {
           contratosModificatorios = [],
         } = masterContract;
 
+
+        const validStatus = [
+          ESTATUS_DE_CONTRATO.LIBERADO,
+          ESTATUS_DE_CONTRATO.ADJUDICADO
+        ];
+        
         let globalActiveAmount = new Decimal(montoActivo);
         let globalExecutedAmount = new Decimal(montoEjercido);
         let globalPaidAmount = new Decimal(montoPagado);
@@ -309,14 +328,16 @@ export class ContratosService {
 
         contratosModificatorios.forEach((modificatoryContract) => {
           const isValid =
-            modificatoryContract.estatusDeContrato !== ESTATUS_DE_CONTRATO.CANCELADO &&
-            modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS;
+            validStatus.includes(modificatoryContract.estatusDeContrato) &&
+            (modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.AMOUNTS ||
+              modificatoryContract.extensionType === EXTENSION_TYPE_ENUM.BOTH)
 
           if (isValid) {
             globalActiveAmount = globalActiveAmount.plus(modificatoryContract.montoActivo || 0);
             globalExecutedAmount = globalExecutedAmount.plus(modificatoryContract.montoEjercido || 0);
             globalPaidAmount = globalPaidAmount.plus(modificatoryContract.montoPagado || 0);
             globalAvailableAmount = globalAvailableAmount.plus(modificatoryContract.montoDisponible || 0);
+            globalCommittedAmount = globalCommittedAmount.plus(modificatoryContract.committedAmount || 0);
           }
         });
 
@@ -809,7 +830,138 @@ export class ContratosService {
     );
 
     return servicesTypeActive
-
   }
+
+  async getAllAvailableAmounts(masterContractId: string, totalOrderAmount: string) {
+    const masterContract = await this.masterContractRepository.findOne({
+      where: { id: masterContractId },
+      relations: ["contratosModificatorios"]
+    });
+
+    const validExtensionTypes = [
+      EXTENSION_TYPE_ENUM.AMOUNTS,
+      EXTENSION_TYPE_ENUM.BOTH
+    ];
+
+    const validStatus = [
+      ESTATUS_DE_CONTRATO.LIBERADO,
+      ESTATUS_DE_CONTRATO.ADJUDICADO
+    ];
+
+    const requiredAmount = new Decimal(totalOrderAmount);
+
+    let remainingAmount = requiredAmount;
+
+    const fundsToBeUsed: FundUsageType[] = [];
+
+    const availableContractAmounts: AvailableContractType[] = [];
+
+    let availableTotalContract = new Decimal(0);
+
+    const masterCommitted = new Decimal(masterContract.committedAmount);
+
+    const masterAvailable = new Decimal(masterContract.montoDisponible).minus(masterCommitted);
+
+    availableContractAmounts.push({
+      contractType: "MASTER_CONTRACT",
+      id: masterContract.id,
+      maxAvailableAmount: masterAvailable.toString()
+    });
+
+    availableTotalContract = availableTotalContract.plus(masterAvailable);
+
+    if (masterAvailable.greaterThanOrEqualTo(requiredAmount)) {
+      fundsToBeUsed.push({
+        contractType: "MASTER_CONTRACT",
+        id: masterContract.id,
+        amountToUse: requiredAmount.toString()
+      });
+
+      return {
+        availableContracts: availableContractAmounts.map(contract => {
+          const usage = fundsToBeUsed.find(f => f.id === contract.id);
+          return {
+            ...contract,
+            newCommittedAmount: usage
+              ? masterCommitted.plus(new Decimal(usage.amountToUse)).toString()
+              : undefined
+          };
+        }),
+        availableTotalContract: availableTotalContract.toString(),
+        fundsUsedToCoverOrder: fundsToBeUsed,
+        isOrderFullyCovered: true
+      };
+    }
+
+    if (masterAvailable.greaterThan(0)) {
+      fundsToBeUsed.push({
+        contractType: "MASTER_CONTRACT",
+        id: masterContract.id,
+        amountToUse: masterAvailable.toString()
+      });
+      remainingAmount = remainingAmount.minus(masterAvailable);
+    }
+
+    if (masterContract.contratosModificatorios) {
+      for (const amendmentContract of masterContract.contratosModificatorios) {
+        if (
+          validExtensionTypes.includes(amendmentContract.extensionType) &&
+          validStatus.includes(amendmentContract.estatusDeContrato)
+        ) {
+          const committed = new Decimal(amendmentContract.committedAmount);
+          const available = new Decimal(amendmentContract.montoDisponible).minus(committed);
+
+          availableContractAmounts.push({
+            contractType: "AMENDMENT_CONTRACT",
+            id: amendmentContract.id,
+            maxAvailableAmount: available.toString()
+          });
+
+          availableTotalContract = availableTotalContract.plus(available);
+
+          const amountToUse = Decimal.min(available, remainingAmount);
+
+          if (amountToUse.greaterThan(0)) {
+            fundsToBeUsed.push({
+              contractType: "AMENDMENT_CONTRACT",
+              id: amendmentContract.id,
+              amountToUse: amountToUse.toString()
+            });
+            remainingAmount = remainingAmount.minus(amountToUse);
+          }
+
+          if (remainingAmount.lessThanOrEqualTo(0)) break;
+        }
+      }
+    }
+
+    const isOrderFullyCovered = remainingAmount.lessThanOrEqualTo(0);
+
+    const updatedAvailableContracts = availableContractAmounts.map(contract => {
+      const usage = fundsToBeUsed.find(f => f.id === contract.id);
+      if (!usage) return contract;
+
+      const currentCommitted = contract.contractType === "MASTER_CONTRACT"
+        ? new Decimal(masterContract.committedAmount)
+        : new Decimal(
+          masterContract.contratosModificatorios.find(c => c.id === contract.id)?.committedAmount
+        );
+
+      return {
+        ...contract,
+        newCommittedAmount: currentCommitted.plus(new Decimal(usage.amountToUse)).toString()
+      };
+    });
+
+    return {
+      availableContracts: updatedAvailableContracts,
+      availableTotalContract: availableTotalContract.toString(),
+      fundsUsedToCoverOrder: fundsToBeUsed,
+      isOrderFullyCovered,
+      missingAmountToCoverOrder: !isOrderFullyCovered && requiredAmount.minus(availableTotalContract).toString()
+    };
+  }
+
+
 }
 

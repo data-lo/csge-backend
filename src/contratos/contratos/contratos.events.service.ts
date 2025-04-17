@@ -130,5 +130,31 @@ export class ContractEventsService {
     }
   }
 
+  // @OnEvent('disabled-contracts', { async: true })
+  // async disabledContracts(payload: { contractIds: string }) {
+
+  //   this.logger.log(`🔄 Iniciando evento "disabled-contracts" para el Contrato Principal: ${payload.campaignId}`);
+
+  //   try {
+
+  //     const orders = await this.orderService.getOrdersCreatedByCampaignModule(payload.campaignId);
+
+  //     for (const order of orders) {
+  //       await this.contractService.updateContractAmountByOrder(
+  //         order.id,
+  //         order.contratoMaestro.id,
+  //         TYPE_EVENT_ORDER.ORDER_APPROVED
+  //       );
+
+  //       await this.orderService.updateOrderStatus(order.id, ESTATUS_ORDEN_DE_SERVICIO.ACTIVA)
+  //     }
+
+  //     this.logger.log(`✅ Evento "approval-campaign-orders" completado con éxito.`);
+  //   } catch (error) {
+  //     this.logger.error(
+  //       `❌ Error en el evento "approval-campaign-orders" para la Campaña ${payload.campaignId}: ${error.message}`,
+  //       error.stack
+  //     );
+  //   }
 
 }
