@@ -13,6 +13,11 @@ import { EXTENSION_TYPE_ENUM } from './enums/extension-type-enum';
 import { addTimeToDate } from 'src/functions/add-time-to-date';
 import { TIPO_DE_CONTRATO } from '../interfaces/tipo-de-contrato';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TYPE_EVENT_ORDER } from '../enums/type-event-order';
+import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
+import { handlerAmounts } from '../contratos/functions/handler-amounts';
+import { ContratoMaestro } from '../contratos/entities/contrato.maestro.entity';
+import { Contrato } from '../contratos/entities/contrato.entity';
 
 @Injectable()
 export class ContratosModificatoriosService {
@@ -20,13 +25,18 @@ export class ContratosModificatoriosService {
     private eventEmitter: EventEmitter2,
 
     @InjectRepository(ContratoModificatorio)
-    private contractAmendmentRepository: Repository<ContratoModificatorio>,
+    private amendmentContractRepository: Repository<ContratoModificatorio>,
+
+    @InjectRepository(ContratoMaestro)
+    private readonly masterContractRepository: Repository<ContratoMaestro>,
+
+    @InjectRepository(Contrato)
+    private readonly contractRepository: Repository<Contrato>,
 
     private contractsService: ContratosService,
   ) { }
 
   async create(createContratoModificatorioDto: CreateContratoModificatorioDto) {
-    console.log(createContratoModificatorioDto);
     try {
       const {
         montoMinimoContratado,
@@ -81,7 +91,7 @@ export class ContratosModificatoriosService {
       const executedAmount = new Decimal(0);
       const paidAmount = new Decimal(0);
 
-      const contratoModificatorio = this.contractAmendmentRepository.create({
+      const contratoModificatorio = this.amendmentContractRepository.create({
         montoDisponible: availableAmount.toNumber(),
         montoMinimoContratado: minAmount.toNumber(),
         montoMaximoContratado: maxAmount.toNumber(),
@@ -99,7 +109,7 @@ export class ContratosModificatoriosService {
         ...rest,
       });
 
-      await this.contractAmendmentRepository.save(contratoModificatorio);
+      await this.amendmentContractRepository.save(contratoModificatorio);
 
       if (masterContract.estatusDeContrato === ESTATUS_DE_CONTRATO.TERMINADO && extensionType === EXTENSION_TYPE_ENUM.TIME) {
         const activeContractsCount = await this.contractsService.countActiveContracts(masterContract.proveedor.id);
@@ -137,7 +147,7 @@ export class ContratosModificatoriosService {
   async findAll(page: number) {
     try {
       const paginationSetter = new PaginationSetter();
-      const contratosModificatorios = this.contractAmendmentRepository.find(
+      const contratosModificatorios = this.amendmentContractRepository.find(
         {
           skip: paginationSetter.getSkipElements(page),
           take: paginationSetter.castPaginationLimit(),
@@ -151,7 +161,7 @@ export class ContratosModificatoriosService {
 
   async findOne(id: string) {
     try {
-      const contratoModificatorio = await this.contractAmendmentRepository.findOneBy({ id: id });
+      const contratoModificatorio = await this.amendmentContractRepository.findOneBy({ id: id });
 
       if (!contratoModificatorio) {
         throw new BadRequestException('El contrato modificatorio no existe');
@@ -182,7 +192,7 @@ export class ContratosModificatoriosService {
 
       } else {
 
-        await this.contractAmendmentRepository.update(modificatoryContractId, updateContratoModificatorioDto);
+        await this.amendmentContractRepository.update(modificatoryContractId, updateContratoModificatorioDto);
 
         return await this.findOne(modificatoryContractId);
       }
@@ -193,7 +203,7 @@ export class ContratosModificatoriosService {
 
   async remove(contractAmendmentId: string) {
     try {
-      const contractAmendment = await this.contractAmendmentRepository.findOne({
+      const contractAmendment = await this.amendmentContractRepository.findOne({
         where: { id: contractAmendmentId },
         relations: ['contratoMaestro']
       })
@@ -201,7 +211,7 @@ export class ContratosModificatoriosService {
       if (contractAmendment.estatusDeContrato != ESTATUS_DE_CONTRATO.PENDIENTE) {
         throw new BadRequestException('¡Solo se pueden cancelar contratos con estatus "Pendiente"!');
       } else {
-        await this.contractAmendmentRepository.delete({ id: contractAmendmentId });
+        await this.amendmentContractRepository.delete({ id: contractAmendmentId });
       }
 
       if (contractAmendment.extensionType === EXTENSION_TYPE_ENUM.TIME) {
@@ -250,7 +260,7 @@ export class ContratosModificatoriosService {
   ) {
     try {
       const { estatusDeContrato } = updateContratoModificatorioDto;
-      await this.contractAmendmentRepository.update(id, {
+      await this.amendmentContractRepository.update(id, {
         estatusDeContrato: estatusDeContrato,
       });
       return {
@@ -266,7 +276,7 @@ export class ContratosModificatoriosService {
     try {
       const { cancellationReason } = updateContratoDto
 
-      const contractAmendment = await this.contractAmendmentRepository.findOne({
+      const contractAmendment = await this.amendmentContractRepository.findOne({
         where: { id: contractAmendmentId },
         relations: ['contratoMaestro']
       });
@@ -278,7 +288,7 @@ export class ContratosModificatoriosService {
 
       if (validStatus.includes(contractAmendment.estatusDeContrato)) {
 
-        await this.contractAmendmentRepository.update(contractAmendmentId, {
+        await this.amendmentContractRepository.update(contractAmendmentId, {
           estatusDeContrato: ESTATUS_DE_CONTRATO.CANCELADO,
           cancellationReason: cancellationReason
         });
@@ -315,7 +325,79 @@ export class ContratosModificatoriosService {
     }
   }
 
-  async calcularIva() { }
+  async updateAmendmentContractAmountByOrder(totalOrder: string, serviceType: TIPO_DE_SERVICIO, amendmentContractId: string, eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE) {
 
-  async actualizarMontos() { }
+    const masterContract = await this.masterContractRepository.findOne({
+      where: { contratosModificatorios: { id: amendmentContractId } },
+      relations: { contratos: true },
+    });
+
+    console.log(masterContract);
+
+    const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === serviceType);
+
+    console.log(contractByServiceType);
+
+    const amendmentContract = await this.amendmentContractRepository.findOne({
+      where: { id: amendmentContractId },
+    });
+
+    const values = {
+      contract: {
+        availableAmount: amendmentContract.montoDisponible,
+        paidAmount: amendmentContract.montoPagado,
+        executedAmount: amendmentContract.montoEjercido,
+        activeAmount: amendmentContract.montoActivo,
+        committedAmount: amendmentContract.committedAmount
+      },
+      contractByServiceType: {
+        paidAmount: contractByServiceType.montoPagado,
+        executedAmount: contractByServiceType.montoEjercido,
+        activeAmount: contractByServiceType.montoActivo
+      },
+      eventType: eventType,
+      totalOrder: totalOrder
+    }
+
+    const updatedValues = handlerAmounts(values);
+
+    console.log(updatedValues)
+
+    if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
+
+      await this.contractRepository.update(contractByServiceType.id, {
+        montoActivo: updatedValues.contractByServiceType.activeAmount
+      });
+
+      await this.amendmentContractRepository.update(amendmentContract.id, {
+        montoDisponible: updatedValues.contract.availableAmount,
+        montoActivo: updatedValues.contract.activeAmount,
+        committedAmount: updatedValues.contract.committedAmount
+      });
+
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+
+      await this.contractRepository.update(contractByServiceType.id, {
+        montoActivo: updatedValues.contractByServiceType.activeAmount,
+        montoEjercido: updatedValues.contractByServiceType.executedAmount
+      });
+
+      await this.amendmentContractRepository.update(amendmentContract.id, {
+        montoEjercido: updatedValues.contract.executedAmount,
+        montoActivo: updatedValues.contract.activeAmount
+      });
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_PAID) {
+
+      await this.contractRepository.update(contractByServiceType.id, {
+        montoPagado: updatedValues.contractByServiceType.paidAmount,
+        montoEjercido: updatedValues.contractByServiceType.executedAmount
+      });
+
+      await this.amendmentContractRepository.update(amendmentContract.id, {
+        montoPagado: updatedValues.contract.paidAmount,
+        montoEjercido: updatedValues.contract.executedAmount
+      });
+    }
+  }
+
 }

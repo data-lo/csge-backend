@@ -127,17 +127,16 @@ export class PartidaService {
     }
   }
 
-  async actualizarMontos(ordenId: string, evento: string) {
+  async updateAmounts(ordenId: string, ) {
     try {
-
-      const ordenDb = await this.ordenRepository.findOne({
+      const order = await this.ordenRepository.findOne({
         where: { id: ordenId },
         relations: { campaña: true }
       }
       );
 
-      const campania = await this.campañaRepository.findOne({
-        where: { id: ordenDb.campaña.id },
+      const campaing = await this.campañaRepository.findOne({
+        where: { id: order.campaña.id },
         relations: {
           activaciones: {
             partida: true
@@ -145,36 +144,18 @@ export class PartidaService {
         }
       });
 
-      if (!campania) throw new NotFoundException('No se encuentra la campaña para actualizr los montos');
-      const partidaDb = campania.activaciones.at(-1).partida;
-      if (!partidaDb.estatus) throw new BadRequestException('Error, se esta tratando de actualizar una partida desactivada');
+      if (!campaing) {
+        throw new NotFoundException('¡Campaña no encontrada! No se pueden actualizar los montos de la partida.');
+      }
 
-      // monto activo, orden aprobada
-      // monto ejercido, cuando se coteja,
-      // monto pagado, cuando se paga
+      const match = campaing.activaciones.at(-1).partida;
 
-      // switch (evento) {
-      //   case 'orden.aprobada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
-      //     break;
-      //   case 'orden.canelada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-      //     break;
+      if (!match.estatus){
+        throw new BadRequestException('¡Partida desactivada! No es posible realizar la actualización.');
+      }
 
-      //   case 'orden.cotejada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-      //     partidaDb.montoEjercido = (partidaDb.montoEjercido + ordenDb.total);
-      //     break;
+      await this.matchRepository.save(match);
 
-      //   case 'factura.pagada':
-      //     partidaDb.montoPagado = (partidaDb.montoPagado = ordenDb.total);
-      //     break;
-
-      //   case 'factura.cancelada':
-      //     partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
-      //     partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
-      // }
-      await this.matchRepository.save(partidaDb);
       return;
 
     } catch (error) {

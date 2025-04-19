@@ -26,6 +26,7 @@ import { Activacion } from 'src/campañas/activacion/entities/activacion.entity'
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
 import { PartidaService } from 'src/campañas/partida/partida.service';
 import { Iva } from 'src/configuracion/iva/entities/iva.entity';
+import { ContratosModificatoriosService } from '../contratos_modificatorios/contratos_modificatorios.service';
 
 
 @Module({
@@ -59,7 +60,8 @@ import { Iva } from 'src/configuracion/iva/entities/iva.entity';
     CampañasService,
     ProveedorService,
     IvaService,
-    PartidaService
+    PartidaService,
+    ContratosModificatoriosService
   ],
   exports: [
     ContractEventsService,

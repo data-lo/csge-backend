@@ -89,7 +89,6 @@ export class OrdenService {
 
   async create(createOrderDto: CreateOrdenDto) {
     try {
-      console.log(createOrderDto)
       const { campaniaId, proveedorId, contratoId, tipoDeServicio, serviciosContratados, fechaDeEmision, ...rest } = createOrderDto;
 
       const currentDate = new Date();
@@ -107,24 +106,19 @@ export class OrdenService {
 
       console.log(response);
 
-      // const availableFunds = new Decimal(masterContract.montoDisponible).minus(new Decimal(masterContract.committedAmount));
-
       if (response.isOrderFullyCovered) {
-
         for (const item of response.availableContracts) {
-          if (item.contractType === 'MASTER_CONTRACT') {
+          if (item.contractType === 'MASTER_CONTRACT' && !(new Decimal(item.maxAvailableAmount).isZero())) {
             await this.masterContractRepository.update(item.id, {
               committedAmount: Number(item.newCommittedAmount)
             });
-          } else {
+          } else if (item.contractType === 'AMENDMENT_CONTRACT' && !(new Decimal(item.maxAvailableAmount).isZero())) {
             await this.amendmentContractRepository.update(item.id, {
               committedAmount: Number(item.newCommittedAmount)
             });
           }
         }
-
       } else {
-
         const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
           quantity: cantidad,
           serviceName: servicio.nombreDeServicio,
@@ -168,6 +162,8 @@ export class OrdenService {
         iva: amountDetails.tax.toString(),
         total: amountDetails.total.toString(),
         subtotal: amountDetails.subtotal.toString(),
+        contractBreakdownList: response.usedAmendmentContracts ? response.fundsUsedToCoverOrder : [],
+        usedAmendmentContracts: response.usedAmendmentContracts,
         ...rest,
       });
 
@@ -351,8 +347,11 @@ export class OrdenService {
         masterContract: {
           masterContractId: order.contratoMaestro.id,
         },
+        contractBreakdownList: order.contractBreakdownList,
+        usedAmendmentContracts: order.usedAmendmentContracts,
         orderId: order.id,
         tax: order.iva,
+        total: order.total,
         folio: order.folio,
         createdAt: order.fechaDeEmision,
         approvedAt: order.fechaDeAprobacion,
@@ -504,13 +503,33 @@ export class OrdenService {
           await this.contractedServiceService.remove(servicioContratado.id);
         }
 
-        const masterContractRepository = await this.contractService.findOne(order.contratoMaestro.id);
+        const masterContract = await this.contractService.findOne(order.contratoMaestro.id);
 
-        const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+        if (order.usedAmendmentContracts) {
+          for (const item of order.contractBreakdownList) {
+            if (item.contractType === 'MASTER_CONTRACT') {
+              const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
 
-        await this.masterContractRepository.update(masterContractRepository.id, {
-          committedAmount: newCommittedAmount.toNumber()
-        })
+              await this.masterContractRepository.update(masterContract.id, {
+                committedAmount: newCommittedAmount.toNumber()
+              });
+            } else if (item.contractType === 'AMENDMENT_CONTRACT') {
+              const amendmentContract = masterContract.contratosModificatorios.find((amendmentContract) => amendmentContract.id === item.id)
+
+              const newCommittedAmount = new Decimal(amendmentContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+
+              await this.amendmentContractRepository.update(item.id, {
+                committedAmount: newCommittedAmount.toNumber()
+              });
+            }
+          }
+        } else {
+          const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+
+          await this.masterContractRepository.update(masterContract.id, {
+            committedAmount: newCommittedAmount.toNumber()
+          });
+        }
 
         await this.orderRepository.remove(order);
 
@@ -873,10 +892,62 @@ export class OrdenService {
 
     const orders = await this.orderRepository.find({
       where,
-      relations: ['contratoMaestro']
+      relations: {
+        proveedor: true,
+        contratoMaestro: true,
+        serviciosContratados: true,
+        campaña: true,
+      },
     });
 
-    return orders;
+    const transformedOrders = orders.map((order) => ({
+      campaign: {
+        campaignId: order.campaña.id,
+        campaignName: order.campaña.nombre
+      },
+      provider: {
+        providerId: order.proveedor.id,
+        providerName: order.proveedor.razonSocial,
+        providerRFC: order.proveedor.rfc,
+        providerType: order.proveedor.tipoProveedor
+      },
+      masterContract: {
+        masterContractId: order.contratoMaestro.id
+      },
+      contractBreakdownList: order.contractBreakdownList,
+      usedAmendmentContracts: order.usedAmendmentContracts,
+      orderId: order.id,
+      tax: order.iva,
+      total: order.total,
+      folio: order.folio,
+      createdAt: order.fechaDeEmision,
+      approvedAt: order.fechaDeAprobacion,
+      isCampaign: order.esCampania,
+      serviceType: order.tipoDeServicio,
+      orderStatus: order.estatus,
+
+      acquiredServices: order.serviciosContratados.map((service) => ({
+        serviceType: order.tipoDeServicio,
+        observations: service.observacion,
+        quantity: service.cantidad,
+        serviceId: service.id,
+        formatType: service.servicio?.tipoFormato,
+        serviceName: service.servicio?.nombreDeServicio,
+        unitPrice: service.servicio?.tarifaUnitaria,
+        tax: service.servicio.iva,
+        isBorderTax: service.servicio?.ivaFrontera,
+        description: service.servicio?.descripcionDelServicio,
+        numberOfDays: service.calendarizacion,
+        spotDetails: {
+          versions: service.versionesSpot,
+          impacts: service.impactosVersionSpot,
+          numberOfDays: service.numeroDiasSpot
+        },
+        govermentBillboard: service.cartelera
+      }))
+    }));
+
+    return transformedOrders;
   }
 }
 

@@ -52,7 +52,6 @@ export class CampañasService {
 
   async create(createCampañaDto: CreateCampañaDto) {
     try {
-      console.log(createCampañaDto)
       let dependencias = [];
       const { dependenciasIds, activacion, ...rest } = createCampañaDto;
 
@@ -150,7 +149,6 @@ export class CampañasService {
 
   async getCampaignsWithFilters(pageParam: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: CAMPAIGN_STATUS) {
     try {
-      console.log(searchParams)
       const resolvedYear = getResolvedYear(year, canAccessHistory);
 
       const paginationSetter = new PaginationSetter();
@@ -609,7 +607,6 @@ export class CampañasService {
   }
 
   async getReportInExcel(res: Response, typeCampaignReport: CAMPAIGN_TYPE_REPORT) {
-    console.log(typeCampaignReport)
     try {
 
       let dataToExport: any = [];

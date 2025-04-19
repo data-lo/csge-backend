@@ -28,6 +28,7 @@ import { addTimeToDate } from 'src/functions/add-time-to-date';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
 import { AvailableContractType } from './types/available-contract-type';
 import { FundUsageType } from './types/fund-usage-type';
+import { TYPE_EVENT_ORDER } from '../enums/type-event-order';
 
 
 @Injectable()
@@ -319,7 +320,7 @@ export class ContratosService {
           ESTATUS_DE_CONTRATO.LIBERADO,
           ESTATUS_DE_CONTRATO.ADJUDICADO
         ];
-        
+
         let globalActiveAmount = new Decimal(montoActivo);
         let globalExecutedAmount = new Decimal(montoEjercido);
         let globalPaidAmount = new Decimal(montoPagado);
@@ -608,19 +609,17 @@ export class ContratosService {
   }
 
 
-  async updateContractAmountByOrder(orderId: string, masterContractId: string, eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE) {
-
-    const order = await this.orderRepository.findOne({ where: { id: orderId } })
+  async updateMasterContractAmountByOrder(totalOrder: string, serviceType: TIPO_DE_SERVICIO, masterContractId: string, eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE) {
 
     const masterContract = await this.masterContractRepository.findOne({
       where: { id: masterContractId },
       relations: { contratos: true },
     });
 
-    const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === order.tipoDeServicio);
+    const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === serviceType);
 
     const values = {
-      masterContract: {
+      contract: {
         availableAmount: masterContract.montoDisponible,
         paidAmount: masterContract.montoPagado,
         executedAmount: masterContract.montoEjercido,
@@ -633,7 +632,7 @@ export class ContratosService {
         activeAmount: contractByServiceType.montoActivo
       },
       eventType: eventType,
-      totalOrder: order.total
+      totalOrder: totalOrder
     }
 
     const updatedValues = handlerAmounts(values);
@@ -645,9 +644,9 @@ export class ContratosService {
       });
 
       await this.masterContractRepository.update(masterContract.id, {
-        montoDisponible: updatedValues.masterContract.availableAmount,
-        montoActivo: updatedValues.masterContract.activeAmount,
-        committedAmount: updatedValues.masterContract.committedAmount
+        montoDisponible: updatedValues.contract.availableAmount,
+        montoActivo: updatedValues.contract.activeAmount,
+        committedAmount: updatedValues.contract.committedAmount
       });
 
     } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
@@ -658,8 +657,8 @@ export class ContratosService {
       });
 
       await this.masterContractRepository.update(masterContract.id, {
-        montoEjercido: updatedValues.masterContract.executedAmount,
-        montoActivo: updatedValues.masterContract.activeAmount
+        montoEjercido: updatedValues.contract.executedAmount,
+        montoActivo: updatedValues.contract.activeAmount
       });
     } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_PAID) {
 
@@ -669,8 +668,8 @@ export class ContratosService {
       });
 
       await this.masterContractRepository.update(masterContract.id, {
-        montoPagado: updatedValues.masterContract.paidAmount,
-        montoEjercido: updatedValues.masterContract.executedAmount
+        montoPagado: updatedValues.contract.paidAmount,
+        montoEjercido: updatedValues.contract.executedAmount
       });
     }
   }
@@ -704,8 +703,6 @@ export class ContratosService {
       const lastModificatory = modificatoryContracts[modificatoryContracts.length - 1];
 
       if (!lastModificatory || new Date(lastModificatory.fechaFinal).getTime() < today.getTime()) {
-        console.log("Se desactiva hoy el contrato modificatorio.");
-        console.log(lastModificatory);
         contractsByProvider[providerId].push(masterContract);
       }
     }
@@ -833,6 +830,7 @@ export class ContratosService {
   }
 
   async getAllAvailableAmounts(masterContractId: string, totalOrderAmount: string) {
+
     const masterContract = await this.masterContractRepository.findOne({
       where: { id: masterContractId },
       relations: ["contratosModificatorios"]
@@ -889,9 +887,11 @@ export class ContratosService {
         }),
         availableTotalContract: availableTotalContract.toString(),
         fundsUsedToCoverOrder: fundsToBeUsed,
-        isOrderFullyCovered: true
+        isOrderFullyCovered: true,
+        usedAmendmentContracts: false
       };
     }
+
 
     if (masterAvailable.greaterThan(0)) {
       fundsToBeUsed.push({
@@ -908,7 +908,7 @@ export class ContratosService {
           validExtensionTypes.includes(amendmentContract.extensionType) &&
           validStatus.includes(amendmentContract.estatusDeContrato)
         ) {
-          const committed = new Decimal(amendmentContract.committedAmount);
+          const committed = new Decimal(amendmentContract.committedAmount || 0);
           const available = new Decimal(amendmentContract.montoDisponible).minus(committed);
 
           availableContractAmounts.push({
@@ -944,7 +944,7 @@ export class ContratosService {
       const currentCommitted = contract.contractType === "MASTER_CONTRACT"
         ? new Decimal(masterContract.committedAmount)
         : new Decimal(
-          masterContract.contratosModificatorios.find(c => c.id === contract.id)?.committedAmount
+          masterContract.contratosModificatorios.find(c => c.id === contract.id)?.committedAmount || 0
         );
 
       return {
@@ -953,15 +953,16 @@ export class ContratosService {
       };
     });
 
+    const usedAmendmentContracts = fundsToBeUsed.some(f => f.contractType === "AMENDMENT_CONTRACT");
+
     return {
       availableContracts: updatedAvailableContracts,
       availableTotalContract: availableTotalContract.toString(),
-      fundsUsedToCoverOrder: fundsToBeUsed,
+      fundsUsedToCoverOrder: isOrderFullyCovered ? fundsToBeUsed : [],
       isOrderFullyCovered,
-      missingAmountToCoverOrder: !isOrderFullyCovered && requiredAmount.minus(availableTotalContract).toString()
+      usedAmendmentContracts,
+      missingAmountToCoverOrder: !isOrderFullyCovered ? requiredAmount.minus(availableTotalContract).toString() : undefined
     };
   }
-
-
 }
 

@@ -335,7 +335,6 @@ export class FirmaService {
       }
       return usuarios;
     } catch (error) {
-      console.log('ERROR EN USUARIOS FIRMANTES');
       handleExceptions(error);
     }
   }
@@ -575,7 +574,6 @@ export class FirmaService {
       };
 
     } catch (error) {
-      console.log(error);
       handleExceptions(error);
     }
   }

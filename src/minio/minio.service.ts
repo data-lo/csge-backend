@@ -50,9 +50,6 @@ export class MinioService {
     this.MINIO_API = process.env.MINIO_API;
 
     this.MINIO_PUBLIC_HOST = process.env.MINIO_PUBLIC_HOST;
-
-    console.log(process.env.MINIO_API)
-
     return;
   }
 
@@ -80,7 +77,6 @@ export class MinioService {
   }
 
   async subirArchivosAMinio(files: MinioFileI[]) {
-    console.log(files)
     try {
       const minioClient = this.getMinioClient();
 

@@ -112,7 +112,6 @@ export const headerSection = async (options: HeaderOptions,): Promise<Content> =
     };
 
   } catch (error) {
-    console.log('Error en la construcción del image buffer');
     handleExceptions(error);
   }
 };

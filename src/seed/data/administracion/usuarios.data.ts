@@ -5,12 +5,12 @@ export const usuariosData = [
         segundoApellido: "FERNANDEZ",
         puestoId: "DIRECTOR GENERAL",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "JUANCEPEDA@CHIH.GOB.MX",
+        correo: "juancepeda@chihuahua.gob.mx",
         numeroDeEmpleado: "1285",
         rol: "SUPERADMIN",
         permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ['COTEJAR FACTURA', 'CAMPAÑA', 'ORDEN DE SERVICIO'],
-        tipoOrdenDeServicio: ['TODOS LOS SERVICIOS']
+        documentosDeFirma: ["COTEJAR FACTURA", "CAMPAÑA", "ORDEN DE SERVICIO"],
+        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
     },
     {
         nombres: "MONICA",
@@ -18,12 +18,12 @@ export const usuariosData = [
         segundoApellido: "VOTA",
         puestoId: "PEROSNAL TIC Y-O ASESOR TÉCNICO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "BMSAENZ@CHIHUAHUA.GOB.MX",
+        correo: "bmsaenz@chihuahua.gob.mx",
         numeroDeEmpleado: "1286",
         rol: "SUPERADMIN",
         permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ['COTEJAR FACTURA', 'CAMPAÑA', 'ORDEN DE SERVICIO'],
-        tipoOrdenDeServicio: ['TODOS LOS SERVICIOS']
+        documentosDeFirma: ["COTEJAR FACTURA", "CAMPAÑA", "ORDEN DE SERVICIO"],
+        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
     },
     {
         nombres: "SORACHI",
@@ -31,12 +31,12 @@ export const usuariosData = [
         segundoApellido: "CHAVEZ",
         puestoId: "DIRECTOR",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "SCARRENO@CHIH.GOB.MX",
+        correo: "scarreno@chih.gob.mx",
         numeroDeEmpleado: "1287",
         rol: "DIRECCION",
         permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ['APROBACIÓN DE FACTURA', 'CAMPAÑA', 'ORDEN DE SERVICIO'],
-        tipoOrdenDeServicio: ['TODOS LOS SERVICIOS']
+        documentosDeFirma: ["APROBACIÓN DE FACTURA", "CAMPAÑA", "ORDEN DE SERVICIO"],
+        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
     },
     {
         nombres: "KATYA ILEANA",
@@ -44,10 +44,10 @@ export const usuariosData = [
         segundoApellido: "ESTRADA",
         puestoId: "ASESOR TÉCNICO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "KATYA.LEAL@CHIHUAHUA.GOB.MX",
+        correo: "katya.leal@chihuahua.gob.mx",
         numeroDeEmpleado: "1288",
         rol: "PLANEACION",
-        permisos: ["FIRMA"]
+        permisos: ["FIRMA"],
     },
     {
         nombres: "MARIA SOLEDAD",
@@ -55,10 +55,10 @@ export const usuariosData = [
         segundoApellido: "PINEDA",
         puestoId: "PEROSNAL ESPECIALIZADO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "MARIA.FIERRO@CHIHUAHUA.GOB.MX",
+        correo: "maria.fierro@chihuahua.gob.mx",
         numeroDeEmpleado: "1289",
         rol: "AGENTE",
-        permisos: ["FIRMA"]
+        permisos: ["FIRMA"],
     },
     {
         nombres: "BIANCA ALEJANDRA",
@@ -66,10 +66,10 @@ export const usuariosData = [
         segundoApellido: "TORRES",
         puestoId: "PEROSNAL ESPECIALIZADO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "BIANCA.CEDILLO@CHIHUAHUA.GOB.MX",
+        correo: "bianca.cedillo@chihuahua.gob.mx",
         numeroDeEmpleado: "1290",
         rol: "AGENTE",
-        permisos: ["FIRMA"]
+        permisos: ["FIRMA"],
     },
     {
         nombres: "HAMBARINA",
@@ -77,10 +77,10 @@ export const usuariosData = [
         segundoApellido: "MORALES",
         puestoId: "ASESOR TÉCNICO",
         departamentoId: "DIRECCIÓN DE IMAGEN GUBERNAMENTAL",
-        correo: "HAMBARINA.VADLDEZ@CHIHUAHUA.GOB.MX",
+        correo: "hambarina.vadldez@chihuahua.gob.mx",
         numeroDeEmpleado: "1291",
         rol: "PLANEACION",
-        permisos: ["FIRMA"]
+        permisos: ["FIRMA"],
     },
     {
         nombres: "LORENA",
@@ -88,10 +88,10 @@ export const usuariosData = [
         segundoApellido: "HEIRAS",
         puestoId: "DIRECTOR",
         departamentoId: "DIRECCIÓN DE IMAGEN GUBERNAMENTAL",
-        correo: "LORENA.CAMPOS@CHIHUAHUA.GOB.MX",
+        correo: "lorena.campos@chihuahua.gob.mx",
         numeroDeEmpleado: "1292",
         rol: "DIRECCION",
-        permisos: ["FIRMA", "HISTORICO"]
+        permisos: ["FIRMA", "HISTORICO"],
     },
     {
         nombres: "IRIS JUDITH",
@@ -99,10 +99,10 @@ export const usuariosData = [
         segundoApellido: "AMPARAN",
         puestoId: "JEFE DE DEPARTAMENTO",
         departamentoId: "DEPARTAMENTO JURIDICO",
-        correo: "IRIS.BARRERA@CHIHUAHUA.GOB.MX",
+        correo: "iris.barrera@chihuahua.gob.mx",
         numeroDeEmpleado: "1293",
         rol: "JURIDICO",
-        permisos: ["HISTORICO"]
+        permisos: ["HISTORICO"],
     },
     {
         nombres: "INGRID NOEMI",
@@ -110,10 +110,10 @@ export const usuariosData = [
         segundoApellido: "REZA",
         puestoId: "PEROSNAL ESPECIALIZADO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "INGRID.ROCHA@CHIHUAHUA.GOB.MX",
+        correo: "ingrid.rocha@chihuahua.gob.mx",
         numeroDeEmpleado: "1294",
         rol: "AGENTE",
-        permisos: ["FIRMA"]
+        permisos: ["FIRMA"],
     },
     {
         nombres: "LAURA YAZMIN",
@@ -121,10 +121,10 @@ export const usuariosData = [
         segundoApellido: "MÁRQUEZ",
         puestoId: "PEROSNAL ESPECIALIZADO",
         departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "LAURA.YAZMIN@CHIHUAHUA.GOB.MX",
+        correo: "laura.yazmin@chihuahua.gob.mx",
         numeroDeEmpleado: "1295",
         rol: "REPORTES",
-        permisos: ["HISTORICO"]
+        permisos: ["HISTORICO"],
     },
     {
         nombres: "JOSE LUIS",
@@ -132,12 +132,12 @@ export const usuariosData = [
         segundoApellido: "JUÁREZ",
         puestoId: "DIRECTOR GENERAL",
         departamentoId: "DIRECCIÓN GENERAL",
-        correo: "JOSELUIS.MARTINEZ@CHIHUAHUA.GOB.MX",
+        correo: "joseluis.martinez@chihuahua.gob.mx",
         numeroDeEmpleado: "1296",
         rol: "REPORTES",
         permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ['CAMPAÑA', 'ORDEN DE SERVICIO'],
-        tipoOrdenDeServicio: ['TODOS LOS SERVICIOS']
+        documentosDeFirma: ["CAMPAÑA", "ORDEN DE SERVICIO"],
+        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
     },
     {
         nombres: "SERGIO",
@@ -145,12 +145,11 @@ export const usuariosData = [
         segundoApellido: "ROBLES",
         puestoId: "COORDINADOR",
         departamentoId: "COORDINACIÓN DE COMUNICACIÓN",
-        correo: "SERGIO.RAMIREZROBLES@CHIHUAHUA.GOB.MX",
+        correo: "sergio.ramirezrobles@chihuahua.gob.mx",
         numeroDeEmpleado: "1297",
         rol: "REPORTES",
         permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ['CAMPAÑA', 'ORDEN DE SERVICIO'],
-        tipoOrdenDeServicio: ['TODOS LOS SERVICIOS']
+        documentosDeFirma: ["CAMPAÑA", "ORDEN DE SERVICIO"],
+        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
     },
-
-]
+];

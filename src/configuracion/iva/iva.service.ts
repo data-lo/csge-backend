@@ -59,7 +59,6 @@ export class IvaService {
   }
 
   async update(taxId: string, values: UpdateIvaDto) {
-    console.log(values)
     try {
       const tax = await this.findOne(taxId);
 

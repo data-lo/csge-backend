@@ -757,6 +757,8 @@ export class FacturaService {
 
     const ordersArray = ordersWithMasterContracts.map(order => ({
       orderId: order.id,
+      totalOrder: order.total,
+      serviceType:  order.tipoDeServicio,
       masterContractId: order.contratoMaestro.id
     }));
 
