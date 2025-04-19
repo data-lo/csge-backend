@@ -27,6 +27,7 @@ import { Partida } from 'src/campañas/partida/entities/partida.entity';
 import { PartidaService } from 'src/campañas/partida/partida.service';
 import { Iva } from 'src/configuracion/iva/entities/iva.entity';
 import { ContratosModificatoriosService } from '../contratos_modificatorios/contratos_modificatorios.service';
+import { Factura } from 'src/ordenes/factura/entities/factura.entity';
 
 
 @Module({
@@ -39,6 +40,7 @@ import { ContratosModificatoriosService } from '../contratos_modificatorios/cont
       ServicioContratado, 
       CarteleraGobierno,
       Campaña,
+      Factura,
       Dependencia,
       Activacion,
       Partida,

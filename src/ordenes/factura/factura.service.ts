@@ -42,7 +42,7 @@ export class FacturaService {
     private orderRepository: Repository<Orden>,
 
     @InjectRepository(Proveedor)
-    private proveedrRepository: Repository<Proveedor>,
+    private providerRepository: Repository<Proveedor>,
 
     private readonly firmaService: FirmaService,
 
@@ -95,7 +95,7 @@ export class FacturaService {
         ordenes.push(orden);
       }
 
-      const proveedor = await this.proveedrRepository.findOneBy({
+      const proveedor = await this.providerRepository.findOneBy({
         id: proveedorId,
       });
       if (!proveedor) {
@@ -256,8 +256,6 @@ export class FacturaService {
         };
       });
 
-      console.log(newData)
-
       return newData;
 
     } catch (error: any) {
@@ -316,6 +314,8 @@ export class FacturaService {
           subtotal: order.subtotal,
           tax: order.iva,
           total: order.total,
+          contractBreakdownList: order.contractBreakdownList,
+          usedAmendmentContracts: order.usedAmendmentContracts
         })),
       };
 
@@ -478,127 +478,6 @@ export class FacturaService {
     return url;
   }
 
-  // async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
-  //   try {
-  //     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-
-  //     const sheetName = workbook.SheetNames[0];
-
-  //     const worksheet = workbook.Sheets[sheetName];
-
-  //     const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-  //     if (rawData.length < 2) {
-  //       throw new Error("El archivo no tiene suficientes filas");
-  //     }
-
-  //     const jsonData = rawData.slice(1).map(row => ({
-  //       policyId: Number(row[0]) || null,
-  //       batchNameGL: String(row[1] || ""),
-  //       invoiceNumber: String(row[2] || ""),
-  //       ineNumber: row[3] ? String(row[3]) : undefined,
-  //       travelActivities: row[4] ? String(row[4]) : undefined,
-  //       accountingDate: this.excelDateToJSDate(row[5]),
-  //       paidAmount: Number(row[6]) || 0,
-  //       batchName: String(row[7] || ""),
-  //       invoiceDate: this.excelDateToJSDate(row[8]),
-  //       providerName: String(row[9] || ""),
-  //       description: String(row[10] || ""),
-  //       invoiceAmount: Number(row[11]) || 0,
-  //       groupFolio: Number(row[12]) || null,
-  //       checkNumber: Number(row[13]) || null,
-  //       checkDate: this.excelDateToJSDate(row[14]),
-  //       bankAccount: String(row[15] || ""),
-  //       checkAmount: Number(row[16]) || 0,
-  //       accountingAccount: String(row[17] || ""),
-  //       debit: Number(row[18]) || 0,
-  //       credit: Number(row[19]) || 0
-  //     }));
-
-  //     let wasPaid: number = 0;
-
-  //     let paidInvoiceCount: number = 0;
-
-  //     let invoiceIds: string[] = [];
-
-  //     for (const row of jsonData) {
-  //       const invoice = await this.findOne(row.invoiceNumber, true);
-
-  //       if (!invoice) continue;
-
-  //       const isProcessableStatus = [
-  //         INVOICE_STATUS.APROBADA,
-  //         INVOICE_STATUS.PARTIAL_PAY
-  //       ].includes(invoice.status);
-
-  //       if (!isProcessableStatus) continue;
-
-  //       const totalInvoiceAmount = new Decimal(invoice.total);
-
-  //       const paidAmount = new Decimal(row.paidAmount);
-
-  //       const isFullyPaid = paidAmount.equals(totalInvoiceAmount);
-
-  //       const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
-
-  //       const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
-
-  //       const existingPayments = Array.isArray(invoice.payments) ? invoice.payments : [];
-
-  //       const alreadyRegistered = existingPayments.some(item =>
-  //         Number(item.paidAmount) === Number(row.paidAmount) &&
-  //         item.checkNumber === row.checkNumber
-  //       );
-
-  //       if (alreadyRegistered) {
-  //         wasPaid++;
-  //         continue
-  //       };
-
-  //       const newPayment: PaymentRegister = {
-  //         paidAmount: paidAmount.toString(),
-  //         checkNumber: row.checkNumber,
-  //         registeredAt: new Date()
-  //       };
-
-  //       const updatedPayments = [...existingPayments, newPayment];
-
-  //       await this.invoiceRepository.update(invoice.id, {
-  //         paymentRegister: updatedPayments,
-  //         estatus: newStatusInvoice
-  //       });
-        
-  //       for (const order of invoice.orders) {
-  //         await this.orderRepository.update(order.id, {
-  //           estatus: newStatusOrder
-  //         });
-  //       }
-
-  //       if (newStatusInvoice === INVOICE_STATUS.PAGADA) {
-  //         invoiceIds.push(invoice.id)
-  //       }
-
-  //       paidInvoiceCount += 1;
-  //     }
-
-
-  //     if (invoiceIds.length > 0) {
-  //       this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds: invoiceIds });
-  //     }
-
-  //     return {
-  //       message: '¡Archivo procesado correctamente! ',
-  //       data: {
-  //         notPaidInvoiceCout: jsonData.length - paidInvoiceCount - wasPaid,
-  //         paidInvoiceCount: paidInvoiceCount
-  //       }
-  //     };
-
-  //   } catch (error) {
-  //     throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
-  //   }
-  // }
-
   async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
     try {
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
@@ -645,6 +524,7 @@ export class FacturaService {
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
         ].includes(invoice.status);
+
         if (!isProcessableStatus) continue;
   
         const totalInvoiceAmount = new Decimal(invoice.total);
@@ -709,7 +589,9 @@ export class FacturaService {
       }
   
       if (invoiceIds.length > 0) {
-        this.eventEmitter.emit('process-invoice-payment-orders', { invoiceIds });
+        this.eventEmitter.emit('invoice.paid', { invoiceIds });
+
+        this.eventEmitter.emit('invoice.match.paid', { invoiceIds });
       }
   
       return {
@@ -756,6 +638,8 @@ export class FacturaService {
     });
 
     const ordersArray = ordersWithMasterContracts.map(order => ({
+      usedAmendmentContracts: order.usedAmendmentContracts,
+      contractBreakdownList: order.contractBreakdownList,
       orderId: order.id,
       totalOrder: order.total,
       serviceType:  order.tipoDeServicio,

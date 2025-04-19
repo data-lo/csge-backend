@@ -23,7 +23,6 @@ import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
 import { AmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/query-response';
-import { FilteredAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/filtered-data-response';
 import * as XLSX from "xlsx";
 import { transformAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/transform-amounts-tracking-by-provider';
 import { Response } from "express";

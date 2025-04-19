@@ -291,19 +291,9 @@ export class FirmaService {
           where: { id: documentoId },
         });
 
-        if (!documentoDb)
+        if (!documentoDb){
           throw new NotFoundException('No se encuentra la factura');
-
-        // usuarios = await this.usuarioRepository
-        //   .createQueryBuilder('usuario')
-        //   .where('usuario.estatus = :estatus', { estatus: true })
-        //   .andWhere(':permiso = ANY(usuario.permisos)', {
-        //     permiso: ValidPermises.FIRMA,
-        //   })
-        //   .andWhere(':tipoDocumento = ANY(usuario.documentosDeFirma)', {
-        //     tipoDocumento: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
-        //   })
-        //   .getMany();
+        }
 
         usuarios = await this.usuarioRepository
           .createQueryBuilder('usuario')

@@ -18,6 +18,7 @@ import { TIPO_DE_SERVICIO } from '../interfaces/tipo-de-servicio';
 import { handlerAmounts } from '../contratos/functions/handler-amounts';
 import { ContratoMaestro } from '../contratos/entities/contrato.maestro.entity';
 import { Contrato } from '../contratos/entities/contrato.entity';
+import { TYPE_EVENT_INVOICE } from 'src/ordenes/factura/enums/type-event-invoice';
 
 @Injectable()
 export class ContratosModificatoriosService {
@@ -332,11 +333,7 @@ export class ContratosModificatoriosService {
       relations: { contratos: true },
     });
 
-    console.log(masterContract);
-
     const contractByServiceType = masterContract.contratos.find(contract => contract.tipoDeServicio === serviceType);
-
-    console.log(contractByServiceType);
 
     const amendmentContract = await this.amendmentContractRepository.findOne({
       where: { id: amendmentContractId },
@@ -360,8 +357,6 @@ export class ContratosModificatoriosService {
     }
 
     const updatedValues = handlerAmounts(values);
-
-    console.log(updatedValues)
 
     if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
 
