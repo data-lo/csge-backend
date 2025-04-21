@@ -1,5 +1,6 @@
 import { Decimal } from 'decimal.js';
 import { TYPE_EVENT_ORDER } from 'src/contratos/enums/type-event-order';
+import { TYPE_EVENT_INVOICE } from 'src/ordenes/factura/enums/type-event-invoice';
 
 interface Props {
     contract: {

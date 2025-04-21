@@ -171,6 +171,7 @@ export class FirmaService {
         signatureStatus.push(ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA);
         signatureAction = SIGNATURE_ACTION_ENUM.CANCEL
       }
+      
       console.log(signatureStatus)
 
       if (!user) {

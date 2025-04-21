@@ -1,15 +1,17 @@
+import { CAMPAIGN_STATUS } from "../../interfaces/estatus-campaña.enum";
+
 export interface FilteredAmountsTrackingByProvider {
-    providerId: string;
-    contractId: string;
-    providerName: string;
-    providerRFC: string;
+  providerRFC: string;
+  
+  startAt: Date;
+  endDate: Date;
 
-    campaignName: string;
-    
-    contractNumber: string;
-    contractMaxAmount: number;
-    contractSpentAmount: number;
-    contractPaidAmount: number;
+  campaignName: string;
+  campaignStatus: CAMPAIGN_STATUS
 
-    totalOrderAmount: number;
-  }
+  contractMaxAmount: number;
+  contractSpentAmount: number;
+  contractPaidAmount: number;
+
+  totalOrderAmount: number;
+}

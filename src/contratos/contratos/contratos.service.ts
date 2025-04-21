@@ -29,6 +29,7 @@ import { getResolvedYear } from 'src/helpers/get-resolved-year';
 import { AvailableContractType } from './types/available-contract-type';
 import { FundUsageType } from './types/fund-usage-type';
 import { TYPE_EVENT_ORDER } from '../enums/type-event-order';
+import { TYPE_EVENT_INVOICE } from 'src/ordenes/factura/enums/type-event-invoice';
 
 
 @Injectable()

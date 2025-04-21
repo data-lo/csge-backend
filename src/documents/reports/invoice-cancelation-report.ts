@@ -5,7 +5,6 @@ import { headerSection } from "./sections/header.section";
 import { textoDeRecepcionSection } from "./aprobacion-de-factura-sections/texto-de-recepcion-section";
 import { tablaDeProveedorSection } from "./aprobacion-de-factura-sections/tabla-de-proveedor-section";
 import { firmasDeRecepcionSection } from "./aprobacion-de-factura-sections/firmas-de-recepcion-section";
-import { notaDeFacturaSection } from "./aprobacion-de-factura-sections/nota-de-factura-section";
 import { SIGNATURE_ACTION_ENUM } from "src/firma/firma/enums/signature-action-enum";
 
 

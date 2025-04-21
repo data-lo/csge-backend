@@ -536,8 +536,11 @@ export class CampañasService {
       const data = await this.campaignRepository
         .createQueryBuilder("campaña")
         .innerJoin("campaña.ordenes", "orden")
+        .leftJoin("campaña.activaciones", "activation")
         .leftJoin("orden.proveedor", "proveedor")
-        .leftJoin("orden.contratoMaestro", "contrato")
+        .leftJoin("orden.contratoMaestro", "master_contract")
+        .leftJoin("master_contract.contratosModificatorios", "ammendment_contract")
+
         .select([
           // 📁 Campaign (campaña)
           "campaña.id AS campaign_id",
@@ -546,6 +549,14 @@ export class CampañasService {
           "campaña.tipoDeCampaña AS campaign_type",
           "campaña.creadoEn AS campaign_created_at",
           "campaña.actualizadoEn AS campaign_updated_at",
+
+          // 📁 Activation (activación)
+          "activation.id AS activation_id",
+          "activation.fechaDeInicio AS activation_start_date",
+          "activation.fechaDeCierre AS activation_end_date",
+          "activation.creadoEn AS activation_created_at",
+          "activation.actualizadoEn AS activation_updated_at",
+
 
           // 📁 Order (orden)
           "orden.id AS order_id",
@@ -584,33 +595,39 @@ export class CampañasService {
           "proveedor.creadoEn AS provider_created_at",
           "proveedor.actualizadoEn AS provider_updated_at",
 
-          // 📁 Contract (contrato)
-          "contrato.id AS contract_id",
-          "contrato.numeroDeContrato AS contract_number",
-          "contrato.estatusDeContrato AS contract_status",
-          "contrato.tipoDeContrato AS contract_type",
-          "contrato.objetoContrato AS contract_purpose",
-          "contrato.montoMinimoContratado AS contract_min_amount",
-          "contrato.ivaMontoMinimoContratado AS contract_min_tax",
-          "contrato.montoMaximoContratado AS contract_max_amount",
-          "contrato.ivaMontoMaximoContratado AS contract_max_tax",
-          "contrato.committedAmount AS contract_reserved_amount",
-          "contrato.montoDisponible AS contract_available_amount",
-          "contrato.montoPagado AS contract_paid_amount",
-          "contrato.montoEjercido AS contract_spent_amount",
-          "contrato.montoActivo AS contract_active_amount",
-          "contrato.contractBreakdownByOrder AS contract_breakdown",
-          "contrato.fechaInicial AS contract_start_date",
-          "contrato.fechaFinal AS contract_end_date",
-          "contrato.cancellationReason AS contract_cancel_reason",
-          "contrato.linkContrato AS contract_link",
-          "contrato.ivaFrontera AS contract_border_tax",
-          "contrato.creadoEn AS contract_created_at",
-          "contrato.actualizadoEn AS contract_updated_at",
-          "contrato.proveedorId AS contract_provider_id"
+          // 📁 Master Contract (contrato maestro)
+          "master_contract.id AS contract_id",
+          "master_contract.numeroDeContrato AS contract_number",
+          "master_contract.estatusDeContrato AS contract_status",
+          "master_contract.tipoDeContrato AS contract_type",
+          "master_contract.objetoContrato AS contract_purpose",
+          "master_contract.montoMinimoContratado AS contract_min_amount",
+          "master_contract.ivaMontoMinimoContratado AS contract_min_tax",
+          "master_contract.montoMaximoContratado AS contract_max_amount",
+          "master_contract.ivaMontoMaximoContratado AS contract_max_tax",
+          "master_contract.committedAmount AS contract_reserved_amount",
+          "master_contract.montoDisponible AS contract_available_amount",
+          "master_contract.montoPagado AS contract_paid_amount",
+          "master_contract.montoEjercido AS contract_spent_amount",
+          "master_contract.montoActivo AS contract_active_amount",
+          "master_contract.fechaInicial AS contract_start_date",
+          "master_contract.fechaFinal AS contract_end_date",
+          "master_contract.cancellationReason AS contract_cancel_reason",
+          "master_contract.linkContrato AS contract_link",
+          "master_contract.ivaFrontera AS contract_border_tax",
+          "master_contract.creadoEn AS contract_created_at",
+          "master_contract.actualizadoEn AS contract_updated_at",
+          "master_contract.proveedorId AS contract_provider_id",
+
+          // 📁 Contratos Modificatorios (contratos modificatorios)
+          "ammendment_contract.montoPagado AS ammendment_contract_paid_amount",
+          "ammendment_contract.montoEjercido AS ammendment_contract_executed_amount",
+          "ammendment_contract.montoActivo AS ammendment_contract_active_amount",
         ])
+        .andWhere("activation.status = :status", { status: true })
         .getRawMany();
 
+      console.log(data)
 
       return data
     } catch (error) {
