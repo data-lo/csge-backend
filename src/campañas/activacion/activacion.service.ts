@@ -13,6 +13,7 @@ import { ESTATUS_ORDEN_DE_SERVICIO } from 'src/ordenes/orden/interfaces/estatus-
 import { ServicioContratado } from 'src/ordenes/servicio_contratado/entities/servicio_contratado.entity';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
 import Decimal from 'decimal.js';
+import { ContratoModificatorio } from 'src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity';
 
 @Injectable()
 export class ActivacionService {
@@ -33,6 +34,8 @@ export class ActivacionService {
     @InjectRepository(ContratoMaestro)
     private masterContractRepository: Repository<ContratoMaestro>,
 
+    @InjectRepository(ContratoModificatorio)
+    private ammendmentContractRepository: Repository<ContratoModificatorio>,
 
     @InjectRepository(ServicioContratado)
     private contractedServiceRepository: Repository<ServicioContratado>,
@@ -225,11 +228,37 @@ export class ActivacionService {
         }
       });
 
-      const newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+      let newCommittedAmount = new Decimal(0);
 
-      await this.masterContractRepository.update(masterContractRepository.id, {
-        committedAmount: newCommittedAmount.toNumber()
-      })
+      if (order.usedAmendmentContracts) {
+        for (const item of order.contractBreakdownList) {
+          if (item.contractType === 'MASTER_CONTRACT') {
+            newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+
+            await this.masterContractRepository.update(item.id, {
+              committedAmount: newCommittedAmount.toNumber()
+            });
+          } else if (item.contractType === 'AMENDMENT_CONTRACT') {
+            const ammendmentContractRepository = await this.ammendmentContractRepository.findOne({
+              where: {
+                id: item.id
+              }
+            });
+
+            newCommittedAmount = new Decimal(ammendmentContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+
+            await this.ammendmentContractRepository.update(item.id, {
+              committedAmount: newCommittedAmount.toNumber()
+            });
+          }
+        }
+      } else {
+        newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+
+        await this.masterContractRepository.update(masterContractRepository.id, {
+          committedAmount: newCommittedAmount.toNumber()
+        });
+      }
 
       await this.orderRepository.remove(order);
     }

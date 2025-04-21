@@ -441,7 +441,6 @@ export class OrdenService {
               this.contractedServiceService.remove(acquiredServices.id)
             )
           );
-
         }
       } else {
         const formattedServices = serviciosContratados.map(({ cantidad, uniqueId, servicio }) => ({
