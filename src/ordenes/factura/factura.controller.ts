@@ -79,6 +79,16 @@ export class FacturaController {
   }
 
   @Auth(...rolesFactura)
+  @Post('send-to-signing-invoice/:invoiceId')
+  sendInvoiceToCancelSigning(
+    @Param('invoiceId', ParseUUIDPipe) invoiceId: string,
+    // @Body() updateFacturaDto: UpdateFacturaDto,
+  ) {
+    return this.facturaService.sendInvoiceToCancelSigning(invoiceId);
+  }
+
+
+  @Auth(...rolesFactura)
   @Post('cotejar/:id')
   cotrejarFactura(
     @Param('id', ParseUUIDPipe) id: string,
@@ -159,14 +169,6 @@ export class FacturaController {
     res.send(buffer);
   }
 
-  @Auth(...rolesFactura)
-  @Patch(':id')
-  cancelarFactura(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateFacturaDto: UpdateFacturaDto,
-  ) {
-    return this.facturaService.sendInvoiceToCancelSigning(id, updateFacturaDto);
-  }
 
 
 }

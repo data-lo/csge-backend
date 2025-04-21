@@ -792,30 +792,42 @@ export class OrdenService {
       const currentlyActivation = campaign.activaciones[0].id
 
       if (orders.length === 0) {
-        throw new BadRequestException(`¡No hay órdenes asociadas a esta activación!`);
+        throw new BadRequestException(`¡No hay ordenes asociadas a esta activación!`);
       }
 
       // Crear un documento PDF vacío
       const mergedPdf = await PDFDocument.create();
 
       // Iterar sobre cada orden y agregarla al PDF
+
+      let orderCount: number = 0;
+
       for (const order of orders) {
         const isCampaign = !!order.esCampania;
 
-        // Descargar el archivo PDF de la orden de servicio
-        const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true, currentlyActivation);
+        if (isCampaign) {
+          orderCount += 1;
 
-        // Cargar el PDF descargado
-        const pdfLibDoc = await PDFDocument.load(pdfBytes);
+          // Descargar el archivo PDF de la orden de servicio
+          const pdfBytes = await this.signatureService.downloadFile(order.id, TIPO_DE_DOCUMENTO.ORDEN_DE_SERVICIO, isCampaign, true, currentlyActivation);
 
-        // Extraer las páginas y agregarlas al documento combinado
-        const copiedPages = await mergedPdf.copyPages(pdfLibDoc, pdfLibDoc.getPageIndices());
-        copiedPages.forEach(page => mergedPdf.addPage(page));
+          // Cargar el PDF descargado
+          const pdfLibDoc = await PDFDocument.load(pdfBytes);
+
+          // Extraer las páginas y agregarlas al documento combinado
+          const copiedPages = await mergedPdf.copyPages(pdfLibDoc, pdfLibDoc.getPageIndices());
+
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
       }
 
-      // Guardar el PDF final y retornar los bytes
+      if (orderCount === 0) {
+        throw new BadRequestException(`¡No hay ordenes generadas en el módulo de campaña!`);
+      }
+
       const mergedPdfBytes = await mergedPdf.save();
-      return mergedPdfBytes;
+
+      return mergedPdfBytes
 
     } catch (error) {
       handleExceptions(error);

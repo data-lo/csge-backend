@@ -14,6 +14,7 @@ import * as QRCode from 'qrcode';
 import { Firma } from 'src/firma/firma/entities/firma.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { FirmaService } from 'src/firma/firma/firma.service';
+import { invoiceCancellationReport } from './reports/invoice-cancelation-report';
 
 @Injectable()
 export class DocumentsService {
@@ -36,7 +37,7 @@ export class DocumentsService {
   ) { }
 
 
-  async buildOrderDocument(orderId: string, isCampaign?: boolean, requestFromCampaignModule?: boolean, activationId?: string) {
+  async buildOrderDocument(orderId: string, signatureAction: SIGNATURE_ACTION_ENUM, isCampaign?: boolean, requestFromCampaignModule?: boolean, activationId?: string) {
 
     try {
       const order = await this.ordenDeServicioRepository.findOne({
@@ -52,8 +53,21 @@ export class DocumentsService {
 
       let qrCode: any;
 
+      let actionType: string;
+
+
       if (isCampaign) {
         const documentSigned = await this.checkDocumentSentForSigning(order.campaña.id, activationId);
+
+        if (documentSigned) {
+          if (documentSigned.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+            actionType = 'APROBACIÓN'
+          } else {
+            actionType = 'CANCELACIÓN';
+          }
+        } else {
+          actionType = '';
+        }
 
         if (documentSigned) {
           if (documentSigned.isSigned && documentSigned.signedBy) {
@@ -67,8 +81,22 @@ export class DocumentsService {
           }
         }
       }
+      const documentSigned = await this.checkDocumentSentForSigning(order.campaña.id, activationId);
+
+
+      if (documentSigned) {
+        if (documentSigned.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+          actionType = 'APROBACIÓN'
+        } else {
+          actionType = 'CANCELACIÓN';
+        }
+      } else {
+        actionType = '';
+      }
+
 
       const textoEncabezado = await this.textosService.obtenerEncabezado();
+
       const textoPieDePagina = await this.textosService.obtenerPieDePagina();
 
       const definicionDeOrden = await ordenDeServicioPdf({
@@ -76,6 +104,7 @@ export class DocumentsService {
         textoEncabezado: textoEncabezado.texto,
         textoPieDePagina: textoPieDePagina.texto,
         qrCode,
+        actionType
       });
 
       if (isCampaign && requestFromCampaignModule) {
@@ -100,9 +129,9 @@ export class DocumentsService {
     }
   }
 
-  async buildInvoiceApprovalDocument(invoiceId: string) {
+  async buildInvoiceDocument(invoiceId: string, signatureAction: SIGNATURE_ACTION_ENUM) {
     try {
-      const facturaDb = await this.facturRepository.findOne({
+      const invoice = await this.facturRepository.findOne({
         where: { id: invoiceId },
         relations: {
           proveedor: true,
@@ -114,13 +143,23 @@ export class DocumentsService {
 
       const textoPieDePagina = await this.textosService.obtenerPieDePagina();
 
-      const definicionDeFactura = await aprobacionDeFacturaPdf({
-        facturaDb: facturaDb,
-        textoEncabezado: textoEncabezado.texto,
-        textoPieDePagina: textoPieDePagina.texto,
-      });
+      let documentStructure: any;
 
-      const document = this.printerService.createPdf(definicionDeFactura);
+      if(signatureAction === SIGNATURE_ACTION_ENUM.APPROVE){
+        documentStructure = await aprobacionDeFacturaPdf({
+          facturaDb: invoice,
+          textoEncabezado: textoEncabezado.texto,
+          textoPieDePagina: textoPieDePagina.texto,
+        });
+      }else{
+        documentStructure = await invoiceCancellationReport({
+          invoice: invoice,
+          textoEncabezado: textoEncabezado.texto,
+          textoPieDePagina: textoPieDePagina.texto,
+        });
+      }
+
+      const document = this.printerService.createPdf(documentStructure);
 
       return document;
     } catch (error) {

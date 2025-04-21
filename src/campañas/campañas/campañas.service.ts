@@ -343,14 +343,20 @@ export class CampañasService {
 
   async createRenovation(campaignId: string, createActivationDto: CreateActivacionDto,) {
     try {
-      const campaign = await this.campaignRepository.findOne({ where: { id: campaignId }, });
+
+      const campaign = await this.campaignRepository.findOne({
+        where: { id: campaignId },
+        relations: {
+          activaciones: true,
+        },
+      });
 
       if (!campaign) {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
       if (!(campaign.campaignStatus === CAMPAIGN_STATUS.INACTIVA || campaign.campaignStatus === CAMPAIGN_STATUS.CANCELADA)) {
-        throw new BadRequestException(`El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser 'Inactiva'.`);
+        throw new BadRequestException(`¡El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser 'Inactiva!'`);
       }
 
       const newMatchObject = { montoActivo: 0, montoEjercido: 0, montoPagado: 0, };
@@ -365,6 +371,13 @@ export class CampañasService {
         status: true,
         fechaDeAprobacion: null
       }
+
+      for (const activation of campaign.activaciones) {
+        activation.status = false;
+      }
+
+      await this.activationRepository.save(campaign.activaciones);
+
       campaign.campaignStatus = CAMPAIGN_STATUS.REACTIVADA
 
       await this.campaignRepository.save(campaign);
@@ -640,7 +653,7 @@ export class CampañasService {
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
       res.send(buffer);
-      
+
     } catch (error) {
       console.error("Error al generar Excel:", error);
       throw error;

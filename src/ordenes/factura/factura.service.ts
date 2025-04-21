@@ -44,7 +44,7 @@ export class FacturaService {
     @InjectRepository(Proveedor)
     private providerRepository: Repository<Proveedor>,
 
-    private readonly firmaService: FirmaService,
+    private readonly signatureService: FirmaService,
 
     private readonly minioService: MinioService,
   ) { }
@@ -384,9 +384,8 @@ export class FacturaService {
   }
 
 
-  async sendInvoiceToCancelSigning(invoiceId: string, updateFacturaDto: UpdateFacturaDto) {
+  async sendInvoiceToCancelSigning(invoiceId: string) {
     try {
-      const { motivoDeCancelacion } = updateFacturaDto;
 
       const invoice = await this.invoiceRepository.findOneBy({
         id: invoiceId
@@ -396,13 +395,22 @@ export class FacturaService {
         throw new NotFoundException('¡Factura no encontrada!');
       }
 
-      if (!motivoDeCancelacion) {
-        throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
-      }
+      // if (!motivoDeCancelacion) {
+      //   throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
+      // }
 
-      invoice.motivoCancelacion = motivoDeCancelacion;
+      // invoice.motivoCancelacion = motivoDeCancelacion;
 
-      await this.invoiceRepository.save(invoice);
+      // await this.invoiceRepository.save(invoice);
+
+      const signatureObject = {
+        isSigned: false,
+        documentId: invoiceId,
+        documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+        signatureAction: SIGNATURE_ACTION_ENUM.CANCEL
+      };
+
+      await this.signatureService.create(signatureObject);
 
       return { message: '¡La factura ha sido cancelada correctamente!' };
 
@@ -449,7 +457,7 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const documento = await this.firmaService.downloadFile(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
+      const documento = await this.signatureService.downloadFile(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
       handleExceptions(error);
@@ -465,9 +473,9 @@ export class FacturaService {
       signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
     }
 
-    const document = ((await this.firmaService.create(signatureObject)).documentoAFirmar);
+    const document = ((await this.signatureService.create(signatureObject)).documentoAFirmar);
 
-    const url = await this.firmaService.documentSigning(usuario.id, document.id);
+    const url = await this.signatureService.documentSigning(usuario.id, document.id);
 
     const factura = await this.invoiceRepository.findOneBy({ id: facturaId });
 

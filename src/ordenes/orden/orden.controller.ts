@@ -88,6 +88,7 @@ export class OrdenController {
     @Param('id', ParseUUIDPipe) id: string
   ) {
     const pdfDoc = await this.orderService.getOrderInPDF(id);
+
     if (pdfDoc.tipo === 'url') {
       res.send(pdfDoc.url);
     }
@@ -103,16 +104,16 @@ export class OrdenController {
   async getCampaignOrdersInPDF(
     @Res() res: Response,
     @Param('id', ParseUUIDPipe) id: string
-
   ) {
-    const pdfUint8Array = await this.orderService.generateCampaignOrdersInPDF(id);
-
-    const pdfBuffer = Buffer.from(pdfUint8Array);
+    const pdfInUint8Array = await this.orderService.generateCampaignOrdersInPDF(id);
+    const pdfBuffer = Buffer.from(pdfInUint8Array);
 
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="orden_campaña_${id}.pdf"`,
-      'Content-Length': pdfBuffer.length
+      'Content-Length': pdfBuffer.length,
+      'is-blob-instance': 'true',
+      'Access-Control-Expose-Headers': 'is-blob-instance'
     });
 
     return res.send(pdfBuffer);
