@@ -30,7 +30,11 @@ import { AvailableContractType } from './types/available-contract-type';
 import { FundUsageType } from './types/fund-usage-type';
 import { TYPE_EVENT_ORDER } from '../enums/type-event-order';
 import { TYPE_EVENT_INVOICE } from 'src/ordenes/factura/enums/type-event-invoice';
-
+import * as XLSX from "xlsx";
+import { Response } from "express";
+import { CONTRACT_TYPE_REPORT_ENUM } from './reports/contract-type-report-enum';
+import { AmendmentContract, MasterContract } from './reports/active-contract-tracking/query-response';
+import { transformActiveContractTracking } from './reports/active-contract-tracking/transform-active-contract-traking';
 
 @Injectable()
 export class ContratosService {
@@ -49,10 +53,7 @@ export class ContratosService {
     private readonly masterContractRepository: Repository<ContratoMaestro>,
 
     @InjectRepository(ContratoModificatorio)
-    private readonly contractAmendmentRepository: Repository<ContratoModificatorio>,
-
-    @InjectRepository(Orden)
-    private readonly orderRepository: Repository<Orden>,
+    private readonly amendmentContractRepository: Repository<ContratoModificatorio>,
   ) { }
 
   async create(createContratoDto: CreateContratoDto) {
@@ -552,7 +553,7 @@ export class ContratosService {
         );
       }
 
-      const modificatoryContracts = await this.contractAmendmentRepository.find({
+      const modificatoryContracts = await this.amendmentContractRepository.find({
         where: [
           {
             contratoMaestro: { id: masterContractId },
@@ -571,7 +572,7 @@ export class ContratosService {
 
       if (modificatoryContracts.length > 0) {
         for (const modificatoryContract of modificatoryContracts) {
-          await this.contractAmendmentRepository.update(modificatoryContract.id, {
+          await this.amendmentContractRepository.update(modificatoryContract.id, {
             estatusDeContrato: ESTATUS_DE_CONTRATO.CANCELADO,
             cancellationReason: "EL CONTRATO PRINCIPAL FUE CANCELADO.",
           });
@@ -964,6 +965,119 @@ export class ContratosService {
       usedAmendmentContracts,
       missingAmountToCoverOrder: !isOrderFullyCovered ? requiredAmount.minus(availableTotalContract).toString() : undefined
     };
+  }
+
+  async activeContractTracking() {
+    try {
+      const masterContracts = await this.masterContractRepository
+        .createQueryBuilder("contratoMaestro")
+        .select([
+          "contratoMaestro.id AS master_contract_id",
+          "contratoMaestro.numero_de_contrato AS contract_number",
+          "contratoMaestro.estatus_de_contrato AS contract_status",
+          "contratoMaestro.tipo_de_contrato AS contract_type",
+          "contratoMaestro.objeto_del_contrato AS contract_object",
+          "contratoMaestro.monto_minimo_contratado AS minimum_contracted_amount",
+          "contratoMaestro.iva_monto_minimo_contratado AS vat_minimum_contracted_amount",
+          "contratoMaestro.monto_maximo_contratado AS maximum_contracted_amount",
+          "contratoMaestro.iva_monto_maximo_contratado AS vat_maximum_contracted_amount",
+          "contratoMaestro.monto_reservado AS reserved_amount",
+          "contratoMaestro.monto_disponible AS available_amount",
+          "contratoMaestro.monto_pagado AS paid_amount",
+          "contratoMaestro.monto_ejercido AS exercised_amount",
+          "contratoMaestro.monto_activo AS active_amount",
+          "contratoMaestro.fecha_inicial AS start_date",
+          "contratoMaestro.fecha_final AS end_date",
+          "contratoMaestro.cancellation_reason AS cancellation_reason",
+          "contratoMaestro.link_al_contrato AS contract_link",
+          "contratoMaestro.iva_frontera AS border_vat",
+          "contratoMaestro.creado_en AS created_at",
+          "contratoMaestro.actualizado_en AS updated_at",
+        ])
+        .getRawMany();
+
+      const amendmentContracts = await this.amendmentContractRepository
+        .createQueryBuilder("contrato_modificatorio")
+
+        .select([
+          "contrato_modificatorio.id AS amendment_contract_id",
+          "contrato_modificatorio.numero_de_contrato AS contract_number",
+          "contrato_modificatorio.estatus_de_contrato AS contract_status",
+          "contrato_modificatorio.monto_minimo_contratado AS minimum_contracted_amount",
+          "contrato_modificatorio.iva_monto_minimo_contratado AS vat_minimum_contracted_amount",
+          "contrato_modificatorio.monto_maximo_contratado AS maximum_contracted_amount",
+          "contrato_modificatorio.iva_monto_maximo_contratado AS vat_maximum_contracted_amount",
+          "contrato_modificatorio.monto_reservado AS reserved_amount",
+          "contrato_modificatorio.monto_disponible AS available_amount",
+          "contrato_modificatorio.monto_pagado AS paid_amount",
+          "contrato_modificatorio.monto_ejercido AS exercised_amount",
+          "contrato_modificatorio.monto_activo AS active_amount",
+          "contrato_modificatorio.fecha_inicial AS start_date",
+          "contrato_modificatorio.fecha_final AS end_date",
+          "contrato_modificatorio.cancellation_reason AS cancellation_reason",
+          "contrato_modificatorio.link_al_contrato AS contract_link",
+          "contrato_modificatorio.iva_frontera AS border_vat",
+          "contrato_modificatorio.extension_type AS extension_type",
+          "contrato_modificatorio.contract_type AS amendment_contract_type",
+          "contrato_modificatorio.creado_en AS created_at",
+          "contrato_modificatorio.actualizado_en AS updated_at",
+          "contrato_modificatorio.contrato_maestro_id AS master_contract_id"
+        ])
+        .getRawMany();
+
+      if (masterContracts.length === 0) {
+        throw new BadRequestException('¡No hay información para generar este reporte!');
+      }
+
+      return {
+        masterContracts: masterContracts,
+        amendmentContracts: amendmentContracts
+      }
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  async getReportInExcel(res: Response, typeCampaignReport: CONTRACT_TYPE_REPORT_ENUM) {
+    try {
+
+      let dataToExport: any = [];
+
+      let fileName: string = "";
+
+      switch (typeCampaignReport) {
+        case CONTRACT_TYPE_REPORT_ENUM.ACTIVE_CONTRACTS:
+
+          const reportOne: { masterContracts: MasterContract[]; amendmentContracts: AmendmentContract[]; } = await this.activeContractTracking();
+
+          dataToExport = await transformActiveContractTracking(reportOne.masterContracts, reportOne.amendmentContracts);
+
+          fileName = "REPORTE_CONTRATOS_ACTIVOS.xlsx";
+
+          break;
+
+        default:
+          throw new BadRequestException('¡El tipo de reporte solicitado no existe!');
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+      res.send(buffer);
+
+    } catch (error) {
+      console.error("Error al generar Excel:", error);
+      throw error;
+    }
   }
 }
 

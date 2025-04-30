@@ -1,4 +1,4 @@
-import { CAMPAIGN_STATUS } from "../../interfaces/estatus-campaña.enum";
+import { CAMPAIGN_STATUS } from "../interfaces/estatus-campaña.enum";
 
 export interface AmountsTrackingByProvider {
     // Campaign

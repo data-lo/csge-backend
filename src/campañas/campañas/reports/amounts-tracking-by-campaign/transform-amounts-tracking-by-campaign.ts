@@ -1,14 +1,16 @@
 import Decimal from "decimal.js";
-import { FilteredAmountsTrackingByProvider } from "./filtered-data-response";
+
 import { AmountsTrackingByProvider } from "../query-response";
 import { CAMPAIGN_STATUS } from "../../interfaces/estatus-campaña.enum";
 import { ESTATUS_ORDEN_DE_SERVICIO } from "src/ordenes/orden/interfaces/estatus-orden-de-servicio";
+import { FilteredAmountsTrackingByCampaing } from "./filtered-data-response";
 
-export async function transformAmountsTrackingByProvider(data: AmountsTrackingByProvider[]) {
-  const map = new Map<string, FilteredAmountsTrackingByProvider>();
+export async function transformAmountsTrackingByCampaign(data: AmountsTrackingByProvider[]) {
+  const map = new Map<string, FilteredAmountsTrackingByCampaing>();
 
   for (const item of data) {
-    const key = `${item.campaign_id}-${item.provider_id}`;
+    const key = `${item.campaign_id}`;
+
     let values = map.get(key);
 
     const orderTotal = new Decimal(item.order_total);
@@ -38,8 +40,6 @@ export async function transformAmountsTrackingByProvider(data: AmountsTrackingBy
         campaignStatus: item.campaign_status as CAMPAIGN_STATUS,
         startAt: item.activation_start_date,
         endDate: item.activation_end_date,
-        providerRFC: item.provider_rfc,
-        providerName: item.provider_business_name,
         globalIssuedAmount: orderTotal.toNumber(),
         globalActiveAmount: item.order_status === ESTATUS_ORDEN_DE_SERVICIO.ACTIVA ? orderTotal.toNumber() : 0,
         globalPaidAmount: item.order_status === ESTATUS_ORDEN_DE_SERVICIO.PAGADA ? orderTotal.toNumber() : 0,
@@ -56,8 +56,6 @@ export async function transformAmountsTrackingByProvider(data: AmountsTrackingBy
     "ESTATUS DE LA CAMPAÑA": item.campaignStatus,
     "FECHA DE INICIO": item.startAt,
     "FECHA DE CIERRE": item.endDate,
-    "PROVEEDOR RFC": item.providerRFC,
-    "PROVEEDOR RAZÓN SOCIAL": item.providerName,
     "MONTO EMITIDO": item.globalIssuedAmount,
     "MONTO ACTIVO": item.globalActiveAmount,
     "MONTO EJECUTADO": item.globalExecutedAmount,

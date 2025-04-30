@@ -447,6 +447,10 @@ export class FirmaService {
           return user.documentosDeFirma.includes(TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
         });
 
+        if(!approvalUser){
+          throw new NotFoundException('No se encontró ningún usuario que apruebe. Es necesario que exista antes de cotejar la factura. ¡Usuario no encontrado!');
+        }
+
         const stickerAprobador = {
           authority: 'chihuahua',
           stickerType: 'rect',

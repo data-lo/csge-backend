@@ -80,6 +80,7 @@ export class WebhooksService {
 
         if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
           this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
+          
         } else {
           this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.CANCELADA });
 

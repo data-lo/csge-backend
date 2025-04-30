@@ -13,6 +13,7 @@ export enum ESTATUS_ORDEN_DE_SERVICIO {
 
     /** El pago de esta orden ha sido aprobado, pero aún no se ha efectuado */
     PAGO_APROBADO = "PAGO_APROBADO",
+    
 
     /** El pago completo de esta orden ha sido realizado */
     PAGADA = "PAGADA",

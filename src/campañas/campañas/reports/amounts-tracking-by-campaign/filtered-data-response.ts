@@ -4,13 +4,7 @@ import { CAMPAIGN_STATUS } from "../../interfaces/estatus-campaña.enum";
  * Interfaz que representa la información financiera y de seguimiento de campañas
  * agrupada por proveedor dentro del sistema.
  */
-export interface FilteredAmountsTrackingByProvider {
-  /** RFC (Registro Federal de Contribuyentes) del proveedor */
-  providerRFC: string;
-  
-  /** Nombre comercial o razón social del proveedor */
-  providerName: string;
-
+export interface FilteredAmountsTrackingByCampaing {
   /** Fecha de inicio de la campaña */
   startAt: Date;
   
