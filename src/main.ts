@@ -5,6 +5,7 @@ import { DateFormatterInterceptor } from './interceptors/dateFormatter.intercept
 import { allowedOrigins } from './allowedOrigins';
 
 async function bootstrap() {
+
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
@@ -13,6 +14,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: false,
   });
+  
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

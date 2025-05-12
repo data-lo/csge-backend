@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe, Res } from '@nestjs/common';
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateContratoDto } from './dto/update-contrato.dto';
@@ -9,6 +9,9 @@ import { ESTATUS_DE_CONTRATO } from '../interfaces/estatus-de-contrato';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
+
+import { Response } from 'express';
+import { CONTRACT_TYPE_REPORT_ENUM } from './reports/contract-type-report-enum';
 
 @Controller('contratos/contratos')
 export class ContratosController {
@@ -52,6 +55,11 @@ export class ContratosController {
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.contractService.getContractStatus(id);
+  }
+
+  @Get("reports/excel/:type")
+  async downloadExcel(@Param("type") type: CONTRACT_TYPE_REPORT_ENUM, @Res() res: Response) {
+    return this.contractService.getReportInExcel(res, type);
   }
 
   @Auth(...CONTRACT_USER_ROLES)

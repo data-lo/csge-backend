@@ -25,6 +25,8 @@ import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { v4 as uuidv4 } from 'uuid'
+import { INVOICE_STATUS } from './interfaces/estatus-factura';
+import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
 
 @Controller('ordenes/facturas')
 export class FacturaController {
@@ -77,18 +79,41 @@ export class FacturaController {
   }
 
   @Auth(...rolesFactura)
+  @Post('send-to-signing-invoice/:invoiceId')
+  sendInvoiceToCancelSigning(
+    @Param('invoiceId', ParseUUIDPipe) invoiceId: string,
+    // @Body() updateFacturaDto: UpdateFacturaDto,
+  ) {
+    return this.facturaService.sendInvoiceToCancelSigning(invoiceId);
+  }
+
+
+  @Auth(...rolesFactura)
   @Post('cotejar/:id')
   cotrejarFactura(
     @Param('id', ParseUUIDPipe) id: string,
     @GetUser() usuario: Usuario
   ) {
-    return this.facturaService.cotejarFactura(id, usuario);
+    return this.facturaService.checkInvoice(id, usuario);
   }
 
   @Auth(...rolesFactura)
   @Get()
   findAll(@Query('pagina') pagina: string) {
     return this.facturaService.findAll(+pagina);
+  }
+
+  @Auth(...rolesFactura)
+  @Get('filters')
+  getInvoicesWithFilters(
+    @GetUser() user: Usuario,
+    @Query('pageParam') pageParam: number,
+    @Query('searchParams') searchParams?: string,
+    @Query('year') year?: string,
+    @Query('status') status?: INVOICE_STATUS,
+  ) {
+    const canAccessHistory = user.permisos?.includes(ValidPermises.HISTORICO);
+    return this.facturaService.getInvoicesWithFilters(pageParam, canAccessHistory, searchParams, year, status);
   }
 
   @Auth(...rolesFactura)
@@ -144,14 +169,6 @@ export class FacturaController {
     res.send(buffer);
   }
 
-  @Auth(...rolesFactura)
-  @Patch(':id')
-  cancelarFactura(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateFacturaDto: UpdateFacturaDto,
-  ) {
-    return this.facturaService.cancelarFactura(id, updateFacturaDto);
-  }
 
 
 }

@@ -1,11 +1,20 @@
+import { CAMPAIGN_STATUS } from "../interfaces/estatus-campaña.enum";
+
 export interface AmountsTrackingByProvider {
     // Campaign
     campaign_id: string;
     campaign_name: string;
-    campaign_status: string;
+    campaign_status: CAMPAIGN_STATUS;
     campaign_type: string;
     campaign_created_at: Date;
     campaign_updated_at: Date;
+
+    // Activation
+    activation_id: string;
+    activation_start_date: Date;
+    activation_end_date: Date;
+    activation_created_at: Date;
+    activation_updated_at: Date;
   
     // Order
     order_id: string;
@@ -68,5 +77,9 @@ export interface AmountsTrackingByProvider {
     contract_created_at: Date;
     contract_updated_at: Date;
     contract_provider_id: string;
+
+    ammendment_contract_paid_amount: number;
+    ammendment_contract_executed_amount: number;
+    ammendment_contract_active_amount: number;
   }
   

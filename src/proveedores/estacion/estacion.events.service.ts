@@ -12,7 +12,7 @@ export class StationEventsService {
         try {
             this.logger.log(`🔄 Iniciando evento "disable-stations" para el Proveedor: ${payload.providerId}`);
             await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices, TYPE_EVENT_STATION.DISABLE_STATION);
-            this.logger.log(`✅ Evento "disable-stations" completado. Estaciones del Proveedor: ${payload.providerId} desactivadas.`);
+            this.logger.log(`✅ Evento "disable-stations" completado para el Proveedor: ${payload.providerId}`);
         } catch (error) {
             this.logger.error(`❌ Error al procesar el evento "disable-stations": ${error.message}`, error.stack);
         }
@@ -24,7 +24,7 @@ export class StationEventsService {
         try {
             this.logger.log(`🔄 Iniciando evento "enable-stations" para el Proveedor: ${payload.providerId}`);
             await this.stationService.getStationsByServiceType(payload.providerId, payload.typeServices, TYPE_EVENT_STATION.ACTIVATE_STATION);
-            this.logger.log(`✅ Evento "enable-stations" completado. Estaciones del Proveedor: ${payload.providerId} activadas.`);
+            this.logger.log(`✅ Evento "enable-stations" completado para el Proveedor: ${payload.providerId}`);
         } catch (error) {
             this.logger.error(`❌ Error al procesar el evento "enable-stations": ${error.message}`, error.stack);
         }

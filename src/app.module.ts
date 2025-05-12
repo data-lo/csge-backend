@@ -43,6 +43,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { MinioModule } from './minio/minio.module';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 
+import { CustomFilterModule } from './customer-filter/customer-filter.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,6 +58,16 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
       synchronize: true,
       autoLoadEntities: true,
     }),
+    // TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   host: process.env.DB_HOST,
+    //   port: parseInt(process.env.DB_PORT, 10),
+    //   username: process.env.DB_USER,
+    //   password: process.env.DB_PASSWORD,
+    //   database: process.env.DB_NAME,
+    //   synchronize: true,
+    //   autoLoadEntities: true,
+    // }),
     EventEmitterModule.forRoot({
       delimiter: '.'
     }),
@@ -101,7 +113,8 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
     WebhooksModule,
     MinioModule,
     CronJobsModule,
+    CustomFilterModule,
   ],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

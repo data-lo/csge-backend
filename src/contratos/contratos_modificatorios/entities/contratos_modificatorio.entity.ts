@@ -12,10 +12,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 import { EXTENSION_TYPE_ENUM } from '../enums/extension-type-enum';
 import { TIPO_DE_CONTRATO } from 'src/contratos/interfaces/tipo-de-contrato';
-@Entity()
+
+
+@Entity({ name: 'contrato_modificatorio' })
 export class ContratoModificatorio {
   @PrimaryColumn('uuid')
   @Generated('uuid')

@@ -21,6 +21,7 @@ import { Activacion } from 'src/campañas/activacion/entities/activacion.entity'
 import { Partida } from 'src/campañas/partida/entities/partida.entity';
 import { Iva } from 'src/configuracion/iva/entities/iva.entity';
 import { ContratosModule } from 'src/contratos/contratos/contratos.module';
+import { ContratosModificatoriosModule } from 'src/contratos/contratos_modificatorios/contratos_modificatorios.module';
 
 @Module({
   imports: [
@@ -44,11 +45,15 @@ import { ContratosModule } from 'src/contratos/contratos/contratos.module';
     FirmaModule,
     MinioModule,
     ContratosModule,
+    ContratosModificatoriosModule
   ],
   controllers: [FacturaController],
   providers: [
     FacturaService,
     FacturaEventosService,
   ],
+  exports: [FacturaService],
+
+
 })
-export class FacturaModule {}
+export class FacturaModule { }

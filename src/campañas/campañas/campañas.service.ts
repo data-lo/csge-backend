@@ -22,12 +22,15 @@ import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuari
 import { Activacion } from '../activacion/entities/activacion.entity';
 import { SIGNATURE_ACTION_ENUM } from 'src/firma/firma/enums/signature-action-enum';
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
-import { AmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/query-response';
-import { FilteredAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/filtered-data-response';
+import { AmountsTrackingByProvider } from './reports/query-response';
 import * as XLSX from "xlsx";
 import { transformAmountsTrackingByProvider } from './reports/amounts-tracking-by-provider/transform-amounts-tracking-by-provider';
 import { Response } from "express";
 import { CAMPAIGN_TYPE_REPORT } from './reports/campaign-type-report-enum';
+import { transformAmountsTrackingByServiceType } from './reports/amounts-tracking-by-service-type/transform-tracking-by-service-type';
+import { transformAmountsTrackingByCampaign } from './reports/amounts-tracking-by-campaign/transform-amounts-tracking-by-campaign';
+import { PercentageOfServiceOrders } from './reports/percentage-of-service-orders/query-response';
+import { transformPercentageOfServiceOrders } from './reports/percentage-of-service-orders/transform-percetage-of-service-orders';
 
 
 @Injectable()
@@ -52,7 +55,6 @@ export class CampañasService {
 
   async create(createCampañaDto: CreateCampañaDto) {
     try {
-      console.log(createCampañaDto)
       let dependencias = [];
       const { dependenciasIds, activacion, ...rest } = createCampañaDto;
 
@@ -150,7 +152,6 @@ export class CampañasService {
 
   async getCampaignsWithFilters(pageParam: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: CAMPAIGN_STATUS) {
     try {
-      console.log(searchParams)
       const resolvedYear = getResolvedYear(year, canAccessHistory);
 
       const paginationSetter = new PaginationSetter();
@@ -346,14 +347,20 @@ export class CampañasService {
 
   async createRenovation(campaignId: string, createActivationDto: CreateActivacionDto,) {
     try {
-      const campaign = await this.campaignRepository.findOne({ where: { id: campaignId }, });
+
+      const campaign = await this.campaignRepository.findOne({
+        where: { id: campaignId },
+        relations: {
+          activaciones: true,
+        },
+      });
 
       if (!campaign) {
         throw new NotFoundException(`¡La campaña con ID ${campaignId} no fue encontrada!`);
       }
 
       if (!(campaign.campaignStatus === CAMPAIGN_STATUS.INACTIVA || campaign.campaignStatus === CAMPAIGN_STATUS.CANCELADA)) {
-        throw new BadRequestException(`El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser 'Inactiva'.`);
+        throw new BadRequestException(`¡El estado de la campaña no es válido para reactivación. Para reactivar una campaña, su estado debe ser 'Inactiva!'`);
       }
 
       const newMatchObject = { montoActivo: 0, montoEjercido: 0, montoPagado: 0, };
@@ -368,6 +375,13 @@ export class CampañasService {
         status: true,
         fechaDeAprobacion: null
       }
+
+      for (const activation of campaign.activaciones) {
+        activation.status = false;
+      }
+
+      await this.activationRepository.save(campaign.activaciones);
+
       campaign.campaignStatus = CAMPAIGN_STATUS.REACTIVADA
 
       await this.campaignRepository.save(campaign);
@@ -520,14 +534,14 @@ export class CampañasService {
     }
   }
 
-  // Indicadores Camapaña, Filtro Seguimiento de monntos por proveedor
-  async amountsTrackingByProvider(): Promise<AmountsTrackingByProvider[]> {
+  async amountsTracking(): Promise<AmountsTrackingByProvider[]> {
     try {
       const data = await this.campaignRepository
         .createQueryBuilder("campaña")
         .innerJoin("campaña.ordenes", "orden")
+        .leftJoin("campaña.activaciones", "activation")
         .leftJoin("orden.proveedor", "proveedor")
-        .leftJoin("orden.contratoMaestro", "contrato")
+
         .select([
           // 📁 Campaign (campaña)
           "campaña.id AS campaign_id",
@@ -536,6 +550,13 @@ export class CampañasService {
           "campaña.tipoDeCampaña AS campaign_type",
           "campaña.creadoEn AS campaign_created_at",
           "campaña.actualizadoEn AS campaign_updated_at",
+
+          // 📁 Activation (activación)
+          "activation.id AS activation_id",
+          "activation.fechaDeInicio AS activation_start_date",
+          "activation.fechaDeCierre AS activation_end_date",
+          "activation.creadoEn AS activation_created_at",
+          "activation.actualizadoEn AS activation_updated_at",
 
           // 📁 Order (orden)
           "orden.id AS order_id",
@@ -574,33 +595,72 @@ export class CampañasService {
           "proveedor.creadoEn AS provider_created_at",
           "proveedor.actualizadoEn AS provider_updated_at",
 
-          // 📁 Contract (contrato)
-          "contrato.id AS contract_id",
-          "contrato.numeroDeContrato AS contract_number",
-          "contrato.estatusDeContrato AS contract_status",
-          "contrato.tipoDeContrato AS contract_type",
-          "contrato.objetoContrato AS contract_purpose",
-          "contrato.montoMinimoContratado AS contract_min_amount",
-          "contrato.ivaMontoMinimoContratado AS contract_min_tax",
-          "contrato.montoMaximoContratado AS contract_max_amount",
-          "contrato.ivaMontoMaximoContratado AS contract_max_tax",
-          "contrato.committedAmount AS contract_reserved_amount",
-          "contrato.montoDisponible AS contract_available_amount",
-          "contrato.montoPagado AS contract_paid_amount",
-          "contrato.montoEjercido AS contract_spent_amount",
-          "contrato.montoActivo AS contract_active_amount",
-          "contrato.contractBreakdownByOrder AS contract_breakdown",
-          "contrato.fechaInicial AS contract_start_date",
-          "contrato.fechaFinal AS contract_end_date",
-          "contrato.cancellationReason AS contract_cancel_reason",
-          "contrato.linkContrato AS contract_link",
-          "contrato.ivaFrontera AS contract_border_tax",
-          "contrato.creadoEn AS contract_created_at",
-          "contrato.actualizadoEn AS contract_updated_at",
-          "contrato.proveedorId AS contract_provider_id"
+
+        ])
+        .andWhere("activation.status = :status", { status: true })
+        .getRawMany();
+
+      if (data.length === 0) {
+        throw new BadRequestException('¡No hay información para generar este reporte!');
+      }
+
+      return data
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  async percentageOfServiceOrders(): Promise<AmountsTrackingByProvider[]> {
+    try {
+      const data = await this.campaignRepository
+        .createQueryBuilder("campaña")
+        .innerJoin("campaña.ordenes", "orden")
+        .leftJoin("campaña.activaciones", "activation")
+
+        .select([
+          // 📁 Campaign (campaña)
+          "campaña.id AS campaign_id",
+          "campaña.nombre AS campaign_name",
+          "campaña.campaignStatus AS campaign_status",
+          "campaña.tipoDeCampaña AS campaign_type",
+          "campaña.creadoEn AS campaign_created_at",
+          "campaña.actualizadoEn AS campaign_updated_at",
+
+          // 📁 Activation (activación)
+          "activation.id AS activation_id",
+          "activation.fechaDeInicio AS activation_start_date",
+          "activation.fechaDeCierre AS activation_end_date",
+          "activation.creadoEn AS activation_created_at",
+          "activation.actualizadoEn AS activation_updated_at",
+
+          // 📁 Order (orden)
+          "orden.id AS order_id",
+          "orden.indice AS order_index",
+          "orden.estatus AS order_status",
+          "orden.folio AS order_folio",
+          "orden.tipoDeServicio AS order_service_type",
+          "orden.fechaDeEmision AS order_emission_date",
+          "orden.fechaDeAprobacion AS order_approval_date",
+          "orden.subtotal AS order_subtotal",
+          "orden.numberOfActivation AS order_activation_number",
+          "orden.iva AS order_tax",
+          "orden.total AS order_total",
+          "orden.ivaIncluido AS order_tax_included",
+          "orden.ordenAnteriorCancelada AS order_previous_canceled_id",
+          "orden.motivoDeCancelacion AS order_cancel_reason",
+          "orden.esCampania AS order_from_campaign",
+          "orden.creadoEn AS order_created_at",
+          "orden.actualizadoEn AS order_updated_at",
+          "orden.contratoMaestroId AS order_contract_id",
+          "orden.campañaId AS order_campaign_id",
+          "orden.partidaId AS order_partida_id",
+          "orden.proveedorId AS order_provider_id",
         ])
         .getRawMany();
 
+      if (data.length === 0) {
+        throw new BadRequestException('¡No hay información para generar este reporte!');
+      }
 
       return data
     } catch (error) {
@@ -609,7 +669,6 @@ export class CampañasService {
   }
 
   async getReportInExcel(res: Response, typeCampaignReport: CAMPAIGN_TYPE_REPORT) {
-    console.log(typeCampaignReport)
     try {
 
       let dataToExport: any = [];
@@ -619,11 +678,53 @@ export class CampañasService {
       switch (typeCampaignReport) {
         case CAMPAIGN_TYPE_REPORT.AMOUNTS_TRACKING_BY_PROVIDER:
 
-          const rawData: AmountsTrackingByProvider[] = await this.amountsTrackingByProvider();
+          const reportOne: AmountsTrackingByProvider[] = await this.amountsTracking();
 
-          dataToExport = await transformAmountsTrackingByProvider(rawData);
+          dataToExport = await transformAmountsTrackingByProvider(reportOne);
 
           fileName = "REPORTE_SEGUIMIENTO_DE_MONTOS_POR_PROVEDOR.xlsx";
+
+          break;
+
+        case CAMPAIGN_TYPE_REPORT.AMOUNTS_TRACKING_BY_SERVICE_TYPE:
+
+          const reportTwo: AmountsTrackingByProvider[] = await this.amountsTracking();
+
+          dataToExport = await transformAmountsTrackingByServiceType(reportTwo);
+
+          fileName = "REPORTE_SEGUIMIENTO_DE_MONTOS_POR_TIPO_DE_SERVICIO.xlsx";
+
+          break;
+
+        case CAMPAIGN_TYPE_REPORT.AMOUNTS_TRACKING_BY_CAMPAIGN:
+
+          const reportThree: AmountsTrackingByProvider[] = await this.amountsTracking();
+
+          dataToExport = await transformAmountsTrackingByCampaign(reportThree);
+
+          fileName = "REPORTE_SEGUIMIENTO_DE_MONTOS_POR_CAMPAÑA.xlsx";
+
+          break;
+
+        case CAMPAIGN_TYPE_REPORT.PERCENTAGE_OF_SERVICE_ORDERS:
+
+          const reportFour: PercentageOfServiceOrders[] = await this.amountsTracking();
+
+          dataToExport = await transformPercentageOfServiceOrders(reportFour);
+
+          fileName = "REPORTE_PORCENTAJE_DE_ORDENES_DE_SERVICIO.xlsx";
+
+          break;
+
+        case CAMPAIGN_TYPE_REPORT.GENERAL_INVOICE:
+
+          // const reportThree: AmountsTrackingByProvider[] = await this.amountsTracking();
+
+          // dataToExport = await transformAmountsTrackingByCampaign(reportThree);
+
+          throw new BadRequestException('¡No hay información para generar este reporte!');
+
+          fileName = "REPORTE_FACTURAS_GENERAL.xlsx";
 
           break;
 
@@ -644,7 +745,7 @@ export class CampañasService {
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
       res.send(buffer);
-      
+
     } catch (error) {
       console.error("Error al generar Excel:", error);
       throw error;

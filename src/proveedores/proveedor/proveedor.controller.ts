@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query, ParseEnumPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query, ParseEnumPipe, Res } from '@nestjs/common';
 import { ProveedorService } from './proveedor.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
@@ -6,6 +6,9 @@ import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { rolesProveedores } from './valid-proveedores-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
+import { PROVIDER_TYPE_REPORT_ENUM } from './enums/provider_type_report_enum';
+import { Response } from 'express';
+
 
 @Controller('proveedores/proveedores')
 export class ProveedorController {
@@ -35,6 +38,11 @@ export class ProveedorController {
   findAll(
     @Query('pageParam') pagina: string,) {
     return this.providerService.findAll(+pagina);
+  }
+
+  @Get("reports/excel/:type")
+  async downloadExcel(@Param("type") type: PROVIDER_TYPE_REPORT_ENUM, @Res() res: Response) {
+    return this.providerService.getReportInExcel(res, type);
   }
 
   @Auth(...rolesProveedores)

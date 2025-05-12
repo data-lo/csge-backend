@@ -7,13 +7,15 @@ import { ILike, Repository } from 'typeorm';
 import { ProveedorParcialDto } from './dto/proveedor-parcial.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-
+import * as XLSX from "xlsx";
+import { Response } from 'express';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { Contrato } from 'src/contratos/contratos/entities/contrato.entity';
 import { ESTATUS_DE_CONTRATO } from 'src/contratos/interfaces/estatus-de-contrato';
 import { ContratosService } from 'src/contratos/contratos/contratos.service';
 import { transformProvidersToServiceItems } from './functions/transform-providers-to-service-items';
+import { PROVIDER_TYPE_REPORT_ENUM } from './enums/provider_type_report_enum';
+import { transformActiveContractTracking } from './reports/active-contract-tracking/transform-active-contract-tracking';
 
 @Injectable()
 export class ProveedorService {
@@ -22,6 +24,7 @@ export class ProveedorService {
 
     @InjectRepository(Proveedor)
     private providerRepository: Repository<Proveedor>,
+
     @InjectRepository(Contrato)
     private contratoRepository: Repository<Contrato>,
 
@@ -335,6 +338,74 @@ export class ProveedorService {
     }
   }
 
+  async activeContractTracking() {
+    try {
+      const providers = await this.providerRepository
+        .createQueryBuilder("proveedor")
+        .leftJoinAndSelect(
+          "proveedor.contratosMaestros",
+          "contratoMaestro",
+          "contratoMaestro.estatusDeContrato IN (:...validStatus)",
+          { validStatus: [ESTATUS_DE_CONTRATO.ADJUDICADO, ESTATUS_DE_CONTRATO.LIBERADO] }
+        )
+        .leftJoinAndSelect("contratoMaestro.contratosModificatorios", "contratoModificatorio")
+        .where("contratoMaestro.id IS NOT NULL")
+        .getMany();
 
+
+        console.log(providers[0].contratosMaestros[0])
+
+
+      if (providers.length === 0) {
+        throw new BadRequestException('¡No hay información para generar este reporte!');
+      }
+
+      return providers;
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
+  async getReportInExcel(res: Response, typeProviderReport: PROVIDER_TYPE_REPORT_ENUM) {
+    try {
+
+      let dataToExport: any = [];
+
+      let fileName: string = "";
+
+      switch (typeProviderReport) {
+        case PROVIDER_TYPE_REPORT_ENUM.ACTIVE_CONTRACTS:
+
+          const reportOne = await this.activeContractTracking();
+
+          dataToExport = await transformActiveContractTracking(reportOne);
+
+          fileName = "REPORTE_CONTRATOS_ACTIVOS_POR_PROVEEDOR.xlsx";
+
+          break;
+
+        default:
+          throw new BadRequestException('¡El tipo de reporte solicitado no existe!');
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+      res.send(buffer);
+
+    } catch (error) {
+      console.error("Error al generar Excel:", error);
+      throw error;
+    }
+  }
 
 }

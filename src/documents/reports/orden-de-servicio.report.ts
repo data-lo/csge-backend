@@ -23,6 +23,7 @@ interface Props {
   textoEncabezado: string;
   textoPieDePagina: string;
   qrCode?: string;
+  actionType: string;
 }
 
 export const ordenDeServicioPdf = async (orden: Props) => {
@@ -96,7 +97,7 @@ export const ordenDeServicioPdf = async (orden: Props) => {
             {
               width: '*',
               alignment: 'right',
-              stack: [firmasDeRecepcionSection(orden.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE ? "APROBACIÓN" : "CANCELACIÓN")],
+              stack: [firmasDeRecepcionSection(orden.actionType)],
             },
           ],
         },

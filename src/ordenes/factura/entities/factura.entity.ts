@@ -132,17 +132,4 @@ export class Factura {
   })
   @JoinTable()
   ordenesDeServicio: Orden[];
-
-  @BeforeInsert()
-  localeTimeZoneInsert() {
-    const value = new Date()
-    this.fechaDeRecepcion = formatToLocalTime(value);
-    this.fechaValidacion = formatToLocalTime(value);
-  }
-
-  @BeforeUpdate()
-  localeTimeZoneUpdate() {
-    this.fechaDePago = formatToLocalTime(this.fechaDePago);
-    this.fechaAprobacion = formatToLocalTime(this.fechaAprobacion);
-  }
 }

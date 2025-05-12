@@ -17,7 +17,8 @@ import {
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../interfaces/estatus-orden-de-servicio';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
-import { formatToLocalTime } from 'src/helpers/format-to-local-time';
+import { AvailableContractType } from 'src/contratos/contratos/types/available-contract-type';
+import { ContractBreakdownList } from '../interfaces/contract-breakdown-list';
 
 @Entity('ordenes_de_servicio')
 export class Orden {
@@ -39,6 +40,22 @@ export class Orden {
   })
   estatus: ESTATUS_ORDEN_DE_SERVICIO;
 
+  @Column({
+    name: 'used_amendment_contracts',
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
+  usedAmendmentContracts: boolean;
+
+  @Column({
+    name: 'contract_breakdown_list',
+    type: 'jsonb',
+    nullable: false,
+    default: () => "'[]'::jsonb",
+  })
+  contractBreakdownList: ContractBreakdownList[];
+  
   @Column({
     name: 'folio',
     nullable: false,

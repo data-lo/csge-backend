@@ -26,6 +26,8 @@ import * as XLSX from 'xlsx';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Decimal from 'decimal.js';
 import { PaymentRegister } from './interfaces/payment-register';
+import { string } from 'joi';
+import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 @Injectable()
 export class FacturaService {
@@ -40,9 +42,9 @@ export class FacturaService {
     private orderRepository: Repository<Orden>,
 
     @InjectRepository(Proveedor)
-    private proveedrRepository: Repository<Proveedor>,
+    private providerRepository: Repository<Proveedor>,
 
-    private readonly firmaService: FirmaService,
+    private readonly signatureService: FirmaService,
 
     private readonly minioService: MinioService,
   ) { }
@@ -71,30 +73,34 @@ export class FacturaService {
       }
 
       let ordenes: Orden[] = [];
+
       let subtotalDeOrdenes: Number = 0.0;
 
       for (const ordenId of ordenesIds) {
+
         const orden = await this.orderRepository.findOneBy({ id: ordenId });
+
         if (!orden) {
-          console.log('ERROR EN LOS IDS DE LAS ORDENES')
           throw new NotFoundException({
-            message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA`,
+            message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA!`,
             id: id,
           });
         }
 
-        if (orden.estatus != ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) throw new BadRequestException('SOLO SE PUEDEN CAPTURAR FACTURAS PARA ORDENES ACTIVAS');
+        if (orden.estatus != ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) {
+          throw new BadRequestException('Sólo se pueden crear facturas a ordenes que esten activass');
+        }
+
         subtotalDeOrdenes = Number(orden.subtotal) + Number(subtotalDeOrdenes);
         ordenes.push(orden);
       }
 
-      const proveedor = await this.proveedrRepository.findOneBy({
+      const proveedor = await this.providerRepository.findOneBy({
         id: proveedorId,
       });
       if (!proveedor) {
-        console.log('ERROR EN EL PROVEEDOR')
         throw new NotFoundException({
-          message: 'NO SE ENCUENTRA EL PROVEEDOR',
+          message: 'El proveedor con ID no existe',
           id: id,
         });
       }
@@ -113,6 +119,7 @@ export class FacturaService {
           id: id,
         });
       }
+
       try {
         const factura = await this.invoiceRepository.create({
           id: id,
@@ -137,7 +144,6 @@ export class FacturaService {
         }
 
       } catch (error) {
-        console.log('ERROR EN FACTURA CREATE')
         throw error;
       }
     } catch (error) {
@@ -169,48 +175,156 @@ export class FacturaService {
     }
   }
 
+
+  async getInvoicesWithFilters(pageNumber: number, canAccessHistory: boolean, searchParams?: string, year?: string, status?: INVOICE_STATUS) {
+    try {
+      const resolvedYear = getResolvedYear(year, canAccessHistory);
+      const paginationSetter = new PaginationSetter();
+
+      const query = this.invoiceRepository
+        .createQueryBuilder('factura')
+        .leftJoinAndSelect('factura.proveedor', 'proveedor')
+
+      if (searchParams) {
+        query.andWhere(
+          `(factura.folio ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          { search: `%${searchParams}%` }
+        );
+      }
+
+      if (resolvedYear) {
+        query.andWhere('EXTRACT(YEAR FROM factura.fechaDeEmision) = :year', {
+          year: resolvedYear,
+        });
+      }
+
+      if (status) {
+        query.andWhere('factura.estatus = :status', { status });
+      }
+
+      query
+        .skip(paginationSetter.getSkipElements(pageNumber))
+        .take(paginationSetter.castPaginationLimit());
+
+      const invoices = await query.getMany();
+
+      const newData = invoices.map((invoice) => {
+        return {
+          id: invoice.id,
+          total: invoice.total,
+          status: invoice.estatus,
+          folio: invoice.folio,
+          paymentCount: invoice.paymentRegister.length,
+          provider: {
+            name: invoice.proveedor.razonSocial,
+            rfc: invoice.proveedor.rfc,
+          },
+        };
+      });
+
+      return newData;
+
+    } catch (error) {
+      handleExceptions(error);
+    }
+  }
+
   async findAll(pagina: number) {
     try {
+
       const paginationSetter = new PaginationSetter();
-      const facturas = await this.invoiceRepository.find({
+
+      const invoices = await this.invoiceRepository.find({
         take: paginationSetter.castPaginationLimit(),
         skip: paginationSetter.getSkipElements(pagina),
         relations: {
           proveedor: true,
         },
       });
-      const facturasFilter = facturas.map((factura) => {
+
+      const newData = invoices.map((invoice) => {
         return {
-          id: factura.id,
-          total: factura.total,
-          estatus: factura.estatus,
-          folio: factura.folio,
-          proveedor: {
-            nombre: factura.proveedor.razonSocial,
-            rfc: factura.proveedor.rfc,
+          id: invoice.id,
+          total: invoice.total,
+          status: invoice.estatus,
+          folio: invoice.folio,
+          paymentCount: invoice.paymentRegister.length,
+          provider: {
+            name: invoice.proveedor.razonSocial,
+            rfc: invoice.proveedor.rfc,
           },
         };
       });
-      return facturasFilter;
+
+      return newData;
+
     } catch (error: any) {
       handleExceptions(error);
     }
   }
 
-  async findOne(id: string) {
+  async findOne(idOrFolio: string, isFolio: boolean = false) {
     try {
-      const factura = await this.invoiceRepository.findOne({
-        where: { id: id },
+      const whereClause = isFolio ? { folio: idOrFolio } : { id: idOrFolio };
+
+      const invoice = await this.invoiceRepository.findOne({
+        where: whereClause,
         relations: {
           proveedor: true,
           ordenesDeServicio: true,
         },
       });
-      return factura;
+
+      if (!invoice) {
+        if (isFolio) return null;
+
+        throw new NotFoundException('¡Factura no encontrada!');
+      }
+
+      const newData = {
+        id: invoice.id,
+        folio: invoice.folio,
+        subtotal: invoice.subtotal,
+        tax: invoice.iva,
+        total: invoice.total,
+        status: invoice.estatus,
+        validatedAt: invoice.fechaValidacion,
+        approvedAt: invoice.fechaAprobacion,
+        receivedAt: invoice.fechaDeRecepcion,
+        payments: Array.isArray(invoice.paymentRegister)
+          ? invoice.paymentRegister.map((payment) => ({
+            paidAmount: payment.paidAmount,
+            checkNumber: payment.checkNumber,
+            registeredAt: payment.registeredAt,
+          }))
+          : [],
+        provider: {
+          id: invoice.proveedor.id,
+          providerNumber: invoice.proveedor.numeroProveedor,
+          name: invoice.proveedor.razonSocial,
+          rfc: invoice.proveedor.rfc,
+        },
+        orders: invoice.ordenesDeServicio.map((order) => ({
+          id: order.id,
+          serviceType: order.tipoDeServicio,
+          status: order.estatus,
+          folio: order.folio,
+          emittedAt: order.fechaDeEmision,
+          approvedAt: order.fechaDeAprobacion,
+          subtotal: order.subtotal,
+          tax: order.iva,
+          total: order.total,
+          contractBreakdownList: order.contractBreakdownList,
+          usedAmendmentContracts: order.usedAmendmentContracts
+        })),
+      };
+
+      return newData;
     } catch (error: any) {
       handleExceptions(error);
     }
   }
+
 
   async remove(id: string) {
     try {
@@ -269,24 +383,37 @@ export class FacturaService {
     }
   }
 
-  //Canela la factura ingresada
-  async cancelarFactura(id: string, updateFacturaDto: UpdateFacturaDto) {
+
+  async sendInvoiceToCancelSigning(invoiceId: string) {
     try {
-      const { motivoDeCancelacion } = updateFacturaDto;
-      const factura = await this.invoiceRepository.findOneBy({ id: id });
-      if (!factura) throw new NotFoundException('Factura no encontrada');
-      if (!motivoDeCancelacion)
-        throw new BadRequestException(
-          'Se debe de incluir el motivo de cancelación',
-        );
 
-      factura.motivoCancelacion = motivoDeCancelacion;
-      // const { message, value } = await this.minioService.eliminarArchivos(id);
+      const invoice = await this.invoiceRepository.findOneBy({
+        id: invoiceId
+      });
 
-      // if (value) {
-      await this.invoiceRepository.save(factura);
-      return { message: `Factura cancelada correctamente,` };
+      if (!invoice) {
+        throw new NotFoundException('¡Factura no encontrada!');
+      }
+
+      // if (!motivoDeCancelacion) {
+      //   throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
       // }
+
+      // invoice.motivoCancelacion = motivoDeCancelacion;
+
+      // await this.invoiceRepository.save(invoice);
+
+      const signatureObject = {
+        isSigned: false,
+        documentId: invoiceId,
+        documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
+        signatureAction: SIGNATURE_ACTION_ENUM.CANCEL
+      };
+
+      await this.signatureService.create(signatureObject);
+
+      return { message: '¡La factura ha sido cancelada correctamente!' };
+
     } catch (error) {
       handleExceptions(error);
     }
@@ -296,7 +423,13 @@ export class FacturaService {
     try {
       const invoice = await this.invoiceRepository.findOneBy({ id: invoiceId });
 
-      if (!invoice) throw new NotFoundException('¡Factura no encontrada!');
+      if (!invoice) {
+        throw new NotFoundException('¡Factura no encontrada!');
+      }
+
+      if (status === INVOICE_STATUS.PAGADA || status === INVOICE_STATUS.PARTIAL_PAY) {
+        return;
+      }
 
       invoice.estatus = status;
 
@@ -324,47 +457,46 @@ export class FacturaService {
 
   async obtenerDocumentoDeFacturaPdf(id: string) {
     try {
-      const documento = await this.firmaService.downloadFile(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
+      const documento = await this.signatureService.downloadFile(id, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
       return documento;
     } catch (error) {
       handleExceptions(error);
     }
   }
 
+  async checkInvoice(facturaId: string, usuario: Usuario) {
 
-  async cotejarFactura(facturaId: string, usuario: Usuario) {
-
-    const documentoFirmaDto: CreateFirmaDto = {
+    const signatureObject = {
       documentId: facturaId,
       documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
       isSigned: false,
       signatureAction: SIGNATURE_ACTION_ENUM.APPROVE
     }
 
-    const documentoFirma = ((await this.firmaService.create(documentoFirmaDto)).documentoAFirmar);
-    const linkDeFacturaACotejar = await this.firmaService.documentSigning(usuario.id, documentoFirma.id);
+    const document = ((await this.signatureService.create(signatureObject)).documentoAFirmar);
+
+    const url = await this.signatureService.documentSigning(usuario.id, document.id);
+
     const factura = await this.invoiceRepository.findOneBy({ id: facturaId });
+
     factura.usuarioTestigo = usuario;
+
     await this.invoiceRepository.save(factura);
-    return linkDeFacturaACotejar;
+
+    return url;
   }
 
   async readFileEBSUpdateStatusAndMarkPaid(file: Express.Multer.File) {
     try {
-      console.log(file)
-
       const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-
       const sheetName = workbook.SheetNames[0];
-
       const worksheet = workbook.Sheets[sheetName];
-
       const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
+  
       if (rawData.length < 2) {
         throw new Error("El archivo no tiene suficientes filas");
       }
-
+  
       const jsonData = rawData.slice(1).map(row => ({
         policyId: Number(row[0]) || null,
         batchNameGL: String(row[1] || ""),
@@ -387,71 +519,103 @@ export class FacturaService {
         debit: Number(row[18]) || 0,
         credit: Number(row[19]) || 0
       }));
-
-      let paidInvoiceCount: number = 0;
-
+  
+      let wasPaid = 0;
+      let paidInvoiceCount = 0;
+      const invoiceIds: string[] = [];
+  
       for (const row of jsonData) {
-        const invoice = await this.invoiceRepository.findOne({
-          where: { folio: row.invoiceNumber }
-        });
-
+        const invoice = await this.findOne(row.invoiceNumber, true);
         if (!invoice) continue;
-
+  
         const isProcessableStatus = [
-          INVOICE_STATUS.CONTEJADA,
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
-        ].includes(invoice.estatus);
+        ].includes(invoice.status);
 
         if (!isProcessableStatus) continue;
-
+  
         const totalInvoiceAmount = new Decimal(invoice.total);
         const paidAmount = new Decimal(row.paidAmount);
-        const isFullyPaid = paidAmount.equals(totalInvoiceAmount);
-
-        const newStatus = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
-
-        console.log('📦 paymentRegister:', invoice.paymentRegister);
-
-        const existingPayments = Array.isArray(invoice.paymentRegister) ? invoice.paymentRegister : [];
-
+        const existingPayments = Array.isArray(invoice.payments) ? invoice.payments : [];
+  
+        const currentPaidTotal = existingPayments.reduce(
+          (sum, payment) => sum.plus(payment.paidAmount),
+          new Decimal(0)
+        );
+  
+        // Si ya está completamente pagada
+        if (currentPaidTotal.greaterThanOrEqualTo(totalInvoiceAmount)) {
+          wasPaid++;
+          continue;
+        }
+  
+        // Si ya está registrado este pago exacto
         const alreadyRegistered = existingPayments.some(item =>
-          new Date(item.paymentRegisteredAt).getTime() === new Date(row.accountingDate).getTime() &&
           Number(item.paidAmount) === Number(row.paidAmount) &&
           item.checkNumber === row.checkNumber
         );
-
-        if (alreadyRegistered) continue;
-
+  
+        if (alreadyRegistered) {
+          wasPaid++;
+          continue;
+        }
+  
+        // Registrar nuevo pago
         const newPayment: PaymentRegister = {
           paidAmount: paidAmount.toString(),
           checkNumber: row.checkNumber,
-          paymentRegisteredAt: new Date()
+          registeredAt: new Date()
         };
-
+  
         const updatedPayments = [...existingPayments, newPayment];
 
+        const updatedTotalPaid = currentPaidTotal.plus(paidAmount);
+
+        const isFullyPaid = updatedTotalPaid.greaterThanOrEqualTo(totalInvoiceAmount);
+  
+        const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
+        
+        const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
+  
         await this.invoiceRepository.update(invoice.id, {
           paymentRegister: updatedPayments,
-          estatus: newStatus
+          estatus: newStatusInvoice
         });
-
-        paidInvoiceCount += 1;
+  
+        for (const order of invoice.orders) {
+          await this.orderRepository.update(order.id, {
+            estatus: newStatusOrder
+          });
+        }
+  
+        if (isFullyPaid) {
+          invoiceIds.push(invoice.id);
+        }
+  
+        paidInvoiceCount++;
       }
+  
+      if (invoiceIds.length > 0) {
+        this.eventEmitter.emit('invoice.paid', { invoiceIds });
 
+        this.eventEmitter.emit('invoice.match.paid', { invoiceIds });
+      }
+  
       return {
-        message: '¡Archivo procesado correctamente! ',
+        message: '¡Archivo procesado correctamente!',
         data: {
-          notPaidInvoiceCout: jsonData.length - paidInvoiceCount,
-          paidInvoiceCount: paidInvoiceCount
+          alreadyPaidInvoiceCount: wasPaid,
+          paidInvoiceCount,
+          notPaidInvoiceCount: jsonData.length - paidInvoiceCount - wasPaid
         }
       };
-
+  
     } catch (error) {
-      console.log(error)
       throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }
+  
 
   private excelDateToJSDate(serial: number): Date | null {
     if (!serial || isNaN(serial)) return null;
@@ -482,7 +646,11 @@ export class FacturaService {
     });
 
     const ordersArray = ordersWithMasterContracts.map(order => ({
+      usedAmendmentContracts: order.usedAmendmentContracts,
+      contractBreakdownList: order.contractBreakdownList,
       orderId: order.id,
+      totalOrder: order.total,
+      serviceType:  order.tipoDeServicio,
       masterContractId: order.contratoMaestro.id
     }));
 

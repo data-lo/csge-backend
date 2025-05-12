@@ -11,11 +11,12 @@ import { PassportModule } from '@nestjs/passport';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
 import { ServicioContratado } from 'src/ordenes/servicio_contratado/entities/servicio_contratado.entity';
 import { ContratoMaestro } from 'src/contratos/contratos/entities/contrato.maestro.entity';
+import { ContratoModificatorio } from 'src/contratos/contratos_modificatorios/entities/contratos_modificatorio.entity';
 
 @Module({
   controllers: [ActivacionController],
   providers: [ActivacionService, ActivacionEventosService],
-  imports: [TypeOrmModule.forFeature([Partida, Activacion, Campaña, Orden, ServicioContratado, ContratoMaestro]),
+  imports: [TypeOrmModule.forFeature([Partida, Activacion, Campaña, Orden, ServicioContratado, ContratoMaestro, ContratoModificatorio]),
   AuthModule,
   PassportModule,
   ],

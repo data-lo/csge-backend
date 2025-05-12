@@ -43,7 +43,6 @@ export class Contrato {
   })
   montoEjercido: number;
 
-
   @Column({
     name: 'monto_pagado',
     type: 'decimal',

@@ -1,53 +1,67 @@
 import Decimal from "decimal.js";
 import { FilteredAmountsTrackingByProvider } from "./filtered-data-response";
-import { AmountsTrackingByProvider } from "./query-response";
+import { AmountsTrackingByProvider } from "../query-response";
+import { CAMPAIGN_STATUS } from "../../interfaces/estatus-campaña.enum";
+import { ESTATUS_ORDEN_DE_SERVICIO } from "src/ordenes/orden/interfaces/estatus-orden-de-servicio";
 
 export async function transformAmountsTrackingByProvider(data: AmountsTrackingByProvider[]) {
   const map = new Map<string, FilteredAmountsTrackingByProvider>();
 
   for (const item of data) {
-    const key = `${item.provider_id}-${item.contract_id}`;
+    const key = `${item.campaign_id}-${item.provider_id}`;
+    let values = map.get(key);
 
-    const existing = map.get(key);
+    const orderTotal = new Decimal(item.order_total);
 
-    const parsedContractMax = new Decimal(item.contract_max_amount || "0");
-    const parsedContractSpent = new Decimal(item.contract_spent_amount || "0");
-    const parsedContractPaid = new Decimal(item.contract_paid_amount || "0");
-    const parsedOrderTotal = new Decimal(item.order_total || "0");
+    if (values) {
+      switch (item.order_status as ESTATUS_ORDEN_DE_SERVICIO) {
+        case ESTATUS_ORDEN_DE_SERVICIO.ACTIVA:
+          values.globalActiveAmount = new Decimal(values.globalActiveAmount).plus(orderTotal).toNumber();
+          break;
+        case ESTATUS_ORDEN_DE_SERVICIO.PAGADA || ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY:
+          values.globalPaidAmount = new Decimal(values.globalPaidAmount).plus(orderTotal).toNumber();
+          break;
+        case ESTATUS_ORDEN_DE_SERVICIO.COTEJADA:
+          values.globalExecutedAmount = new Decimal(values.globalExecutedAmount).plus(orderTotal).toNumber();
+        default:
+          break;
+      }
 
-    if (existing) {
-      existing.contractMaxAmount = new Decimal(existing.contractMaxAmount).plus(parsedContractMax).toNumber();
-      existing.contractSpentAmount = new Decimal(existing.contractSpentAmount).plus(parsedContractSpent).toNumber();
-      existing.contractPaidAmount = new Decimal(existing.contractPaidAmount).plus(parsedContractPaid).toNumber();
-      existing.totalOrderAmount = new Decimal(existing.totalOrderAmount).plus(parsedOrderTotal).toNumber();
+      if (item.order_status !== ESTATUS_ORDEN_DE_SERVICIO.CANCELADA) {
+        values.globalIssuedAmount = new Decimal(values.globalIssuedAmount).plus(orderTotal).toNumber();
+      }
+
+      map.set(key, values)
     } else {
       map.set(key, {
         campaignName: item.campaign_name,
-        providerId: item.provider_id,
-        contractId: item.contract_id,
-        providerName: item.provider_business_name,
+        campaignStatus: item.campaign_status as CAMPAIGN_STATUS,
+        startAt: item.activation_start_date,
+        endDate: item.activation_end_date,
         providerRFC: item.provider_rfc,
+        providerName: item.provider_business_name,
+        globalIssuedAmount: orderTotal.toNumber(),
+        globalActiveAmount: item.order_status === ESTATUS_ORDEN_DE_SERVICIO.ACTIVA ? orderTotal.toNumber() : 0,
+        globalPaidAmount: item.order_status === ESTATUS_ORDEN_DE_SERVICIO.PAGADA ? orderTotal.toNumber() : 0,
+        globalExecutedAmount: item.order_status === ESTATUS_ORDEN_DE_SERVICIO.COTEJADA ? orderTotal.toNumber() : 0,
 
-        contractNumber: item.contract_number,
-        contractMaxAmount: parsedContractMax.toNumber(),
-        contractSpentAmount: parsedContractSpent.toNumber(),
-        contractPaidAmount: parsedContractPaid.toNumber(),
-
-        totalOrderAmount: parsedOrderTotal.toNumber(),
       });
     }
   }
+
   const transformedData = Array.from(map.values());
 
   const dataToExport = transformedData.map(item => ({
     "CAMPAÑA": item.campaignName,
-    "PROVEEDOR": item.providerName,
-    "RFC": item.providerRFC,
-    "NÚMERO DE CONTRATO": item.contractNumber,
-    "MONTO MÁXIMO": item.contractMaxAmount,
-    "MONTO EJERCIDO": item.contractSpentAmount,
-    "MONTO PAGADO": item.contractPaidAmount,
-    "MONTO TOTAL DE LAS ORDENES": item.totalOrderAmount,
+    "ESTATUS DE LA CAMPAÑA": item.campaignStatus,
+    "FECHA DE INICIO": item.startAt,
+    "FECHA DE CIERRE": item.endDate,
+    "PROVEEDOR RFC": item.providerRFC,
+    "PROVEEDOR RAZÓN SOCIAL": item.providerName,
+    "MONTO EMITIDO": item.globalIssuedAmount,
+    "MONTO ACTIVO": item.globalActiveAmount,
+    "MONTO EJECUTADO": item.globalExecutedAmount,
+    "MONTO PAGADO": item.globalPaidAmount,
   }));
 
   return dataToExport;

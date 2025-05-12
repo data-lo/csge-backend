@@ -51,7 +51,6 @@ export class CarteleraGobiernoService {
   }
 
   async getBillboardWithFilters(pageParam: number, searchParams?: string) {
-    console.log(searchParams)
     try {
 
       const paginationSetter = new PaginationSetter();

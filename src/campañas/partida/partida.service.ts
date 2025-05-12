@@ -3,12 +3,16 @@ import { CreatePartidaDto } from './dto/create-partida.dto';
 import { UpdatePartidaDto } from './dto/update-partida.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Partida } from './entities/partida.entity';
-import { Repository, ReturnDocument } from 'typeorm';
+import { Repository } from 'typeorm';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { Campaña } from '../campañas/entities/campaña.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
-import { timeStamp } from 'console';
+import { TYPE_EVENT_ORDER } from 'src/contratos/enums/type-event-order';
+import { handlerAmounts } from './functions/handler-amounts';
+import { Factura } from 'src/ordenes/factura/entities/factura.entity';
+import { TYPE_EVENT_INVOICE } from 'src/ordenes/factura/enums/type-event-invoice';
+
 
 @Injectable()
 export class PartidaService {
@@ -18,10 +22,13 @@ export class PartidaService {
     private matchRepository: Repository<Partida>,
 
     @InjectRepository(Campaña)
-    private campañaRepository: Repository<Campaña>,
+    private campaignRepository: Repository<Campaña>,
 
     @InjectRepository(Orden)
-    private ordenRepository: Repository<Orden>
+    private orderRepository: Repository<Orden>,
+
+    @InjectRepository(Factura)
+    private invoiceRepository: Repository<Factura>,
 
   ) { }
 
@@ -85,11 +92,11 @@ export class PartidaService {
 
   async disableMatch(matchId: string) {
 
-      const match = await this.matchRepository.findOneBy({ id: matchId });
+    const match = await this.matchRepository.findOneBy({ id: matchId });
 
-      if (!match) {
-        throw new NotFoundException('¡Partida no encontrada!');
-      }
+    if (!match) {
+      throw new NotFoundException('¡Partida no encontrada!');
+    }
 
   }
 
@@ -127,54 +134,96 @@ export class PartidaService {
     }
   }
 
-  async actualizarMontos(ordenId: string, evento: string) {
+  async updateAmounts(orderOrInvoiceId: string, eventType: TYPE_EVENT_ORDER | TYPE_EVENT_INVOICE, isInvoice: boolean) {
     try {
 
-      const ordenDb = await this.ordenRepository.findOne({
-        where: { id: ordenId },
-        relations: { campaña: true }
-      }
-      );
+      let total: string;
+      let campaignId: string;
 
-      const campania = await this.campañaRepository.findOne({
-        where: { id: ordenDb.campaña.id },
-        relations: {
-          activaciones: {
-            partida: true
-          }
+      if (isInvoice) {
+
+        const invoice = await this.invoiceRepository.findOne({
+          where: { id: orderOrInvoiceId },
+          relations: {
+            ordenesDeServicio: { campaña: true }
+          },
+        });
+        if (!invoice || invoice.ordenesDeServicio.length === 0) {
+          throw new NotFoundException('Factura no encontrada o sin órdenes asociadas');
         }
+
+        total = invoice.total.toString();
+
+        campaignId = invoice.ordenesDeServicio[0].campaña.id;
+
+      } else {
+
+        const order = await this.orderRepository.findOne({
+          where: { id: orderOrInvoiceId },
+          relations: ['campaña'],
+        });
+        if (!order) {
+          throw new NotFoundException('Orden no encontrada');
+        }
+
+        total = order.total;
+        campaignId = order.campaña.id;
+      }
+
+      // Ahora puedo buscar la campaña sin errores
+      const campaing = await this.campaignRepository.findOne({
+        where: { id: campaignId },
+        relations: {
+          activaciones: { partida: true },
+        },
       });
+      if (!campaing) {
+        throw new NotFoundException('¡Campaña no encontrada! No se pueden actualizar los montos de la partida.');
+      }
 
-      if (!campania) throw new NotFoundException('No se encuentra la campaña para actualizr los montos');
-      const partidaDb = campania.activaciones.at(-1).partida;
-      if (!partidaDb.estatus) throw new BadRequestException('Error, se esta tratando de actualizar una partida desactivada');
+      const match = campaing.activaciones.at(-1).partida;
 
-      // monto activo, orden aprobada
-      // monto ejercido, cuando se coteja,
-      // monto pagado, cuando se paga
+      if (!match.estatus) {
+        throw new BadRequestException('¡Partida desactivada! No es posible realizar la actualización.');
+      }
 
-      // switch (evento) {
-      //   case 'orden.aprobada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo + ordenDb.total);
-      //     break;
-      //   case 'orden.canelada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-      //     break;
+      const values = {
+        match: {
+          paidAmount: match.montoPagado,
+          executedAmount: match.montoEjercido,
+          activeAmount: match.montoActivo
+        },
+        eventType: eventType,
+        total: total
+      }
 
-      //   case 'orden.cotejada':
-      //     partidaDb.montoActivo = (partidaDb.montoActivo - ordenDb.total);
-      //     partidaDb.montoEjercido = (partidaDb.montoEjercido + ordenDb.total);
-      //     break;
+      const updatedValues = await handlerAmounts(values);
 
-      //   case 'factura.pagada':
-      //     partidaDb.montoPagado = (partidaDb.montoPagado = ordenDb.total);
-      //     break;
+      console.log(updatedValues);
 
-      //   case 'factura.cancelada':
-      //     partidaDb.montoPagado = (partidaDb.montoPagado - ordenDb.total);
-      //     partidaDb.montoEjercido = (partidaDb.montoEjercido - ordenDb.total);
-      // }
-      await this.matchRepository.save(partidaDb);
+      if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
+
+        console.log(`Primer Condición: ${eventType}`);
+
+        await this.matchRepository.update(match.id, {
+          montoActivo: updatedValues.match.activeAmount,
+        });
+      } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+        console.log(`Segunda Condición: ${eventType}`);
+        await this.matchRepository.update(match.id, {
+          montoActivo: updatedValues.match.activeAmount,
+          montoEjercido: updatedValues.match.executedAmount,
+        });
+      } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_PAID) {
+
+        console.log(`Tercer Condición: ${eventType}`);
+
+        await this.matchRepository.update(match.id, {
+          montoEjercido: updatedValues.match.executedAmount,
+          montoPagado: updatedValues.match.paidAmount,
+        });
+      }
+
       return;
 
     } catch (error) {
