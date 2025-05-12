@@ -656,7 +656,6 @@ export class CampañasService {
           "orden.partidaId AS order_partida_id",
           "orden.proveedorId AS order_provider_id",
         ])
-        // .andWhere("activation.status = :status", { status: true })
         .getRawMany();
 
       if (data.length === 0) {
@@ -716,6 +715,19 @@ export class CampañasService {
           fileName = "REPORTE_PORCENTAJE_DE_ORDENES_DE_SERVICIO.xlsx";
 
           break;
+
+        case CAMPAIGN_TYPE_REPORT.GENERAL_INVOICE:
+
+          // const reportThree: AmountsTrackingByProvider[] = await this.amountsTracking();
+
+          // dataToExport = await transformAmountsTrackingByCampaign(reportThree);
+
+          throw new BadRequestException('¡No hay información para generar este reporte!');
+
+          fileName = "REPORTE_FACTURAS_GENERAL.xlsx";
+
+          break;
+
         default:
           throw new BadRequestException('¡El tipo de reporte solicitado no existe!');
       }

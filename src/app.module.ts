@@ -43,6 +43,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { MinioModule } from './minio/minio.module';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 
+import { CustomFilterModule } from './customer-filter/customer-filter.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -111,6 +113,7 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
     WebhooksModule,
     MinioModule,
     CronJobsModule,
+    CustomFilterModule,
   ],
   providers: [],
 })
