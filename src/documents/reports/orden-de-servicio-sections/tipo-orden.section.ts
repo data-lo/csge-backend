@@ -6,7 +6,7 @@ export const tipoOrdenSection = (
 ): Content[] => {
   
   const tipoDeOrdenContent: Content = {
-    text: `ORDEN DE SERVICIO: ${TIPO_DE_SERVICIO}`,
+    text: `ORDEN DE SERVICIO (ESTE DOCUMENTO NO CUENTA CON VÁLIDEZ OFICIAL): ${TIPO_DE_SERVICIO}`,
     alignment: 'center',
     font:'Poppins',
     fontSize: 14,
