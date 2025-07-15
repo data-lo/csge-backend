@@ -199,7 +199,6 @@ export class SeedService {
 
         unidadDb = await this.longitudService.findOneByUnidad(unidad);
         unidadId = unidadDb.id;
-        console.log(unidadId);
         let dimensionDto = plainToClass(CreateDimensionDto, {
           unidad: unidadId,
           ...rest
@@ -384,7 +383,6 @@ export class SeedService {
           tipoProveedor: TipoProveedor.PUBLICIDAD
         }
         )
-        console.log(proveedorDto.rfc);
         await this.proveedoresService.create(proveedorDto);
       }
       return 'proveedores insertados exitosamente';
@@ -457,7 +455,6 @@ export class SeedService {
             ...rest
           });
           const contrato = await this.contratosService.create(contratoDto);
-          console.log('Proveedor Insertado', contrato);
         } catch (error) {
 
         }
@@ -487,8 +484,6 @@ export class SeedService {
 
         try {
           const carteleraDb = await this.cartelerasService.create(carteleraDto);
-          console.log('cartelera insertada correctamente');
-          console.log(carteleraDb);
 
         } catch (error) {
           console.log(error.message)

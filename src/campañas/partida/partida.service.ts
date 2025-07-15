@@ -199,7 +199,6 @@ export class PartidaService {
 
       const updatedValues = await handlerAmounts(values);
 
-      console.log(updatedValues);
 
       if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
 

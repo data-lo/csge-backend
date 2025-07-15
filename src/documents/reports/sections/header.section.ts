@@ -19,6 +19,7 @@ const getDocumentImage = async () => {
     const image = await minioService.getImage();
 
     if (image.status === FILE_STATUS.FILE_FOUND) {
+
       const response = await axios.get(image.url, {
         responseType: 'arraybuffer',
       });
@@ -80,6 +81,7 @@ export const headerSection = async (options: HeaderOptions,): Promise<Content> =
           alignment: 'left',
           margin: [30, 0, 30, 50],
         };
+
       } else {
         logo = { text: '' };
       }

@@ -233,7 +233,7 @@ export class ActivacionService {
       if (order.usedAmendmentContracts) {
         for (const item of order.contractBreakdownList) {
           if (item.contractType === 'MASTER_CONTRACT') {
-            newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+            newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(2);
 
             await this.masterContractRepository.update(item.id, {
               committedAmount: newCommittedAmount.toNumber()
@@ -245,7 +245,7 @@ export class ActivacionService {
               }
             });
 
-            newCommittedAmount = new Decimal(ammendmentContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+            newCommittedAmount = new Decimal(ammendmentContractRepository.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(2);
 
             await this.ammendmentContractRepository.update(item.id, {
               committedAmount: newCommittedAmount.toNumber()
@@ -253,7 +253,7 @@ export class ActivacionService {
           }
         }
       } else {
-        newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+        newCommittedAmount = new Decimal(masterContractRepository.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(2);
 
         await this.masterContractRepository.update(masterContractRepository.id, {
           committedAmount: newCommittedAmount.toNumber()

@@ -75,16 +75,16 @@ export function handlerAmounts(values: Props) {
 
     return {
         contract: {
-            availableAmount: newValues.contract.availableAmount.toDecimalPlaces(4).toNumber(),
-            paidAmount: newValues.contract.paidAmount.toDecimalPlaces(4).toNumber(),
-            executedAmount: newValues.contract.executedAmount.toDecimalPlaces(4).toNumber(),
-            activeAmount: newValues.contract.activeAmount.toDecimalPlaces(4).toNumber(),
-            committedAmount: newValues.contract.committedAmount.toDecimalPlaces(4).toNumber()
+            availableAmount: newValues.contract.availableAmount.toDecimalPlaces(2).toNumber(),
+            paidAmount: newValues.contract.paidAmount.toDecimalPlaces(2).toNumber(),
+            executedAmount: newValues.contract.executedAmount.toDecimalPlaces(2).toNumber(),
+            activeAmount: newValues.contract.activeAmount.toDecimalPlaces(2).toNumber(),
+            committedAmount: newValues.contract.committedAmount.toDecimalPlaces(2).toNumber()
         },
         contractByServiceType: {
-            paidAmount: newValues.contractByServiceType.paidAmount.toDecimalPlaces(4).toNumber(),
-            executedAmount: newValues.contractByServiceType.executedAmount.toDecimalPlaces(4).toNumber(),
-            activeAmount: newValues.contractByServiceType.activeAmount.toDecimalPlaces(4).toNumber()
+            paidAmount: newValues.contractByServiceType.paidAmount.toDecimalPlaces(2).toNumber(),
+            executedAmount: newValues.contractByServiceType.executedAmount.toDecimalPlaces(2).toNumber(),
+            activeAmount: newValues.contractByServiceType.activeAmount.toDecimalPlaces(2).toNumber()
         }
     };
 }
