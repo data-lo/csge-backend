@@ -4,7 +4,7 @@ import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateOrdenDto } from './dto/update-orden.dto';
 import { ESTATUS_ORDEN_DE_SERVICIO } from './interfaces/estatus-orden-de-servicio';
 import { Response } from 'express';
-import { rolesOrdenes } from './valid-ordenes-roles.ob';
+import { ORDER_ROLES } from './valid-ordenes-roles.ob';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { LoggerService } from 'src/logger/logger.service';
 import { TIPO_DE_SERVICIO } from 'src/contratos/interfaces/tipo-de-servicio';
@@ -18,13 +18,13 @@ import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.p
 export class OrdenController {
   constructor(private readonly orderService: OrdenService) { }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Post()
   create(@Body() createOrdenDto: CreateOrdenDto) {
     return this.orderService.create(createOrdenDto);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Post('send-to-signing-order/:orderId')
   sendToSigningCampaign(
     @Param('orderId', ParseUUIDPipe) orderId: string,
@@ -34,13 +34,19 @@ export class OrdenController {
   }
 
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get()
   findAll(@Query('pagina') pagina: string) {
     return this.orderService.findAll(+pagina);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
+  @Get("match/:matchId/total-orders")
+  getCampaignTotalForMatch(@Query('matchId') matchId: string) {
+    return this.orderService.getCampaignTotalForMatch(matchId);
+  }
+
+  @Auth(...ORDER_ROLES)
   @Get('filters')
   getOrdersWithFilters(
     @GetUser() user: Usuario,
@@ -53,7 +59,7 @@ export class OrdenController {
     return this.orderService.getOrdersWithFilters(pageParam, canAccessHistory, searchParams, year, status);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('rfc')
   findByRfc(
     @Query('rfc') rfc: string) {
@@ -67,13 +73,13 @@ export class OrdenController {
     return this.orderService.getCurrentFolio(servicio);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('busqueda')
   findAllBusqueda() {
     return this.orderService.findAllBusqueda();
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('obtener-estatus/:id')
   obtenerEstatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.orderService.obtenerEstatusOrden(id);
@@ -81,7 +87,7 @@ export class OrdenController {
 
 
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('pdf/:id')
   async obtenerOrdenEnPdf(
     @Res() res: Response,
@@ -99,7 +105,7 @@ export class OrdenController {
     }
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('pdf/campaign-orders/:id')
   async getCampaignOrdersInPDF(
     @Res() res: Response,
@@ -120,31 +126,31 @@ export class OrdenController {
   }
 
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.orderService.findOne(id);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Get('campanias/:campaignId')
   GetAllOrdersByCampaign(@Param('campaignId', ParseUUIDPipe) id: string) {
     return this.orderService.getActiveOrdersByCampaignAndActivation(id);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Patch('cancelar/:id')
   cancelarOrden(@Param('id', ParseUUIDPipe) id: string) {
     return this.orderService.cancelarOrden(id);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateOrdenDto: UpdateOrdenDto) {
     return this.orderService.update(id, updateOrdenDto);
   }
 
-  @Auth(...rolesOrdenes)
+  @Auth(...ORDER_ROLES)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.orderService.remove(id);

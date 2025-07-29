@@ -13,11 +13,11 @@ export class Proveedor {
     id: string;
 
     @Column({
-        name: 'numero_de_proveedor',
+        name: 'phone',
         nullable: true,
-        unique: true,
+        unique: false,
     })
-    numeroProveedor: string;
+    phone: string;
 
     @OneToMany(() => ContratoMaestro, (contratoMaestro) => contratoMaestro.proveedor)
     contratosMaestros: ContratoMaestro[];

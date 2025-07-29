@@ -300,7 +300,7 @@ export class FacturaService {
           : [],
         provider: {
           id: invoice.proveedor.id,
-          providerNumber: invoice.proveedor.numeroProveedor,
+          providerNumber: invoice.proveedor.phone,
           name: invoice.proveedor.razonSocial,
           rfc: invoice.proveedor.rfc,
         },

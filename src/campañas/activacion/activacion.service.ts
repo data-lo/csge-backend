@@ -153,6 +153,7 @@ export class ActivacionService {
       handleExceptions(error);
     }
   }
+  
   async update(activationId: string, updateActivacionDto: UpdateActivacionDto) {
     try {
       const activation = await this.findOne(activationId);

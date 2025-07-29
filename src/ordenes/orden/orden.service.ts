@@ -718,7 +718,6 @@ export class OrdenService {
 
 
   async getOrderInPDF(orderId: string) {
-
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
       relations: ["campaña"]
@@ -957,6 +956,31 @@ export class OrdenService {
     }));
 
     return transformedOrders;
+  }
+
+  async getCampaignTotalForMatch(matchId: string) {
+    const orders = await this.orderRepository.find({
+      where: {
+        partida: {
+          id: matchId
+        }
+      }
+    });
+
+    if (!orders || orders.length === 0) {
+      return {
+        total: 0
+      };
+    }
+
+    const total = orders.reduce(
+      (acc, order) => acc.plus(new Decimal(order.total)),
+      new Decimal(0)
+    );
+
+    return {
+      total: total.toNumber()
+    };
   }
 }
 
