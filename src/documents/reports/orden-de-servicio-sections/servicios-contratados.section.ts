@@ -1,12 +1,9 @@
 import { Content } from 'pdfmake/interfaces';
 import { generarSVGCalendario } from '../sections/calendar.generator.section';
-import { Formato } from 'src/catalogos/formatos/entities/formato.entity';
-
 
 export const serviciosContratadosSection = (
   serviciosContratados: ServiciosContratados,
 ): Content => {
-
   const serviciosDeOrden = serviciosContratados.serviciosContratados;
 
   const serviciosContratadosC: Content = {
@@ -17,10 +14,12 @@ export const serviciosContratadosSection = (
     layout: 'lightHorizontalLines',
     table: {
       headerRows: 1,
-      widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+      widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
       body: [
         [
+          { text: '*', bold: true, fillColor: '#caddfa', margin: [4, 2, 0, 0] },
           { text: 'SERVICIO', bold: true, fillColor: '#caddfa' },
+          { text: 'ESTACIÓN', bold: true, fillColor: '#caddfa' },
           { text: 'DESCRIPCIÓN', bold: true, fillColor: '#caddfa' },
           {
             text: 'TARIFA UNITARIA s/I.V.A',
@@ -36,11 +35,14 @@ export const serviciosContratadosSection = (
             fillColor: '#caddfa',
           },
         ],
-        ...serviciosDeOrden.map((servicioContratado) => [
+        ...serviciosDeOrden.map((servicioContratado, index) => [
+        { text: (index + 1).toString(), margin: [8, 4, 4, 4] },
+
           servicioContratado.servicio.nombreDeServicio?.toString() || '',
+          servicioContratado.stationName?.toString() || '',
           servicioContratado.servicio.descripcionDelServicio?.toString() || '',
           {
-            text:`${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(servicioContratado.servicio.tarifaUnitaria)}`
+            text: `${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(servicioContratado.servicio.tarifaUnitaria)}`
           },
           servicioContratado.cantidad?.toString() || '',
           servicioContratado.fechaInicio?.toString() || '',
@@ -52,30 +54,28 @@ export const serviciosContratadosSection = (
 
   const especificaciones: Content[] = serviciosDeOrden
     .filter((servicioContratado) => tieneEspecificaciones(servicioContratado))
-    .map((servicioContratado) => (
+    .map((servicioContratado, index) => (
       {
-      table: {
-        font: 'Poppins',
-        fontSize: '8',
-        widths: ['auto','*'],
-        body: [
-          [
-            {
-              text: 'ESPECIFICACIONES DEL SERVICIO',
-              bold: true,
-              colSpan: 2,
-              font: 'Poppins',
-              fontSize: 8,
-            },
-            {
-
-            }
+        table: {
+          font: 'Poppins',
+          fontSize: '8',
+          widths: ['auto', '*'],
+          body: [
+            [
+              {
+                text: `${index + 1}.- ESPECIFICACIONES DEL SERVICIO `,
+                bold: true,
+                colSpan: 2,
+                font: 'Poppins',
+                fontSize: 8,
+              },
+              {}
+            ],
+            ...obtenerEspecificaciones(servicioContratado)
           ],
-          ...obtenerEspecificaciones(servicioContratado)
-        ],
-      },
-      margin: [0, 10, 0, 10],
-    }));
+        },
+        margin: [0, 10, 0, 10],
+      }));
 
   return {
     stack: [serviciosContratadosC, ...especificaciones],
@@ -90,9 +90,9 @@ const tieneEspecificaciones = (servicioContratado: ServicioContratado) => {
     impactosVersionSpot,
     numeroDiasSpot,
     cartelera,
-    servicio
+    servicio,
   } = servicioContratado;
-  
+
   return (
     calendarizacion?.length > 0 ||
     observacion ||
@@ -119,7 +119,7 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
   const especificaciones: Array<any[]> = [];
 
   if (versionesSpot) {
-    if(versionesSpot != 0){
+    if (versionesSpot != 0) {
       especificaciones.push([
         { text: 'VERSIONES SPOTS:', bold: true, font: 'Poppins', fontSize: 8 },
         versionesSpot.toString(),
@@ -128,7 +128,7 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
   }
 
   if (impactosVersionSpot) {
-    if(impactosVersionSpot != 0){
+    if (impactosVersionSpot != 0) {
       especificaciones.push([
         {
           text: 'IMPACTOS POR VERSION:',
@@ -140,9 +140,9 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
       ]);
     }
   }
-  
+
   if (numeroDiasSpot) {
-    if(numeroDiasSpot != 0){
+    if (numeroDiasSpot != 0) {
       especificaciones.push([
         {
           text: 'NÚMERO DE DÍAS DEL SPOT:',
@@ -154,15 +154,15 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
       ]);
     }
   }
-  
-  if(servicio.tipoFormato){
-    if(servicio.tipoFormato !== 'NO APLICA'){
+
+  if (servicio.tipoFormato) {
+    if (servicio.tipoFormato !== 'NO APLICA') {
       especificaciones.push([
         {
-          text:'FORMATO',
-          bold:true,
-          font:'Poppins',
-          fontSize:8
+          text: 'FORMATO',
+          bold: true,
+          font: 'Poppins',
+          fontSize: 8
         },
         servicio.tipoFormato
       ])
@@ -175,15 +175,15 @@ const obtenerEspecificaciones = (servicioContratado: ServicioContratado) => {
     const anio = calendarizacion[0].getFullYear();
     const svgCalendario = generarSVGCalendario(diasMarcados, mes, anio);
     especificaciones.push([
-      { text: 'CALENDARIZACIÓN:', bold: true, font: 'Poppins', fontSize: 8},
-      { svg: svgCalendario, aligment:'center'},
+      { text: 'CALENDARIZACIÓN:', bold: true, font: 'Poppins', fontSize: 8 },
+      { svg: svgCalendario, aligment: 'center' },
     ]);
   }
 
   if (observacion) {
     especificaciones.push([
-      { text: 'OBSERVACIÓN:', bold: true, font: 'Poppins', fontSize: 8, width:'auto'},
-      { text: observacion, font: 'Poppins', fontSize: 8, width:'*' },
+      { text: 'OBSERVACIÓN:', bold: true, font: 'Poppins', fontSize: 8, width: 'auto' },
+      { text: observacion, font: 'Poppins', fontSize: 8, width: '*' },
     ]);
   }
 
@@ -204,11 +204,12 @@ interface Cartelera {
 
 interface Servicio {
   nombreDeServicio?: string;
+  stationName: string;
   descripcionDelServicio?: string;
   tarifaUnitaria?: number;
   iva?: string;
-  nombreFormato?:string;
-  tipoFormato?:string;
+  nombreFormato?: string;
+  tipoFormato?: string;
 }
 
 interface ServicioContratado {
@@ -223,6 +224,7 @@ interface ServicioContratado {
   impactosVersionSpot?: number;
   numeroDiasSpot?: number;
   cartelera?: Cartelera;
+  stationName?: string
 }
 
 interface ServiciosContratados {

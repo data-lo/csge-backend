@@ -15,7 +15,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { PDFDocument } from 'pdf-lib';
@@ -962,8 +962,10 @@ export class OrdenService {
     const orders = await this.orderRepository.find({
       where: {
         partida: {
-          id: matchId
-        }
+          id: matchId,
+        },
+          estatus: Not(ESTATUS_ORDEN_DE_SERVICIO.CANCELADA)
+
       }
     });
 
