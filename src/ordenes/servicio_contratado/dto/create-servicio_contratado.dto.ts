@@ -51,4 +51,8 @@ export class CreateContractedServiceDto {
 
     @IsString()
     uniqueId: string;
+        
+    
+    @IsString()
+    stationName: string;
 }

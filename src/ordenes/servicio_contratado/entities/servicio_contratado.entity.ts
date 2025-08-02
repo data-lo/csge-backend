@@ -19,6 +19,12 @@ export class ServicioContratado {
     servicio: ServiceObject;
 
     @Column({
+        name: 'station_name',
+        nullable: true,
+    })
+    stationName: string;
+
+    @Column({
         name: 'calendarizacion_del_servicio',
         array: true,
         type: 'date',

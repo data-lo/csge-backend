@@ -41,6 +41,7 @@ export class CreateOrdenDto {
     @Type(() => CreateContractedServiceDto)
     serviciosContratados: CreateContractedServiceDto[]
 
+
     @IsString()
     @IsOptional()
     @IsUUID()

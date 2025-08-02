@@ -15,7 +15,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { PDFDocument } from 'pdf-lib';
@@ -103,8 +103,6 @@ export class OrdenService {
       const amountDetails = await this.calculateOrderAmounts(serviciosContratados);
 
       const response = await this.contractService.getAllAvailableAmounts(masterContract.id, amountDetails.total.toString());
-
-      console.log(response);
 
       if (response.isOrderFullyCovered) {
         for (const item of response.availableContracts) {
@@ -507,7 +505,7 @@ export class OrdenService {
         if (order.usedAmendmentContracts) {
           for (const item of order.contractBreakdownList) {
             if (item.contractType === 'MASTER_CONTRACT') {
-              const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+              const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(2);
 
               await this.masterContractRepository.update(masterContract.id, {
                 committedAmount: newCommittedAmount.toNumber()
@@ -515,7 +513,7 @@ export class OrdenService {
             } else if (item.contractType === 'AMENDMENT_CONTRACT') {
               const amendmentContract = masterContract.contratosModificatorios.find((amendmentContract) => amendmentContract.id === item.id)
 
-              const newCommittedAmount = new Decimal(amendmentContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(4);
+              const newCommittedAmount = new Decimal(amendmentContract.committedAmount).minus(new Decimal(item.amountToUse)).toDecimalPlaces(2);
 
               await this.amendmentContractRepository.update(item.id, {
                 committedAmount: newCommittedAmount.toNumber()
@@ -523,7 +521,7 @@ export class OrdenService {
             }
           }
         } else {
-          const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(4);
+          const newCommittedAmount = new Decimal(masterContract.committedAmount).minus(new Decimal(order.total)).toDecimalPlaces(2);
 
           await this.masterContractRepository.update(masterContract.id, {
             committedAmount: newCommittedAmount.toNumber()
@@ -720,7 +718,6 @@ export class OrdenService {
 
 
   async getOrderInPDF(orderId: string) {
-
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
       relations: ["campaña"]
@@ -959,6 +956,33 @@ export class OrdenService {
     }));
 
     return transformedOrders;
+  }
+
+  async getCampaignTotalForMatch(matchId: string) {
+    const orders = await this.orderRepository.find({
+      where: {
+        partida: {
+          id: matchId,
+        },
+          estatus: Not(ESTATUS_ORDEN_DE_SERVICIO.CANCELADA)
+
+      }
+    });
+
+    if (!orders || orders.length === 0) {
+      return {
+        total: 0
+      };
+    }
+
+    const total = orders.reduce(
+      (acc, order) => acc.plus(new Decimal(order.total)),
+      new Decimal(0)
+    );
+
+    return {
+      total: total.toNumber()
+    };
   }
 }
 

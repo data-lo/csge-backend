@@ -25,9 +25,9 @@ export class ServicioContratadoService {
 
   async create(createServicioContratadoDto: CreateContractedServiceDto) {
     try {
-
       let cartelera = null;
       const { carteleraId, ordenId, cantidad, ...rest } = createServicioContratadoDto;
+      
       if (carteleraId) {
         cartelera = await this.carteleraGobiernoRepository.findOneBy({ id: carteleraId });
         if (!cartelera) throw new NotFoundException('No se encuentra la cartelera');
@@ -37,7 +37,7 @@ export class ServicioContratadoService {
       if (!orden) throw new NotFoundException('No se encuentra la orden');
 
       const servicioContratado = this.servicioContratadoRepository.create({
-        ...rest, // primero todo lo que venga
+        ...rest,
         cantidad: Number(cantidad),
         cartelera,
         ordenDeServicio: orden,

@@ -117,8 +117,6 @@ export class CustomReportService {
     }
   
     const result = await query.getRawMany();
-
-    console.log(result)
   
     return result;
   }

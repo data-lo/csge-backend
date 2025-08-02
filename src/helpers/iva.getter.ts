@@ -23,7 +23,7 @@ export class IvaGetter {
 
         const tax = rateDecimal.times(taxPercentage);
 
-        return tax.toDecimalPlaces(4, Decimal.ROUND_DOWN);
+        return tax.toDecimalPlaces(2, Decimal.ROUND_DOWN);
     }
 
     async calculateTaxBreakdown(value: string, isBorderTax: boolean) {
@@ -45,8 +45,8 @@ export class IvaGetter {
         const ivaDesglosado = tarifaDecimal.minus(tarifaUnitariaSinIva);
 
         return {
-            unitPrice: tarifaUnitariaSinIva.toDecimalPlaces(4).toString(),
-            tax: ivaDesglosado.toDecimalPlaces(4).toString()
+            unitPrice: tarifaUnitariaSinIva.toDecimalPlaces(2).toString(),
+            tax: ivaDesglosado.toDecimalPlaces(2).toString()
         };
     }
 

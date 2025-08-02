@@ -28,7 +28,7 @@ export class WebhooksService {
     private eventEmitter: EventEmitter2,
   ) { }
 
-  recibirWebHook(
+  receiveWebHook(
     firmamexWebhook: DocumentCompleted | DocumentRejected | OriginalSigned | UniversalSigned | any,) {
     switch (firmamexWebhook.notification_type) {
       case 'document_completed':

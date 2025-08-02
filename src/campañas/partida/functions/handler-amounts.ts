@@ -52,9 +52,9 @@ export function handlerAmounts(values: Props) {
 
     return {
         match: {
-            paidAmount: newValues.match.paidAmount.toDecimalPlaces(4).toNumber(),
-            executedAmount: newValues.match.executedAmount.toDecimalPlaces(4).toNumber(),
-            activeAmount: newValues.match.activeAmount.toDecimalPlaces(4).toNumber(),
+            paidAmount: newValues.match.paidAmount.toDecimalPlaces(2).toNumber(),
+            executedAmount: newValues.match.executedAmount.toDecimalPlaces(2).toNumber(),
+            activeAmount: newValues.match.activeAmount.toDecimalPlaces(2).toNumber(),
         },
     };
 }

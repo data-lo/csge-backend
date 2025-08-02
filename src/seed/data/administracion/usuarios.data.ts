@@ -1,18 +1,5 @@
 export const usuariosData = [
     {
-        nombres: "JUAN ANGEL",
-        primerApellido: "CEPEDA",
-        segundoApellido: "FERNANDEZ",
-        puestoId: "DIRECTOR GENERAL",
-        departamentoId: "DIRECCIÓN ADMINISTRATIVA",
-        correo: "juancepeda@chihuahua.gob.mx",
-        numeroDeEmpleado: "1285",
-        rol: "SUPERADMIN",
-        permisos: ["FIRMA", "HISTORICO"],
-        documentosDeFirma: ["COTEJAR FACTURA", "CAMPAÑA", "ORDEN DE SERVICIO"],
-        tipoOrdenDeServicio: ["TODOS LOS SERVICIOS"],
-    },
-    {
         nombres: "MONICA",
         primerApellido: "SAENZ",
         segundoApellido: "VOTA",

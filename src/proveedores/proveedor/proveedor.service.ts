@@ -352,10 +352,6 @@ export class ProveedorService {
         .where("contratoMaestro.id IS NOT NULL")
         .getMany();
 
-
-        console.log(providers[0].contratosMaestros[0])
-
-
       if (providers.length === 0) {
         throw new BadRequestException('¡No hay información para generar este reporte!');
       }
