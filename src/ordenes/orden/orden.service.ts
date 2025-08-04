@@ -358,6 +358,7 @@ export class OrdenService {
         orderStatus: order.estatus,
 
         acquiredServices: order.serviciosContratados.map((service) => ({
+          stationName:service.stationName, 
           serviceType: order.tipoDeServicio,
           observations: service.observacion,
           quantity: service.cantidad,
@@ -378,6 +379,8 @@ export class OrdenService {
 
         })),
       };
+
+      console.log(newData)
 
       return newData;
 
