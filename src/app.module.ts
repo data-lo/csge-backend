@@ -51,13 +51,6 @@ import { CustomFilterModule } from './customer-filter/customer-filter.module';
       envFilePath: '.env',
       isGlobal: true,
     }),
-    // TypeOrmModule.forRoot({
-    //   type: "postgres",
-    //   url: process.env.DATABASE_URL,
-    //   ssl: false,
-    //   synchronize: true,
-    //   autoLoadEntities: true,
-    // }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
