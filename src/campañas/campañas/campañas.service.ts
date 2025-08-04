@@ -583,7 +583,7 @@ export class CampañasService {
 
           // 📁 Provider (proveedor)
           "proveedor.id AS provider_id",
-          "proveedor.numeroProveedor AS provider_number",
+          "proveedor.phone AS provider_phone",
           "proveedor.representanteLegal AS provider_legal_representative",
           "proveedor.nombreComercial AS provider_commercial_name",
           "proveedor.tipoProveedor AS provider_type",
