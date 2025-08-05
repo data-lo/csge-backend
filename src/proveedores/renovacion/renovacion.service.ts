@@ -59,7 +59,8 @@ export class RenovacionService {
         fechaDeCreacion: new Date(),
         iva: tax,
         esUltimaRenovacion: true,
-        descripcionDelServicio: description
+        descripcionDelServicio: description,
+        ivaFrontera: isBorderTax
       };
 
       await this.renovacionRepository.save(renovacion);
