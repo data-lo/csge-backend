@@ -2,6 +2,7 @@
  * Enum que representa los posibles estatus de una Orden de Servicio.
  */
 export enum ESTATUS_ORDEN_DE_SERVICIO {
+
     /** La orden ha sido creada pero aún no ha sido activada ni procesada */
     PENDIENTE = "PENDIENTE",
 

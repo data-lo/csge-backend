@@ -253,7 +253,7 @@ export class OrdenService {
 
       if (searchParams) {
         query.andWhere(
-          `(orden.folio ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          `(orden.folio ILIKE :search OR proveedor.razonSocial ILIKE :search)`,
           { search: `%${searchParams}%` }
         );
       }
@@ -325,8 +325,11 @@ export class OrdenService {
           contratoMaestro: true,
           serviciosContratados: true,
           campaña: true,
+
         },
       });
+
+      // const
 
       if (!order) {
         throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
@@ -379,8 +382,6 @@ export class OrdenService {
 
         })),
       };
-
-      console.log(newData)
 
       return newData;
 
