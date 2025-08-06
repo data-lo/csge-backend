@@ -286,7 +286,7 @@ export class ContratosService {
 
       if (searchParams) {
         query.andWhere(
-          `(contratoMaestro.numeroDeContrato ILIKE :search OR proveedor.rfc ILIKE :search)`,
+          `(contratoMaestro.numeroDeContrato ILIKE :search OR proveedor.razonSocial ILIKE :search)`,
           { search: `%${searchParams}%` }
         );
       }

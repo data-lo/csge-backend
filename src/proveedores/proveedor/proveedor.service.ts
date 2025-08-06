@@ -86,7 +86,7 @@ export class ProveedorService {
       const where: Record<string, any> = {};
 
       if (searchParams) {
-        where.rfc = ILike(`%${searchParams}%`);
+        where.razonSocial = ILike(`%${searchParams}%`);
       }
 
       const paginationSetter = new PaginationSetter();
@@ -102,7 +102,6 @@ export class ProveedorService {
       handleExceptions(error);
     }
   }
-
 
 
   async findAllBusqueda() {
@@ -125,7 +124,7 @@ export class ProveedorService {
       const where: Record<string, any> = {};
 
       if (rfc) {
-        where.rfc = ILike(`%${rfc}%`);
+        where.razonSocial = ILike(`%${rfc}%`);
       }
 
       const providers = await this.providerRepository.find({
