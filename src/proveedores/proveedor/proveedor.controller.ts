@@ -86,8 +86,8 @@ export class ProveedorController {
   }
 
   @Auth(...rolesProveedores)
-  @Get('legalName')
-  findByRfc(@Query('legalName') rfc: string) {
+  @Get('rfc')
+  findByRfc(@Query('rfc') rfc: string) {
     return this.providerService.findByRfc(rfc);
   }
 

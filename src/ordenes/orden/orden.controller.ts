@@ -42,7 +42,7 @@ export class OrdenController {
 
   @Auth(...ORDER_ROLES)
   @Get("match/:matchId/total-orders")
-  getCampaignTotalForMatch(@Query('matchId') matchId: string) {
+  getCampaignTotalForMatch(@Param('matchId') matchId: string) {
     return this.orderService.getCampaignTotalForMatch(matchId);
   }
 

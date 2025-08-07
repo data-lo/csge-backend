@@ -5,7 +5,7 @@ export class CreateProveedorDto {
     
     @IsString()
     @MaxLength(18)
-    numeroProveedor:string;
+    phone:string;
     
     @IsString()
     @MaxLength(120)

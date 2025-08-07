@@ -140,7 +140,6 @@ export class FacturaService {
           subtotal: facturaXmlData.subtotal,
           iva: facturaXmlData.iva,
           total: facturaXmlData.total,
-          conceptos: facturaXmlData.conceptos
         }
 
       } catch (error) {
@@ -338,6 +337,7 @@ export class FacturaService {
 
   async obtenerDatosDeArchivoXML(id: string) {
     try {
+      console.log(id)
 
       const xml = await this.minioService.obtenerArchivosDescarga(id, 'xml');
       const xmlString = xml.toString('utf-8');
@@ -361,21 +361,21 @@ export class FacturaService {
         conceptos = [conceptos];
       }
 
-      const conceptosPrecargados = conceptos.map((concepto) => {
-        const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
-        const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
-        return {
-          cantidad: cantidad,
-          concepto: conceptoData,
-        };
-      });
+      // const conceptosPrecargados = conceptos.map((concepto) => {
+      //   const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
+      //   const conceptoData = concepto['cfdi:Concepto']._attributes.Descripcion;
+      //   return {
+      //     cantidad: cantidad,
+      //     concepto: conceptoData,
+      //   };
+      // });
 
       return {
         rfc: rfc,
         subtotal: Number(subtotal),
         total: Number(total),
         iva: Number(iva),
-        conceptos: conceptosPrecargados,
+        // conceptos: conceptosPrecargados,
       };
     } catch (error) {
       handleExceptions(error);
