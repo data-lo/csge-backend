@@ -26,7 +26,7 @@ import * as XLSX from 'xlsx';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Decimal from 'decimal.js';
 import { PaymentRegister } from './interfaces/payment-register';
-import { string } from 'joi';
+
 import { getResolvedYear } from 'src/helpers/get-resolved-year';
 
 @Injectable()
@@ -74,7 +74,7 @@ export class FacturaService {
 
       let ordenes: Orden[] = [];
 
-      let subtotalDeOrdenes: Number = 0.0;
+      let subtotalDeOrdenes = new Decimal(0);
 
       for (const ordenId of ordenesIds) {
 
@@ -91,7 +91,7 @@ export class FacturaService {
           throw new BadRequestException('Sólo se pueden crear facturas a ordenes que esten activass');
         }
 
-        subtotalDeOrdenes = Number(orden.subtotal) + Number(subtotalDeOrdenes);
+        subtotalDeOrdenes.plus(new Decimal(orden.subtotal))
         ordenes.push(orden);
       }
 
@@ -337,7 +337,6 @@ export class FacturaService {
 
   async obtenerDatosDeArchivoXML(id: string) {
     try {
-      console.log(id)
 
       const xml = await this.minioService.obtenerArchivosDescarga(id, 'xml');
       const xmlString = xml.toString('utf-8');
