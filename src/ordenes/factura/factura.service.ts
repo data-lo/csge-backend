@@ -88,10 +88,11 @@ export class FacturaService {
         }
 
         if (orden.estatus != ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) {
-          throw new BadRequestException('Sólo se pueden crear facturas a ordenes que esten activass');
+          throw new BadRequestException('Sólo se pueden crear facturas a ordenes que esten activas');
         }
 
-        subtotalDeOrdenes.plus(new Decimal(orden.subtotal))
+        subtotalDeOrdenes = subtotalDeOrdenes.plus(new Decimal(orden.subtotal));
+
         ordenes.push(orden);
       }
 
@@ -113,7 +114,7 @@ export class FacturaService {
           id: id,
         });
 
-      if (subtotalDeOrdenes != facturaXmlData.subtotal) {
+      if (!subtotalDeOrdenes.equals(new Decimal(facturaXmlData.subtotal))) {
         throw new BadRequestException({
           message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
           id: id,
@@ -491,11 +492,11 @@ export class FacturaService {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-  
+
       if (rawData.length < 2) {
         throw new Error("El archivo no tiene suficientes filas");
       }
-  
+
       const jsonData = rawData.slice(1).map(row => ({
         policyId: Number(row[0]) || null,
         batchNameGL: String(row[1] || ""),
@@ -518,89 +519,89 @@ export class FacturaService {
         debit: Number(row[18]) || 0,
         credit: Number(row[19]) || 0
       }));
-  
+
       let wasPaid = 0;
       let paidInvoiceCount = 0;
       const invoiceIds: string[] = [];
-  
+
       for (const row of jsonData) {
         const invoice = await this.findOne(row.invoiceNumber, true);
         if (!invoice) continue;
-  
+
         const isProcessableStatus = [
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
         ].includes(invoice.status);
 
         if (!isProcessableStatus) continue;
-  
+
         const totalInvoiceAmount = new Decimal(invoice.total);
         const paidAmount = new Decimal(row.paidAmount);
         const existingPayments = Array.isArray(invoice.payments) ? invoice.payments : [];
-  
+
         const currentPaidTotal = existingPayments.reduce(
           (sum, payment) => sum.plus(payment.paidAmount),
           new Decimal(0)
         );
-  
+
         // Si ya está completamente pagada
         if (currentPaidTotal.greaterThanOrEqualTo(totalInvoiceAmount)) {
           wasPaid++;
           continue;
         }
-  
+
         // Si ya está registrado este pago exacto
         const alreadyRegistered = existingPayments.some(item =>
           Number(item.paidAmount) === Number(row.paidAmount) &&
           item.checkNumber === row.checkNumber
         );
-  
+
         if (alreadyRegistered) {
           wasPaid++;
           continue;
         }
-  
+
         // Registrar nuevo pago
         const newPayment: PaymentRegister = {
           paidAmount: paidAmount.toString(),
           checkNumber: row.checkNumber,
           registeredAt: new Date()
         };
-  
+
         const updatedPayments = [...existingPayments, newPayment];
 
         const updatedTotalPaid = currentPaidTotal.plus(paidAmount);
 
         const isFullyPaid = updatedTotalPaid.greaterThanOrEqualTo(totalInvoiceAmount);
-  
+
         const newStatusInvoice = isFullyPaid ? INVOICE_STATUS.PAGADA : INVOICE_STATUS.PARTIAL_PAY;
-        
+
         const newStatusOrder = isFullyPaid ? ESTATUS_ORDEN_DE_SERVICIO.PAGADA : ESTATUS_ORDEN_DE_SERVICIO.PARTIAL_PAY;
-  
+
         await this.invoiceRepository.update(invoice.id, {
           paymentRegister: updatedPayments,
           estatus: newStatusInvoice
         });
-  
+
         for (const order of invoice.orders) {
           await this.orderRepository.update(order.id, {
             estatus: newStatusOrder
           });
         }
-  
+
         if (isFullyPaid) {
           invoiceIds.push(invoice.id);
         }
-  
+
         paidInvoiceCount++;
       }
-  
+
       if (invoiceIds.length > 0) {
         this.eventEmitter.emit('invoice.paid', { invoiceIds });
 
         this.eventEmitter.emit('invoice.match.paid', { invoiceIds });
       }
-  
+
       return {
         message: '¡Archivo procesado correctamente!',
         data: {
@@ -609,12 +610,12 @@ export class FacturaService {
           notPaidInvoiceCount: jsonData.length - paidInvoiceCount - wasPaid
         }
       };
-  
+
     } catch (error) {
       throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }
-  
+
 
   private excelDateToJSDate(serial: number): Date | null {
     if (!serial || isNaN(serial)) return null;
@@ -649,7 +650,7 @@ export class FacturaService {
       contractBreakdownList: order.contractBreakdownList,
       orderId: order.id,
       totalOrder: order.total,
-      serviceType:  order.tipoDeServicio,
+      serviceType: order.tipoDeServicio,
       masterContractId: order.contratoMaestro.id
     }));
 
