@@ -4,15 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateFacturaDto } from './dto/create-factura.dto';
-import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
 import { In, Repository } from 'typeorm';
 import { Orden } from '../orden/entities/orden.entity';
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
-import * as xmls2js from 'xml-js';
-import { FacturaXml } from './interfaces/xml-json.factura.interface';
+// import * as xmls2js from 'xml-js';
+// xml2js = require('xml2js');
+import { XML } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { INVOICE_STATUS } from './interfaces/estatus-factura';
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../orden/interfaces/estatus-orden-de-servicio';
@@ -106,46 +106,48 @@ export class FacturaService {
         });
       }
 
-      const facturaXmlData = await this.obtenerDatosDeArchivoXML(id);
+      const facturaXmlData = await this.getInvoiceMetadata(id);
 
-      if (proveedor.rfc !== facturaXmlData.rfc)
-        throw new BadRequestException({
-          message: 'EL RFC DE LA FACTURA INGRESADA, Y DEL PROVEEDOR NO COINCIDEN',
-          id: id,
-        });
 
-      if (!subtotalDeOrdenes.equals(new Decimal(facturaXmlData.subtotal))) {
-        throw new BadRequestException({
-          message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
-          id: id,
-        });
-      }
 
-      try {
-        const factura = await this.invoiceRepository.create({
-          id: id,
-          ordenesDeServicio: ordenes,
-          proveedor: proveedor,
-          subtotal: facturaXmlData.subtotal,
-          iva: facturaXmlData.iva,
-          total: facturaXmlData.total,
-          validacionTestigo: validacionBool,
-          usuarioTestigo: usuarioTestigo,
-          folio: folio
-        });
-        await this.invoiceRepository.save(factura);
+      // if (proveedor.rfc !== facturaXmlData.rfc)
+      //   throw new BadRequestException({
+      //     message: 'EL RFC DE LA FACTURA INGRESADA, Y DEL PROVEEDOR NO COINCIDEN',
+      //     id: id,
+      //   });
 
-        return {
-          id: factura.id,
-          rfc: facturaXmlData.rfc,
-          subtotal: facturaXmlData.subtotal,
-          iva: facturaXmlData.iva,
-          total: facturaXmlData.total,
-        }
+      // if (!subtotalDeOrdenes.equals(new Decimal(facturaXmlData.subtotal))) {
+      //   throw new BadRequestException({
+      //     message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
+      //     id: id,
+      //   });
+      // }
 
-      } catch (error) {
-        throw error;
-      }
+      // try {
+      //   const factura = await this.invoiceRepository.create({
+      //     id: id,
+      //     ordenesDeServicio: ordenes,
+      //     proveedor: proveedor,
+      //     subtotal: facturaXmlData.subtotal,
+      //     iva: facturaXmlData.iva,
+      //     total: facturaXmlData.total,
+      //     validacionTestigo: validacionBool,
+      //     usuarioTestigo: usuarioTestigo,
+      //     folio: folio
+      //   });
+      //   await this.invoiceRepository.save(factura);
+
+      //   return {
+      //     id: factura.id,
+      //     rfc: facturaXmlData.rfc,
+      //     subtotal: facturaXmlData.subtotal,
+      //     iva: facturaXmlData.iva,
+      //     total: facturaXmlData.total,
+      //   }
+
+      // } catch (error) {
+      //   throw error;
+      // }
     } catch (error) {
       handleExceptions(error);
     }
@@ -263,6 +265,10 @@ export class FacturaService {
     }
   }
 
+  async classifyInvoice(){
+
+  }
+
   async findOne(idOrFolio: string, isFolio: boolean = false) {
     try {
       const whereClause = isFolio ? { folio: idOrFolio } : { id: idOrFolio };
@@ -336,30 +342,40 @@ export class FacturaService {
     }
   }
 
-  async obtenerDatosDeArchivoXML(id: string) {
+  async getInvoiceMetadata(id: string) {
     try {
 
-      const xml = await this.minioService.obtenerArchivosDescarga(id, 'xml');
-      const xmlString = xml.toString('utf-8');
+      const xml2js = require('xml2js');
 
-      const facturaJsonString = xmls2js.xml2json(xmlString, {
-        compact: true,
-        spaces: 4,
+      const xml = await this.minioService.obtenerArchivosDescarga(id, 'xml');
+
+      const parser = new xml2js.Parser({
+        explicitArray: false,
+        mergeAttrs: true,
+        tagNameProcessors: [xml2js.processors.stripPrefix],
+        attrNameProcessors: [xml2js.processors.stripPrefix],
+        valueProcessors: [
+          xml2js.processors.parseNumbers,
+          xml2js.processors.parseBooleans,
+        ],
       });
 
-      const facturaXml: FacturaXml = JSON.parse(facturaJsonString);
-      const rfc = facturaXml['cfdi:Comprobante']['cfdi:Emisor']._attributes.Rfc;
-      const subtotal = facturaXml['cfdi:Comprobante']._attributes.SubTotal;
-      const total = facturaXml['cfdi:Comprobante']._attributes.Total;
-      const iva =
-        facturaXml['cfdi:Comprobante']['cfdi:Impuestos']._attributes
-          .TotalImpuestosTrasladados;
+      const result = await parser.parseStringPromise(xml);
 
-      let conceptos = facturaXml['cfdi:Comprobante']['cfdi:Conceptos'];
+      console.log(result.Comprobante.Impuestos)
 
-      if (!Array.isArray(conceptos)) {
-        conceptos = [conceptos];
-      }
+      // const inovoiceParsed = JSON.stringify(result)
+
+      // const rfc = invoice['cfdi:Comprobante']['cfdi:Emisor']._attributes.Rfc;
+      // const subtotal = invoice['cfdi:Comprobante']._attributes.SubTotal;
+      // const total = invoice['cfdi:Comprobante']._attributes.Total;
+      // const tax = invoice['cfdi:Comprobante']['cfdi:Impuestos']._attributes.TotalImpuestosTrasladados;
+
+      // let conceptos = invoice['cfdi:Comprobante']['cfdi:Conceptos'];
+
+      // if (!Array.isArray(conceptos)) {
+      //   conceptos = [conceptos];
+      // }
 
       // const conceptosPrecargados = conceptos.map((concepto) => {
       //   const cantidad = concepto['cfdi:Concepto']._attributes.Cantidad;
@@ -370,13 +386,14 @@ export class FacturaService {
       //   };
       // });
 
-      return {
-        rfc: rfc,
-        subtotal: Number(subtotal),
-        total: Number(total),
-        iva: Number(iva),
-        // conceptos: conceptosPrecargados,
-      };
+      // return {
+      //   rfc: rfc,
+      //   subtotal: Number(subtotal),
+      //   total: Number(total),
+      //   iva: Number(tax),
+      //   // conceptos: conceptosPrecargados,
+
+      // };
     } catch (error) {
       handleExceptions(error);
       throw new Error('Error al procesar el archivo XML');

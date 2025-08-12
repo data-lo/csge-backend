@@ -1,4 +1,4 @@
-export interface FacturaXml {
+export interface XML {
     _declaration:       Declaration;
     "cfdi:Comprobante": CfdiComprobante;
 }

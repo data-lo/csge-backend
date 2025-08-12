@@ -76,7 +76,7 @@ export class MinioService {
     return this.minioClient;
   }
 
-  async subirArchivosAMinio(files: MinioFileI[]) {
+  async uploadFiles(files: MinioFileI[]) {
     try {
       const minioClient = this.getMinioClient();
 
@@ -85,9 +85,7 @@ export class MinioService {
       const exists = await minioClient.bucketExists(bucket);
 
       if (!exists)
-        throw new Error(
-          'EL BUCKET DECLARADO EN LAS VARIABLES NO EXISTE, CREAR BUCKET',
-        );
+        throw new Error('¡El bucket especificado en las variables de entorno no existe, debe crearse!');
 
       for (const file of files) {
         await minioClient.putObject(
@@ -99,7 +97,7 @@ export class MinioService {
           },
         );
       }
-      return { message: 'ARCHIVOS SUBIDOS EXITOSAMENTE' };
+      return { message: '¡Archivos guardados exitosamente!' };
     } catch (error) {
       handleExceptions(error);
     }
@@ -169,7 +167,7 @@ export class MinioService {
             status: FILE_STATUS.FILE_FOUND,
             url: publicUrl,
           };
-          
+
         } catch (err) {
           continue;
         }

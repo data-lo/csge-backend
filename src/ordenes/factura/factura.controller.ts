@@ -66,17 +66,14 @@ export class FacturaController {
         file: files[1]
       }
     ]
-
-    try {
-      await this.minioService.subirArchivosAMinio(minioFiles);
-    } catch (error) {
-      this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
-      handleExceptions(error);
-    }
+      
+    await this.minioService.uploadFiles(minioFiles);
 
     createFacturaDto.id = uuid;
+
     return this.facturaService.create(createFacturaDto, usuario);
   }
+  
 
   @Auth(...rolesFactura)
   @Post('send-to-signing-invoice/:invoiceId')
