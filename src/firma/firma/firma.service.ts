@@ -147,12 +147,15 @@ export class FirmaService {
   }
 
   async getPendingSignedInvoiceDocuments(userId: string) {
-
     try {
       const user = await this.usuarioRepository.findOne({
         where: { id: userId },
         relations: ['documentosParaFirmar'],
       });
+
+      if (!user) {
+        throw new NotFoundException('¡Usuario no encontrado!');
+      }
 
       let signatureStatus: ESTATUS_DE_FIRMA[] = [];
 
@@ -169,12 +172,12 @@ export class FirmaService {
       } else if (user.documentosDeFirma.includes(requiredPermissionToApprove)) {
         signatureStatus.push(ESTATUS_DE_FIRMA.SIGNED_REVIEW);
         signatureStatus.push(ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA);
-        signatureAction = SIGNATURE_ACTION_ENUM.CANCEL
+        signatureAction = SIGNATURE_ACTION_ENUM.APPROVE
       }
+      // Modificar para cuando sea cancelación manejar ese caso
+      console.log(signatureAction);
 
-      if (!user) {
-        throw new NotFoundException('¡Usuario no encontrado!');
-      }
+      console.log(signatureStatus);
 
       const query = this.facturaRepository
         .createQueryBuilder('factura')
@@ -199,7 +202,7 @@ export class FirmaService {
         .andWhere('documento.signatureStatus IN (:...statusSignature)', {
           statusSignature: signatureStatus,
         });
-        
+
 
       if (signatureAction) {
         query.andWhere('documento.signatureAction = :signatureAction', {
@@ -445,7 +448,7 @@ export class FirmaService {
           return user.documentosDeFirma.includes(TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA);
         });
 
-        if(!approvalUser){
+        if (!approvalUser) {
           throw new NotFoundException('No se encontró ningún usuario que apruebe. Es necesario que exista antes de cotejar la factura. ¡Usuario no encontrado!');
         }
 
