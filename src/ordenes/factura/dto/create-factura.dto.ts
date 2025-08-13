@@ -3,69 +3,66 @@ import { INVOICE_STATUS } from "../interfaces/estatus-factura";
 import { Transform } from "class-transformer";
 
 export class CreateFacturaDto {
-    
-    
-    @IsOptional()
-    id:string;
+
 
     @IsOptional()
-    ordenesDeServicioIds:string[];
+    id: string;
 
-    @IsString()
     @IsOptional()
-    proveedorId:string;
-    
-    @IsString()
+    orderIds: string[];
+
     @IsOptional()
-    pdf:string;
+    includeAdditionalTaxes: Boolean
 
     @IsString()
     @IsOptional()
-    xml:string;
+    providerId: string;
 
     @IsString()
     @IsOptional()
-    folio:string;
+    pdf: string;
 
     @IsString()
     @IsOptional()
-    validacionTestigo:string;
+    xml: string;
 
+    @IsString()
+    @IsOptional()
+    folio: string;
 
     @IsOptional()
     @IsDate()
-    @Transform(({value}) => {
+    @Transform(({ value }) => {
         const [day, month, year] = value.split('-');
         return new Date(`${year}-${month}-${day}`)
     })
-    fechaAprobacion:string;
-    
+    fechaAprobacion: string;
+
     @IsOptional()
     @IsDate()
-    @Transform(({value}) => {
+    @Transform(({ value }) => {
         const [day, month, year] = value.split('-');
         return new Date(`${year}-${month}-${day}`)
     })
-    fechaPago:string;
+    fechaPago: string;
 
     @IsEnum(INVOICE_STATUS)
     @IsOptional()
-    estatus:INVOICE_STATUS;
-    
+    estatus: INVOICE_STATUS;
+
     @IsOptional()
     @IsString()
-    motivoDeCancelacion:string;
+    motivoDeCancelacion: string;
 
     @IsOptional()
     @IsNumber()
-    iva:number;
+    iva: number;
 
     @IsOptional()
     @IsNumber()
-    subtotal:number;
+    subtotal: number;
 
     @IsOptional()
     @IsNumber()
-    total:number;
-
+    total: number;
 }

@@ -67,14 +67,10 @@ export class FacturaController {
       }
     ]
 
-    try {
-      await this.minioService.subirArchivosAMinio(minioFiles);
-    } catch (error) {
-      this.logger.error('ERROR EN ARCHIVOS DE MINIO', error);
-      handleExceptions(error);
-    }
+    await this.minioService.uploadFiles(minioFiles);
 
     createFacturaDto.id = uuid;
+    
     return this.facturaService.create(createFacturaDto, usuario);
   }
 

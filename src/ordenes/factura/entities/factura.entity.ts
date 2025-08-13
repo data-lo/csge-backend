@@ -1,10 +1,7 @@
 import { Proveedor } from 'src/proveedores/proveedor/entities/proveedor.entity';
 import {
-  BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
-  Generated,
   JoinColumn,
   JoinTable,
   ManyToMany,
@@ -14,7 +11,6 @@ import {
 import { INVOICE_STATUS } from '../interfaces/estatus-factura';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { Orden } from 'src/ordenes/orden/entities/orden.entity';
-import { formatToLocalTime } from 'src/helpers/format-to-local-time';
 import { PaymentRegister } from '../interfaces/payment-register';
 
 @Entity('facturas')
@@ -28,6 +24,14 @@ export class Factura {
     nullable: false,
   })
   folio: string;
+
+  @Column({
+    name: 'include_additional_taxes',
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
+  includeAdditionalTaxes: boolean;
 
   @Column({
     name: 'subtotal_factura',
@@ -57,12 +61,12 @@ export class Factura {
   total: number;
 
   @Column({
-    name: 'validacion_testigo',
+    name: 'is_witness_validated',
     type: 'boolean',
     nullable: false,
     default: false,
   })
-  validacionTestigo: boolean;
+  isWitnessValidated: boolean;
 
   @Column({
     name: 'fecha_de_aprobacion',
@@ -105,20 +109,20 @@ export class Factura {
   paymentRegister: PaymentRegister[];
 
   @Column({
-    name: 'estatus_de_factura',
+    name: 'status',
     type: 'enum',
     enum: INVOICE_STATUS,
     default: INVOICE_STATUS.RECIBIDA,
     nullable: false,
   })
-  estatus: INVOICE_STATUS;
+  status: INVOICE_STATUS;
 
   @Column({
-    name: 'motivo_cancelacion',
+    name: 'cancellation_reason',
     nullable: true,
     default: null,
   })
-  motivoCancelacion: string;
+  cancellationReason: string;
 
   @ManyToOne(() => Proveedor, (proveedor) => proveedor.id)
   @JoinColumn({ name: 'proveedorId' })

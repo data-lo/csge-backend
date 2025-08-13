@@ -76,7 +76,7 @@ export class MinioService {
     return this.minioClient;
   }
 
-  async subirArchivosAMinio(files: MinioFileI[]) {
+  async uploadFiles(files: MinioFileI[]) {
     try {
       const minioClient = this.getMinioClient();
 

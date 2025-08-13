@@ -16,7 +16,6 @@ import { FacturaXml } from './interfaces/xml-json.factura.interface';
 import { PaginationSetter } from 'src/helpers/pagination.getter';
 import { INVOICE_STATUS } from './interfaces/estatus-factura';
 import { ESTATUS_ORDEN_DE_SERVICIO } from '../orden/interfaces/estatus-orden-de-servicio';
-import { CreateFirmaDto } from 'src/firma/firma/dto/create-firma.dto';
 import { TIPO_DE_DOCUMENTO } from 'src/administracion/usuarios/interfaces/usuarios.tipo-de-documento';
 import { FirmaService } from '../../firma/firma/firma.service';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
@@ -51,101 +50,63 @@ export class FacturaService {
 
   async create(createFacturaDto: CreateFacturaDto, usuarioTestigo: Usuario) {
     try {
-      const {
-        ordenesDeServicioIds,
-        proveedorId,
-        validacionTestigo,
-        id,
-        folio,
-      } = createFacturaDto;
+      console.log(createFacturaDto)
+      const { orderIds, providerId, id, includeAdditionalTaxes, folio } = createFacturaDto;
 
-      let ordenesIds = []
-      if (typeof ordenesDeServicioIds === 'string') {
-        ordenesIds.push(ordenesDeServicioIds);
-      } else {
-        ordenesIds = ordenesDeServicioIds
-      }
+      let orders = [];
 
-      const validacionBool = Boolean(validacionTestigo);
+      let subtotal = new Decimal(0);
 
-      if (!validacionBool) {
-        throw new BadRequestException({ message: 'VALIDAR TESTIGO', id: id });
-      }
+      for (const ordenId of [orderIds]) {
 
-      let ordenes: Orden[] = [];
-
-      let subtotalDeOrdenes = new Decimal(0);
-
-      for (const ordenId of ordenesIds) {
-
-        const orden = await this.orderRepository.findOneBy({ id: ordenId });
+        const orden = await this.orderRepository.findOneBy({ id: String(ordenId) });
 
         if (!orden) {
-          throw new NotFoundException({
-            message: `LA ORDEN CON EL ID: ${ordenId} NO SE ENCUENTRA!`,
-            id: id,
-          });
+          throw new NotFoundException({ message: `¡La orden de servicio con ID ${ordenId} no se encontró!`, });
         }
 
         if (orden.estatus != ESTATUS_ORDEN_DE_SERVICIO.ACTIVA) {
-          throw new BadRequestException('Sólo se pueden crear facturas a ordenes que esten activas');
+          throw new BadRequestException('¡Solo se pueden crear facturas para órdenes de servicio activas!');
         }
 
-        subtotalDeOrdenes = subtotalDeOrdenes.plus(new Decimal(orden.subtotal));
+        subtotal = subtotal.plus(new Decimal(orden.subtotal));
 
-        ordenes.push(orden);
+        orders.push(orden);
       }
 
-      const proveedor = await this.providerRepository.findOneBy({
-        id: proveedorId,
+      const provider = await this.providerRepository.findOneBy({ id: providerId });
+
+      if (!provider) {
+        throw new NotFoundException({ message: '¡El proveedor con ID no existe!', });
+      }
+
+      const invoiceMetadata = await this.obtenerDatosDeArchivoXML(id);
+
+      if (provider.rfc !== invoiceMetadata.rfc)
+        throw new BadRequestException({ message: '¡El RFC de la factura no coincide con el del proveedor!', });
+
+      if (!subtotal.equals(new Decimal(invoiceMetadata.subtotal)) && !includeAdditionalTaxes) {
+        throw new BadRequestException({ message: `¡El subtotal de las órdenes no coincide con el de la factura!,`, });
+      }
+
+      const factura = await this.invoiceRepository.create({
+        id: id,
+        ordenesDeServicio: orders,
+        proveedor: provider,
+        subtotal: invoiceMetadata.subtotal,
+        iva: invoiceMetadata.iva,
+        total: invoiceMetadata.total,
+        isWitnessValidated: true,
+        usuarioTestigo: usuarioTestigo,
+        folio: folio,
+        status: INVOICE_STATUS.RECIBIDA
       });
-      if (!proveedor) {
-        throw new NotFoundException({
-          message: 'El proveedor con ID no existe',
-          id: id,
-        });
+      await this.invoiceRepository.save(factura);
+
+      return {
+        id: factura.id,
       }
 
-      const facturaXmlData = await this.obtenerDatosDeArchivoXML(id);
-
-      if (proveedor.rfc !== facturaXmlData.rfc)
-        throw new BadRequestException({
-          message: 'EL RFC DE LA FACTURA INGRESADA, Y DEL PROVEEDOR NO COINCIDEN',
-          id: id,
-        });
-
-      if (!subtotalDeOrdenes.equals(new Decimal(facturaXmlData.subtotal))) {
-        throw new BadRequestException({
-          message: `EL MONTO DE LAS ORDENES Y DEL DE LA FACTURA NO COINCIDEN, SUBTOTAL ORDEN: ${subtotalDeOrdenes}, SUBTOTAL FACTURA: ${facturaXmlData.subtotal}`,
-          id: id,
-        });
-      }
-
-      try {
-        const factura = await this.invoiceRepository.create({
-          id: id,
-          ordenesDeServicio: ordenes,
-          proveedor: proveedor,
-          subtotal: facturaXmlData.subtotal,
-          iva: facturaXmlData.iva,
-          total: facturaXmlData.total,
-          validacionTestigo: validacionBool,
-          usuarioTestigo: usuarioTestigo,
-          folio: folio
-        });
-        await this.invoiceRepository.save(factura);
-
-        return {
-          id: factura.id,
-          rfc: facturaXmlData.rfc,
-          subtotal: facturaXmlData.subtotal,
-          iva: facturaXmlData.iva,
-          total: facturaXmlData.total,
-        }
-
-      } catch (error) {
-        throw error;
-      }
     } catch (error) {
       handleExceptions(error);
     }
@@ -162,7 +123,7 @@ export class FacturaService {
         return {
           id: factura.id,
           total: factura.total,
-          estatus: factura.estatus,
+          estatus: factura.status,
           proveedor: {
             nombre: factura.proveedor.razonSocial,
             rfc: factura.proveedor.rfc,
@@ -212,7 +173,7 @@ export class FacturaService {
         return {
           id: invoice.id,
           total: invoice.total,
-          status: invoice.estatus,
+          status: invoice.status,
           folio: invoice.folio,
           paymentCount: invoice.paymentRegister.length,
           provider: {
@@ -246,7 +207,7 @@ export class FacturaService {
         return {
           id: invoice.id,
           total: invoice.total,
-          status: invoice.estatus,
+          status: invoice.status,
           folio: invoice.folio,
           paymentCount: invoice.paymentRegister.length,
           provider: {
@@ -287,7 +248,7 @@ export class FacturaService {
         subtotal: invoice.subtotal,
         tax: invoice.iva,
         total: invoice.total,
-        status: invoice.estatus,
+        status: invoice.status,
         validatedAt: invoice.fechaValidacion,
         approvedAt: invoice.fechaAprobacion,
         receivedAt: invoice.fechaDeRecepcion,
@@ -431,7 +392,7 @@ export class FacturaService {
         return;
       }
 
-      invoice.estatus = status;
+      invoice.status = status;
 
       await this.invoiceRepository.update(invoiceId, invoice);
 
@@ -448,7 +409,7 @@ export class FacturaService {
       if (!factura) throw new NotFoundException('No se encontro la factura');
       return {
         id: factura.id,
-        estatus: factura.estatus,
+        estatus: factura.status,
       };
     } catch (error) {
       handleExceptions(error);
@@ -580,7 +541,7 @@ export class FacturaService {
 
         await this.invoiceRepository.update(invoice.id, {
           paymentRegister: updatedPayments,
-          estatus: newStatusInvoice
+          status: newStatusInvoice
         });
 
         for (const order of invoice.orders) {
