@@ -148,76 +148,69 @@ export class FirmaService {
 
   async getPendingSignedInvoiceDocuments(userId: string) {
     try {
-      const user = await this.usuarioRepository.findOne({
-        where: { id: userId },
-        relations: ['documentosParaFirmar'],
-      });
+      const user = await this.usuarioRepository.findOne({ where: { id: userId }, relations: ['documentosParaFirmar'], });
 
       if (!user) {
         throw new NotFoundException('¡Usuario no encontrado!');
       }
-
-      let signatureStatus: ESTATUS_DE_FIRMA[] = [];
-
-      let signatureAction: SIGNATURE_ACTION_ENUM;
-
       const requiredPermissionToReview: TIPO_DE_DOCUMENTO = TIPO_DE_DOCUMENTO.COTEJAR_FACTURA;
 
       const requiredPermissionToApprove: TIPO_DE_DOCUMENTO = TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA;
 
+      let invoices: Factura[] = []
+
       if (user.documentosDeFirma.includes(requiredPermissionToReview)) {
-        signatureStatus.push(ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA);
-        signatureAction = SIGNATURE_ACTION_ENUM.APPROVE
+        console.log('Primer condición válida');
+
+        const query = await this.findInvoicesToSign(user.id, false, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA, ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA, SIGNATURE_ACTION_ENUM.APPROVE)
+
+        invoices.push(...query);
 
       } else if (user.documentosDeFirma.includes(requiredPermissionToApprove)) {
-        signatureStatus.push(ESTATUS_DE_FIRMA.SIGNED_REVIEW);
-        signatureStatus.push(ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA);
-        signatureAction = SIGNATURE_ACTION_ENUM.APPROVE
+        const firstQuery = await this.findInvoicesToSign(user.id, false, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA, ESTATUS_DE_FIRMA.SIGNED_REVIEW, SIGNATURE_ACTION_ENUM.APPROVE)
+
+        invoices.push(...firstQuery);
+
+        const secondQuery = await this.findInvoicesToSign(user.id, false, requiredPermissionToApprove, ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA, SIGNATURE_ACTION_ENUM.CANCEL)
+
+        invoices.push(...secondQuery);
       }
-      // Modificar para cuando sea cancelación manejar ese caso
-      console.log(signatureAction);
-
-      console.log(signatureStatus);
-
-      const query = this.facturaRepository
-        .createQueryBuilder('factura')
-        .leftJoinAndMapOne(
-          'factura.documento',
-          Firma,
-          'documento',
-          'documento.document_id = factura.id',
-        )
-        .innerJoin(
-          'usuarios_documentos_firma',
-          'usuario_documento',
-          'usuario_documento.documento_firma_id = documento.id',
-        )
-        .where('usuario_documento.usuario_id = :userId', { userId })
-
-        .andWhere('documento.is_signed = :isSigned', { isSigned: false })
-
-        .andWhere('documento.document_type = :documentType', {
-          documentType: TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA,
-        })
-        .andWhere('documento.signatureStatus IN (:...statusSignature)', {
-          statusSignature: signatureStatus,
-        });
-
-
-      if (signatureAction) {
-        query.andWhere('documento.signatureAction = :signatureAction', {
-          signatureAction,
-        });
-      }
-
-      const invoices = await query.getMany();
-
-      return invoices;
+      return invoices
 
     } catch (error) {
       handleExceptions(error);
     }
   }
+
+  async findInvoicesToSign(
+    userId: string,
+    isSigned: boolean,
+    documentType: TIPO_DE_DOCUMENTO,
+    signatureStatus: ESTATUS_DE_FIRMA,
+    signatureAction: SIGNATURE_ACTION_ENUM,
+  ) {
+    const query = this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndMapOne(
+        'factura.documento',
+        Firma,
+        'documento',
+        'documento.document_id = factura.id',
+      )
+      .innerJoin(
+        'usuarios_documentos_firma',
+        'usuario_documento',
+        'usuario_documento.documento_firma_id = documento.id',
+      )
+      .where('usuario_documento.usuario_id = :userId', { userId })
+      .andWhere('documento.is_signed = :isSigned', { isSigned })
+      .andWhere('documento.document_type = :documentType', { documentType })
+      .andWhere('documento.signatureStatus = :signatureStatus', { signatureStatus })
+      .andWhere('documento.signatureAction = :signatureAction', { signatureAction });
+
+    return query.getMany();
+  }
+
 
   async findAllCampanias(usuarioId: string) {
     try {
@@ -244,15 +237,9 @@ export class FirmaService {
           'usuario_documento.documento_firma_id = documento.id',
         )
         .where('usuario_documento.usuario_id = :usuarioId', { usuarioId })
-        .andWhere('documento.is_signed = :isSigned', {
-          isSigned: false,
-        })
-        .andWhere('documento.signatureStatus != :notCarriedOut', {
-          notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT
-        })
-        .andWhere('documento.document_type = :tipoDocumento', {
-          tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA,
-        })
+        .andWhere('documento.is_signed = :isSigned', { isSigned: false, })
+        .andWhere('documento.signatureStatus != :notCarriedOut', { notCarriedOut: ESTATUS_DE_FIRMA.NOT_CARRIED_OUT })
+        .andWhere('documento.document_type = :tipoDocumento', { tipoDocumento: TIPO_DE_DOCUMENTO.CAMPAÑA, })
         .getMany();
 
       return campaniaConDocumentosPorFirmar;

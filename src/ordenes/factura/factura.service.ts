@@ -85,7 +85,7 @@ export class FacturaService {
       if (provider.rfc !== invoiceMetadata.rfc)
         throw new BadRequestException({ message: '¡El RFC de la factura no coincide con el del proveedor!', });
 
-      if (!subtotal.equals(new Decimal(invoiceMetadata.subtotal)) && !includeAdditionalTaxes) {
+      if (!subtotal.equals(new Decimal(invoiceMetadata.subtotal)) && includeAdditionalTaxes) {
         throw new BadRequestException({ message: `¡El subtotal de las órdenes no coincide con el de la factura!,`, });
       }
 
@@ -97,6 +97,7 @@ export class FacturaService {
         iva: invoiceMetadata.iva,
         total: invoiceMetadata.total,
         isWitnessValidated: true,
+        createdAt: new Date(),
         usuarioTestigo: usuarioTestigo,
         folio: folio,
         status: INVOICE_STATUS.RECIBIDA
@@ -249,9 +250,9 @@ export class FacturaService {
         tax: invoice.iva,
         total: invoice.total,
         status: invoice.status,
-        validatedAt: invoice.fechaValidacion,
-        approvedAt: invoice.fechaAprobacion,
-        receivedAt: invoice.fechaDeRecepcion,
+        createdAt: invoice.createdAt,
+        approvedAt: invoice.approvedAt,
+        reviewedAt: invoice.reviewedAt,
         payments: Array.isArray(invoice.paymentRegister)
           ? invoice.paymentRegister.map((payment) => ({
             paidAmount: payment.paidAmount,
@@ -279,6 +280,8 @@ export class FacturaService {
           usedAmendmentContracts: order.usedAmendmentContracts
         })),
       };
+
+      console.log(newData)
 
       return newData;
     } catch (error: any) {
@@ -345,7 +348,7 @@ export class FacturaService {
   }
 
 
-  async sendInvoiceToCancelSigning(invoiceId: string) {
+  async sendInvoiceToCancelSigning(invoiceId: string, cancellationReason: string) {
     try {
 
       const invoice = await this.invoiceRepository.findOneBy({
@@ -356,13 +359,13 @@ export class FacturaService {
         throw new NotFoundException('¡Factura no encontrada!');
       }
 
-      // if (!motivoDeCancelacion) {
-      //   throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
-      // }
+      if (!cancellationReason) {
+        throw new BadRequestException('¡Para cancelar la factura se debe de incluir el motivo de cancelación!',);
+      }
 
-      // invoice.motivoCancelacion = motivoDeCancelacion;
+      invoice.cancellationReason = cancellationReason;
 
-      // await this.invoiceRepository.save(invoice);
+      await this.invoiceRepository.save(invoice);
 
       const signatureObject = {
         isSigned: false,
@@ -390,6 +393,14 @@ export class FacturaService {
 
       if (status === INVOICE_STATUS.PAGADA || status === INVOICE_STATUS.PARTIAL_PAY) {
         return;
+      }
+
+      if(status === INVOICE_STATUS.CONTEJADA){
+        invoice.reviewedAt = new Date();
+      }
+
+      if(status === INVOICE_STATUS.APROBADA){
+        invoice.approvedAt = new Date();
       }
 
       invoice.status = status;

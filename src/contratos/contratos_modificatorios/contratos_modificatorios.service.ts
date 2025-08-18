@@ -370,7 +370,7 @@ export class ContratosModificatoriosService {
         committedAmount: updatedValues.contract.committedAmount
       });
 
-    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
+    } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_APPROVED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
 
       await this.contractRepository.update(contractByServiceType.id, {
         montoActivo: updatedValues.contractByServiceType.activeAmount,

@@ -31,7 +31,7 @@ export class FacturaEventosService {
     private readonly orderService: OrdenService,
     private readonly contractService: ContratosService,
     private readonly amendmentService: ContratosModificatoriosService,
-  ) {}
+  ) { }
 
   /**
    * Maneja el evento 'invoice.contract.amounts.updated'.
@@ -42,7 +42,7 @@ export class FacturaEventosService {
    * @param payload.invoiceId - ID de la factura afectada
    * @param payload.eventType - Tipo de evento que desencadena la actualización de montos
    */
-  @OnEvent('invoice.reviewed.cancelled', { async: true })
+  @OnEvent('invoice.contract.amounts.updated', { async: true })
   async invoiceContractAmountsUpdated(payload: { invoiceId: string; eventType: TYPE_EVENT_INVOICE }) {
     try {
       this.logger.log(`🔄 Iniciando evento "invoice.contract.amounts.updated" para la factura: ${payload.invoiceId}`);
@@ -59,6 +59,9 @@ export class FacturaEventosService {
         switch (payload.eventType) {
           case TYPE_EVENT_INVOICE.INVOICE_REVIEWED:
             orderStatus = ESTATUS_ORDEN_DE_SERVICIO.COTEJADA;
+            break;
+          case TYPE_EVENT_INVOICE.INVOICE_APPROVED:
+            orderStatus = ESTATUS_ORDEN_DE_SERVICIO.PAGO_APROBADO;
             break;
           case TYPE_EVENT_INVOICE.INVOICE_CANCELLED:
             orderStatus = ESTATUS_ORDEN_DE_SERVICIO.CANCELADA;
@@ -92,6 +95,46 @@ export class FacturaEventosService {
             order.masterContract.masterContractId,
             payload.eventType,
           );
+        }
+
+        // Actualizar estado de la orden en base al evento
+        await this.orderService.updateOrderStatus(order.orderId, orderStatus);
+      }
+
+      this.logger.log(`✅ Evento "invoice.contract.amounts.updated" completado exitosamente para la factura: ${payload.invoiceId}`);
+    } catch (error) {
+      this.logger.error(
+        `❌ Error al procesar evento "invoice.contract.amounts.updated" para factura ${payload.invoiceId}`,
+        error.stack,
+      );
+    }
+  }
+
+
+  @OnEvent('invoice.order.status.updated', { async: true })
+  async invoiceOrderStatusUpdated(payload: { invoiceId: string; eventType: TYPE_EVENT_INVOICE }) {
+    try {
+      this.logger.log(`🔄 Iniciando evento "invoice.contract.amounts.updated" para la factura: ${payload.invoiceId}`);
+
+      // Obtener entidad factura con sus órdenes relacionadas
+      const invoice = await this.invoiceService.findOne(payload.invoiceId);
+
+      // Recorrer todas las órdenes vinculadas a la factura
+      for (const orderFromInvoice of invoice.orders) {
+        const order = await this.orderService.findOne(orderFromInvoice.id);
+
+        // Determinar nuevo estado de la orden según el tipo de evento
+        let orderStatus: ESTATUS_ORDEN_DE_SERVICIO;
+        switch (payload.eventType) {
+          case TYPE_EVENT_INVOICE.INVOICE_REVIEWED:
+            orderStatus = ESTATUS_ORDEN_DE_SERVICIO.COTEJADA;
+            break;
+          case TYPE_EVENT_INVOICE.INVOICE_APPROVED:
+            orderStatus = ESTATUS_ORDEN_DE_SERVICIO.PAGO_APROBADO;
+            break;
+          case TYPE_EVENT_INVOICE.INVOICE_CANCELLED:
+            orderStatus = ESTATUS_ORDEN_DE_SERVICIO.CANCELADA;
+            break;
         }
 
         // Actualizar estado de la orden en base al evento

@@ -78,9 +78,10 @@ export class FacturaController {
   @Post('send-to-signing-invoice/:invoiceId')
   sendInvoiceToCancelSigning(
     @Param('invoiceId', ParseUUIDPipe) invoiceId: string,
-    // @Body() updateFacturaDto: UpdateFacturaDto,
+    @Query('cancellationReason') cancellationReason: string
+
   ) {
-    return this.facturaService.sendInvoiceToCancelSigning(invoiceId);
+    return this.facturaService.sendInvoiceToCancelSigning(invoiceId, cancellationReason);
   }
 
 
