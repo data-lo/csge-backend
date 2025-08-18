@@ -69,28 +69,22 @@ export class Factura {
   isWitnessValidated: boolean;
 
   @Column({
-    name: 'fecha_de_aprobacion',
-    type: 'date',
-    nullable: true,
+    name: 'approved_at',
     default: null,
   })
-  fechaAprobacion: Date;
+  approvedAt: Date;
 
   @Column({
-    name: 'fecha_de_validacion',
-    type: 'date',
-    nullable: true,
+    name: 'created_at',
     default: null,
   })
-  fechaValidacion: Date;
+  createdAt: Date;
 
   @Column({
-    name: 'fecha_de_recepcion',
-    type: 'date',
-    nullable: true,
+    name: 'reviewed_at',
     default: null,
   })
-  fechaDeRecepcion: Date;
+  reviewedAt: Date;
 
   @Column({
     name: 'fecha_de_pago',

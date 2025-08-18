@@ -80,11 +80,16 @@ export class WebhooksService {
 
         if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
           this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
-          
+
+          this.eventEmitter.emit('invoice.contract.amounts.updated', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
+
+          this.eventEmitter.emit('invoice.order.match.amounts.updated', { orderOrInvoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED, isInvoice: true });
+
+
         } else {
           this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.CANCELADA });
 
-          this.eventEmitter.emit('invoice.reviewed.cancelled', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_CANCELLED });
+          this.eventEmitter.emit('invoice.contract.amounts.updated', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_CANCELLED });
         }
 
       } else if (document.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
@@ -126,16 +131,16 @@ export class WebhooksService {
 
         signatureDocument.isSigned = false;
 
+        signatureDocument.updateAt = new Date();
+
         signatureDocument.signatureStatus = ESTATUS_DE_FIRMA.SIGNED_REVIEW;
 
         await this.signatureRepository.save(signatureDocument);
 
         this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
 
-        this.eventEmitter.emit('invoice.reviewed.cancelled', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED });
-
-        this.eventEmitter.emit('invoice.order.match.amounts.updated', { orderOrInvoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_REVIEWED, isInvoice: true });
-
+        this.eventEmitter.emit('invoice.order.status.updated', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
+        
       } else if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
 
         const values = {
