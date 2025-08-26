@@ -22,13 +22,12 @@ export class FirmaController {
   }
 
   @Auth(...rolesFirma)
-  @Get('sign-document/:documentId')
+  @Post('sign-document')
   signDocument(
-    @Param('documentId', ParseUUIDPipe) documentId: string,
-    @Query('signatureAction') signatureAction: SIGNATURE_ACTION_ENUM,
+    @Body() values: { documentIds: string[] },
     @GetUser() user: Usuario
   ) {
-    return this.signatureService.documentSigning(user.id, documentId);
+    return this.signatureService.documentSigning(user.id, values);
   }
 
   @Auth(...rolesFirma)

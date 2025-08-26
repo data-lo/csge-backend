@@ -50,7 +50,6 @@ export class FacturaService {
 
   async create(createFacturaDto: CreateFacturaDto, usuarioTestigo: Usuario) {
     try {
-      console.log(createFacturaDto)
       const { orderIds, providerId, id, includeAdditionalTaxes, folio } = createFacturaDto;
 
       let orders = [];
@@ -281,8 +280,6 @@ export class FacturaService {
         })),
       };
 
-      console.log(newData)
-
       return newData;
     } catch (error: any) {
       handleExceptions(error);
@@ -395,11 +392,11 @@ export class FacturaService {
         return;
       }
 
-      if(status === INVOICE_STATUS.CONTEJADA){
+      if (status === INVOICE_STATUS.CONTEJADA) {
         invoice.reviewedAt = new Date();
       }
 
-      if(status === INVOICE_STATUS.APROBADA){
+      if (status === INVOICE_STATUS.APROBADA) {
         invoice.approvedAt = new Date();
       }
 
@@ -447,7 +444,7 @@ export class FacturaService {
 
     const document = ((await this.signatureService.create(signatureObject)).documentoAFirmar);
 
-    const url = await this.signatureService.documentSigning(usuario.id, document.id);
+    const url = await this.signatureService.documentSigning(usuario.id, { documentIds: [document.id] });
 
     const factura = await this.invoiceRepository.findOneBy({ id: facturaId });
 
@@ -497,13 +494,16 @@ export class FacturaService {
       const invoiceIds: string[] = [];
 
       for (const row of jsonData) {
+
         const invoice = await this.findOne(row.invoiceNumber, true);
+
         if (!invoice) continue;
 
         const isProcessableStatus = [
           INVOICE_STATUS.APROBADA,
           INVOICE_STATUS.PARTIAL_PAY
         ].includes(invoice.status);
+
 
         if (!isProcessableStatus) continue;
 
@@ -584,6 +584,7 @@ export class FacturaService {
       };
 
     } catch (error) {
+      console.log(error)
       throw new Error("No se pudo procesar el archivo Excel. Contacta al administrador o revisa los registros del sistema.");
     }
   }
