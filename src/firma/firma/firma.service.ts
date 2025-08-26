@@ -160,7 +160,6 @@ export class FirmaService {
       let invoices: Factura[] = []
 
       if (user.documentosDeFirma.includes(requiredPermissionToReview)) {
-        console.log('Primer condición válida');
 
         const query = await this.findInvoicesToSign(user.id, false, TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA, ESTATUS_DE_FIRMA.PENDIENTE_DE_FIRMA, SIGNATURE_ACTION_ENUM.APPROVE)
 
@@ -333,62 +332,79 @@ export class FirmaService {
 
   // Este servicio devuelve la URL donde se almacena en los servicios de Firmamex. 
   // Si es la primera vez, se crea la entidad en los servidores del gobierno.
-  async documentSigning(userId: string, documentId: string) {
-
+  async documentSigning(userId: string, values: { documentIds: string[] }) {
     try {
       // Buscar el usuario en la base de datos por su ID
       const user = await this.usuarioRepository.findOneBy({ id: userId });
-
-      // Buscar el documento en la base de datos con sus relaciones (usuarios firmadores)
-      const document = await this.signatureRepository.findOne({
-        where: { id: documentId },
-        relations: { usuariosFirmadores: true },
-      });
 
       // Si el usuario no existe, lanzar una excepción
       if (!user) {
         throw new NotFoundException('¡No se encuentra el usuario!');
       }
 
-      // Si el documento no existe, lanzar una excepción
-      if (!document) {
-        throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
+      let urls: string[] = [];
+
+      for (const documentId of values.documentIds) {
+        // Buscar el documento en la base de datos con sus relaciones (usuarios firmadores)
+        const document = await this.signatureRepository.findOne({
+          where: { id: documentId },
+          relations: { usuariosFirmadores: true },
+        });
+
+        // Si el documento no existe, lanzar una excepción
+        if (!document) {
+          throw new NotFoundException('¡No se encuentra el documento en el módulo de firma!');
+        }
+
+        if (document.firmamexDocumentUrl === "sin_url") {
+
+          // Construir el documento en formato PDF a partir de su orden, factura o campaña
+          const documentInPdf = await this.buildPDF(document.documentId, document.documentType, document.signatureAction);
+
+          // Generar stickers para la firma digital del documento
+          const stickers = await this.createStickers([user], document.documentType, document.usuariosFirmadores, document.signatureAction);
+
+          // Convertir el documento PDF a formato Base64
+          const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
+
+          // Enviar el documento al servicio de firma digital (Firmamex SDK)
+          const response = await this.submitDocumentToFirmamexSDK(
+            documentInBase64,
+            documentInPdf.info.Title,
+            stickers,
+            document.documentType,
+          );
+
+          // Guardar los datos de la firma en el documento
+          document.ticket = response.document_ticket;
+
+          document.firmamexDocumentUrl = response.document_url;
+
+          urls.push(response.document_url);
+
+          await this.signatureRepository.save(document);
+        } else {
+          urls.push(document.firmamexDocumentUrl);
+        }
       }
 
-      if (document.firmamexDocumentUrl === "sin_url") {
+      const documentCount = urls.length === 1 ? "SINGLE" : "MULTIPLE";
 
-        // Construir el documento en formato PDF a partir de su orden, factura o campaña
-        const documentInPdf = await this.buildPDF(document.documentId, document.documentType, document.signatureAction);
-
-        // Generar stickers para la firma digital del documento
-        const stickers = await this.createStickers([user], document.documentType, document.usuariosFirmadores, document.signatureAction);
-
-        // Convertir el documento PDF a formato Base64
-        const documentInBase64 = await this.crearArchivoEnBase64(documentInPdf);
-
-        // Enviar el documento al servicio de firma digital (Firmamex SDK)
-        const response = await this.submitDocumentToFirmamexSDK(
-          documentInBase64,
-          documentInPdf.info.Title,
-          stickers,
-          document.documentType,
-        );
-
-        // Guardar los datos de la firma en el documento
-        document.ticket = response.document_ticket;
-
-        document.firmamexDocumentUrl = response.document_url;
-
-        // Guardar los cambios en la base de datos
-        await this.signatureRepository.save(document);
-      }
-
-      // Retornar la URL del documento generado en los servidores de Firmamex
-      return document.firmamexDocumentUrl;
+      return {
+        success: true,
+        data: {
+          urls: urls,
+          documentCount,
+        },
+        error: null,
+      };
 
     } catch (error) {
-      // Manejo de errores centralizado
-      handleExceptions(error);
+      return {
+        success: false,
+        data: { urls: [], documentCount: "NONE" },
+        error: error.message || "Error desconocido",
+      };
     }
   }
 

@@ -202,20 +202,16 @@ export class PartidaService {
 
       if (eventType === TYPE_EVENT_ORDER.ORDER_APPROVED || eventType === TYPE_EVENT_ORDER.ORDER_CANCELLED) {
 
-        console.log(`Primer Condición: ${eventType}`);
-
         await this.matchRepository.update(match.id, {
           montoActivo: updatedValues.match.activeAmount,
         });
       } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_REVIEWED || eventType === TYPE_EVENT_INVOICE.INVOICE_CANCELLED) {
-        console.log(`Segunda Condición: ${eventType}`);
+        
         await this.matchRepository.update(match.id, {
           montoActivo: updatedValues.match.activeAmount,
           montoEjercido: updatedValues.match.executedAmount,
         });
       } else if (eventType === TYPE_EVENT_INVOICE.INVOICE_PAID) {
-
-        console.log(`Tercer Condición: ${eventType}`);
 
         await this.matchRepository.update(match.id, {
           montoEjercido: updatedValues.match.executedAmount,

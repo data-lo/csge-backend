@@ -79,6 +79,7 @@ export class WebhooksService {
       } else if (document.documentType === TIPO_DE_DOCUMENTO.APROBACION_DE_FACTURA) {
 
         if (document.signatureAction === SIGNATURE_ACTION_ENUM.APPROVE) {
+
           this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.APROBADA });
 
           this.eventEmitter.emit('invoice.contract.amounts.updated', { invoiceId: documentId, eventType: TYPE_EVENT_INVOICE.INVOICE_APPROVED });
@@ -119,7 +120,11 @@ export class WebhooksService {
 
   private async handleOriginalSigned(response: OriginalSigned) {
     try {
-      const { firmamex_id } = response;
+      const { firmamex_id, signer_email, document_title } = response;
+
+      console.info(
+        `[Firma] Usuario: ${signer_email} | Fecha: ${new Date().toISOString()} | Documento ${document_title}`
+      );
 
       const signatureDocument = await this.signatureRepository.findOneBy({
         ticket: firmamex_id
@@ -140,7 +145,7 @@ export class WebhooksService {
         this.eventEmitter.emit('invoice.status.update', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
 
         this.eventEmitter.emit('invoice.order.status.updated', { invoiceId: documentId, status: INVOICE_STATUS.CONTEJADA });
-        
+
       } else if (signatureDocument.documentType === TIPO_DE_DOCUMENTO.CAMPAÑA) {
 
         const values = {

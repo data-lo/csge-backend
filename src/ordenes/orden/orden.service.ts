@@ -963,14 +963,12 @@ export class OrdenService {
   }
 
   async getCampaignTotalForMatch(matchId: string) {
-    console.log(matchId)
     const orders = await this.orderRepository.find({
       where: {
         partida: {
           id: matchId,
         },
           estatus: Not(ESTATUS_ORDEN_DE_SERVICIO.CANCELADA)
-
       }
     });
 
