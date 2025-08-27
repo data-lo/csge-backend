@@ -215,12 +215,13 @@ export class OrdenService {
           'proveedor.razonSocial',
           'campaña.nombre',
         ])
-        .where('orden.esCampania = false')
         .andWhere('EXTRACT(YEAR FROM orden.fechaDeEmision) = :year', { year: currentYear })
         .orderBy('orden.fechaDeEmision', 'DESC')
         .take(paginationSetter.castPaginationLimit())
         .skip(paginationSetter.getSkipElements(pagina))
         .getMany();
+
+        console.log(ordenes)
 
       return ordenes;
     } catch (error) {

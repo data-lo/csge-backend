@@ -160,7 +160,7 @@ export class FacturaService {
       }
 
       if (status) {
-        query.andWhere('factura.estatus = :status', { status });
+        query.andWhere('factura.status = :status', { status });
       }
 
       query
