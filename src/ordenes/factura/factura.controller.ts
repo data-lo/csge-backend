@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { FacturaService } from './factura.service';
 import { CreateFacturaDto } from './dto/create-factura.dto';
-import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
@@ -23,7 +22,6 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { Usuario } from 'src/administracion/usuarios/entities/usuario.entity';
 import { MinioService } from 'src/minio/minio.service';
-import { handleExceptions } from 'src/helpers/handleExceptions.function';
 import { v4 as uuidv4 } from 'uuid'
 import { INVOICE_STATUS } from './interfaces/estatus-factura';
 import { ValidPermises } from 'src/administracion/usuarios/interfaces/usuarios.permisos';
