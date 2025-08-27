@@ -552,7 +552,8 @@ export class FacturaService {
 
         await this.invoiceRepository.update(invoice.id, {
           paymentRegister: updatedPayments,
-          status: newStatusInvoice
+          status: newStatusInvoice,
+          fechaDePago: row.checkDate
         });
 
         for (const order of invoice.orders) {
