@@ -221,8 +221,6 @@ export class OrdenService {
         .skip(paginationSetter.getSkipElements(pagina))
         .getMany();
 
-        console.log(ordenes)
-
       return ordenes;
     } catch (error) {
       handleExceptions(error);
@@ -330,7 +328,7 @@ export class OrdenService {
         },
       });
 
-      // const
+      // console.log(order.iva)
 
       if (!order) {
         throw new NotFoundException(`¡Orden con ID ${id} no encontrada!`);
@@ -383,6 +381,8 @@ export class OrdenService {
 
         })),
       };
+
+      console.log(newData)
 
       return newData;
 

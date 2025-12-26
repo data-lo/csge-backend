@@ -20,6 +20,8 @@ export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
+
+    
     private readonly jwtService: JwtService,
 
   ) { }
